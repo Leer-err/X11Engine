@@ -2,8 +2,8 @@
 #include <unordered_map>
 #include <vector>
 #include <mutex>
-#include "GlobalAllocator.h"
-#include "LinearAllocator.h"
+#include "Memory/GlobalAllocator.h"
+#include "Memory/LinearAllocator.h"
 #include "EventDelegate.h"
 
 using std::vector;
