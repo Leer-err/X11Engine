@@ -1,4 +1,5 @@
 #pragma once
+#include <unordered_map>
 #include "IEntity.h"
 #include "Memory.h"
 
@@ -32,15 +33,11 @@ namespace ECS {
 			return &instance;
 		}
 
-		inline void SetData(ComponentManager* componentManager) {
+		/*inline void SetData(ComponentManager* componentManager) {
 			m_componentManager = componentManager;
-		}
+		}*/
 
-		inline void Destroy() {
-			for (auto entityContainer : m_entityContainers) {
-				delete (entityContainer.second);
-			}
-		}
+		void Destroy();
 
 		template<class T, class... Args>
 		EntityId CreateEntity(Args&&... args) {
@@ -55,26 +52,10 @@ namespace ECS {
 			m_entities.emplace(id, entity);
 			return id;
 		}
-		void DestroyEntity(EntityId id)
-		{
-			IEntity* entity = GetEntity(id);
-			const TypeId typeId = entity->GetEntityTypeId();
-
-			auto container = m_entityContainers.find(typeId);
-			if (container != m_entityContainers.end()) {
-				container->second->DestroyEntity(entity);
-			}
-		}
-		IEntity* GetEntity(EntityId id)
-		{
-			auto entity = m_entities.find(id);
-			if (entity == m_entities.end()) {
-				return nullptr;
-			}
-			return entity->second;
-		}
+		void DestroyEntity(EntityId id);
+		IEntity* GetEntity(EntityId id);
 	protected:
-		EntityManager() : m_nextId(0) {};
+		EntityManager() : m_nextId(0), m_componentManager(ECS::ComponentManager::Get()) {};
 
 		template<class T>
 		EntityContainer<T>* GetEntityContiner() {
@@ -87,7 +68,6 @@ namespace ECS {
 			else {
 				newContainer = (EntityContainer<T>*)containerPair->second;
 			}
-			assert(newContainer != nullptr && "FAILED TO GET ENTITY CONTAINER");
 			return newContainer;
 		};
 
@@ -96,8 +76,8 @@ namespace ECS {
 		EntityManager(const EntityManager&) = delete;
 		EntityManager& operator=(const EntityManager&) = delete;
 
-		std::unordered_map<EntityId, IEntity*> m_entities;
-		std::unordered_map<TypeId, IEntityContainer*> m_entityContainers;
+		unordered_map<EntityId, IEntity*> m_entities;
+		unordered_map<TypeId, IEntityContainer*> m_entityContainers;
 		EntityId m_nextId;
 		ComponentManager* m_componentManager;
 	};

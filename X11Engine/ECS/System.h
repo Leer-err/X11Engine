@@ -1,6 +1,6 @@
 #pragma once
 #include "ISystem.h"
-#include "Utility.h"
+#include "Helper.h"
 
 namespace ECS {
 	template<class T>
@@ -14,5 +14,5 @@ namespace ECS {
 	};
 
 	template<class T>
-	const TypeId System<T>::TYPE_ID = Utility<ISystem>::Get<T>();
+	const TypeId System<T>::TYPE_ID = Helper<ISystem>::Get<T>();
 }

@@ -4,8 +4,11 @@
 #include <wrl/client.h>
 #include <d3dcompiler.h>
 #include <memory>
-#include "Helper.h"
+#include "../Helper.h"
 #include <vector>
+#include "../Math/Vector3.h"
+
+#include "../ECS/CameraComponent.h"
 
 using Microsoft::WRL::ComPtr;
 using std::unique_ptr;
@@ -20,9 +23,11 @@ public:
 
 	~Graphics();
 
-	void PreFrame();
+	void PreFrame(CameraComponent* camera);
 	void PostFrame();
-	void Draw(const vector<float>& vertices, const vector<uint32_t>& indices);
+	void Draw(const vector<vector3>& vertices, const vector<uint32_t>& indices);
+	inline IDXGIFactory7* GetFactory() const { return m_factory.Get(); }
+	inline ID3D11Device5* GetDevice() const { return m_device.Get(); }
 private:
 	ComPtr<IDXGIFactory7> m_factory;
 	ComPtr<ID3D11Device5> m_device;

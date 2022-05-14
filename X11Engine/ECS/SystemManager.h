@@ -1,7 +1,14 @@
 #pragma once
+#include <memory>
+#include <vector>
+#include <unordered_map>
 #include "System.h"
 #include "Memory.h"
 #include "GlobalAllocator.h"
+
+using std::shared_ptr;
+using std::unordered_map;
+using std::vector;
 
 namespace ECS {
 	class SystemManager
@@ -75,14 +82,14 @@ namespace ECS {
 	protected:
 		SystemManager()
 		{
-			m_allocator = std::shared_ptr<Memory::LinearAllocator>(new Memory::LinearAllocator(Memory::GlobalAllocator::Instance().allocate(10485760, 256), 10485760));
+			m_allocator = shared_ptr<Memory::LinearAllocator>(new Memory::LinearAllocator(Memory::GlobalAllocator::Instance().allocate(10485760, 256), 10485760));
 		}
 	private:
 		SystemManager(const SystemManager&) = delete;
 		SystemManager& operator=(const SystemManager&) = delete;
 
-		std::shared_ptr<Memory::LinearAllocator> m_allocator;
-		std::unordered_map<TypeId, ISystem*> m_systems;
-		std::vector<ISystem*> m_workOrder;
+		shared_ptr<Memory::LinearAllocator> m_allocator;
+		unordered_map<TypeId, ISystem*> m_systems;
+		vector<ISystem*> m_workOrder;
 	};
 }

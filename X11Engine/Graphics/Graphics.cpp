@@ -6,7 +6,6 @@ Graphics::Graphics(UINT width, UINT height, HWND hWnd)
 {
 	ComPtr<ID3D11Device> device;
 	ComPtr<ID3D11DeviceContext> context;
-	ComPtr<IDXGISwapChain1> swapChain;
 	ComPtr<IDXGIFactory2> factory;
 	ComPtr<IDXGIAdapter1> adapter;
 
@@ -78,11 +77,16 @@ Graphics::~Graphics()
 	m_context->ClearState();
 }
 
-void Graphics::PreFrame()
+void Graphics::PreFrame(CameraComponent* camera)
 {
 	constexpr FLOAT color[4] = { 0.f,0.f,0.f,0.f };
 	m_context->OMSetRenderTargets(1, reinterpret_cast<ID3D11RenderTargetView**>(m_rtv.GetAddressOf()), nullptr);
 	m_context->ClearRenderTargetView(m_rtv.Get(), &color[0]);
+
+	matrix pr = camera->projectionMatrix.Transpose();
+	const void* p = &pr;
+	Buffer constantBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, m_device.Get(), p, sizeof(float) * 16 };
+	m_context->VSSetConstantBuffers(0, 1, constantBuffer.GetAddress());
 }
 
 void Graphics::PostFrame()
@@ -90,9 +94,9 @@ void Graphics::PostFrame()
 	m_swapChain->Present();
 }
 
-void Graphics::Draw(const vector<float>& vertices,const vector<uint32_t>& indices)
+void Graphics::Draw(const vector<vector3>& vertices, const vector<uint32_t>& indices)
 {
-	Buffer vertexBuffer = { D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, m_device.Get(), vertices.data(), sizeof(FLOAT) * vertices.size()};
+	Buffer vertexBuffer = { D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, m_device.Get(), vertices.data(), sizeof(vector3) * vertices.size()};
 	Buffer indexBuffer = { D3D11_USAGE_DEFAULT, D3D11_BIND_INDEX_BUFFER, m_device.Get(), indices.data(), sizeof(uint32_t) * indices.size()};
 
 	UINT stride = sizeof(FLOAT) * 3;

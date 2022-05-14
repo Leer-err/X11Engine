@@ -16,5 +16,5 @@ namespace ECS {
 	};
 
 	template<class E>
-	const TypeId Entity<E>::TYPE_ID = Utility<IEntity>::Get<E>();
+	const TypeId Entity<E>::TYPE_ID = Helper<IEntity>::Get<E>();
 }

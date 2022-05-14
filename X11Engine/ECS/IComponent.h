@@ -1,17 +1,15 @@
 #pragma once
-#include "Types.h"
+#include "../Types.h"
 
 namespace ECS {
 	class IComponent {
 	public:
+		IComponent(EntityId owner) : m_owner(owner) {}
 		virtual ~IComponent() {};
 
 		virtual inline const TypeId GetComponentTypeId() const = 0;
-		inline bool const IsActive() const { return m_enabled; }
-		inline void SetActive(bool state) { m_enabled = state; }
-
+		virtual inline const EntityId GetOwner() const { return m_owner; }
+	private:
 		EntityId m_owner;
-	protected:
-		bool m_enabled;
 	};
 }

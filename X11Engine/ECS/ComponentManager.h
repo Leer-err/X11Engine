@@ -1,10 +1,12 @@
 #pragma once
 #include <unordered_map>
+#include <utility>
 #include "Component.h"
-#include "Memory.h"
+#include "../Memory/Memory.h"
 
 using std::unordered_map;
 using std::vector;
+using std::forward;
 
 namespace ECS {
 	class ComponentManager
@@ -19,16 +21,13 @@ namespace ECS {
 		template<class T>
 		class ComponentContainer : public Memory::ChunkAllocator<T, CHUNK_SIZE>, public IComponentContainer {
 		public:
-			ComponentContainer() {}
+			ComponentContainer() : Memory::ChunkAllocator<T, CHUNK_SIZE>() {}
 			virtual ~ComponentContainer() {}
 
 			virtual void DestroyComponent(IComponent* component) override {
 				component->~IComponent();
 				this->DestroyObject(component);
 			}
-		private:
-			ComponentContainer(ComponentContainer&) = delete;
-			ComponentContainer& operator=(ComponentContainer&) = delete;
 		};
 	public:
 		inline static ComponentManager* Get() {
@@ -36,20 +35,12 @@ namespace ECS {
 			return &instance;
 		}
 
-		inline void Destroy() {
-			for (auto componentContainer : m_componentContainers) {
-				delete (componentContainer.second);
-			}
-		}
-
 		template<class T, class... Args>
 		T* const AddComponent(const EntityId entityId, Args&&... args)
 		{
 			void* ptr = GetComponentContainer<T>()->CreateObject();
 
-			reinterpret_cast<IComponent*>(ptr)->m_owner = entityId;
-
-			IComponent* component = new (ptr)T(args...);
+			IComponent* component = new (ptr)T(entityId, forward<Args>(args)...);
 
 			auto componentList = m_lookupTable.find(entityId);
 			if (componentList == m_lookupTable.end()) {
@@ -70,10 +61,6 @@ namespace ECS {
 			auto entity = m_lookupTable.find(entityId);
 			IComponent* component = entity->second[T::TYPE_ID];
 
-			if (component == (void*)std::numeric_limits<TypeId>::max()) {
-				return nullptr;
-			}
-
 			return (T*)component;
 		}
 
@@ -88,23 +75,14 @@ namespace ECS {
 			GetComponentContainer<T>()->DestroyObject(component);
 		}
 
-		void RemoveAllComponents(EntityId entityId)
-		{
-			auto entity = m_lookupTable.find(entityId);
-			for (int i = 0; i < entity->second.size(); i++) {
-				IComponent* component = entity->second[i];
-
-				if (component == nullptr) { continue; }
-
-				m_componentContainers.find(i)->second->DestroyComponent(component);
-			}
-			m_lookupTable.erase(entityId);
-		}
+		void RemoveAllComponents(EntityId entityId);
+		void Destroy();
 
 		template<class T>
 		inline typename ComponentContainer<T>::iterator begin()
 		{
-			return GetComponentContainer<T>()->begin();
+			ComponentContainer<T>* c = GetComponentContainer<T>();
+			return c->begin();
 		}
 
 		template<class T>
@@ -113,22 +91,20 @@ namespace ECS {
 			return GetComponentContainer<T>()->end();
 		}
 	protected:
-		ComponentManager() {
-			m_componentContainers = std::unordered_map<TypeId, IComponentContainer*>();
-		}
+		ComponentManager() : m_componentContainers() {}
 
 		template<class T>
 		ComponentContainer<T>* GetComponentContainer() {
 			auto containerPair = m_componentContainers.find(T::TYPE_ID);
-			ComponentContainer<T>* newContainer = nullptr;
+			ComponentContainer<T>* container = nullptr;
 			if (containerPair == m_componentContainers.end()) {
-				newContainer = new ComponentContainer<T>();
-				m_componentContainers.emplace(T::TYPE_ID, newContainer);
+				container = new ComponentContainer<T>();
+				m_componentContainers.emplace(T::TYPE_ID, container);
 			}
 			else {
-				newContainer = (ComponentContainer<T>*)containerPair->second;
+				container = dynamic_cast<ComponentContainer<T>*>(containerPair->second);
 			}
-			return newContainer;
+			return container;
 		}
 	private:
 		ComponentManager(ComponentManager&) = delete;

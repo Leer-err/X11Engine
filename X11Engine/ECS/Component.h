@@ -1,11 +1,12 @@
 #pragma once
-#include "Helper.h"
+#include "../Helper.h"
 #include "IComponent.h"
 
 namespace ECS {
 	template<class T>
 	class Component : public IComponent {
 	public:
+		Component(EntityId owner) : IComponent(owner) {}
 		virtual ~Component() {};
 
 		inline const TypeId GetComponentTypeId() const override { return TYPE_ID; }
