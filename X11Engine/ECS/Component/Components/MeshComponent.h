@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
-#include "Math/vector3.h"
-#include "ECS/Component.h"
+#include "vector3.h"
+#include "Component.h"
 
 using std::vector;
 

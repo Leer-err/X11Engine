@@ -102,8 +102,10 @@ void Graphics::Draw(const vector<vector3>& vertices, const vector<uint32_t>& ind
 	UINT stride = sizeof(FLOAT) * 3;
 	UINT offset = 0;
 
+	m_render_mutex.lock();
 	m_context->IASetVertexBuffers(0, 1, vertexBuffer.GetAddress(), &stride, &offset);
 	m_context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	m_context->DrawIndexed(indices.size(), 0, 0);
+	m_render_mutex.unlock();
 }

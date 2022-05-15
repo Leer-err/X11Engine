@@ -2,7 +2,7 @@
 #include <unordered_map>
 #include <utility>
 #include "Component.h"
-#include "../Memory/Memory.h"
+#include "Memory.h"
 
 using std::unordered_map;
 using std::vector;

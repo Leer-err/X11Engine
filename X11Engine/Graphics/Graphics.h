@@ -4,15 +4,18 @@
 #include <wrl/client.h>
 #include <d3dcompiler.h>
 #include <memory>
-#include "../Helper.h"
+#include <mutex>
+#include "Helper.h"
 #include <vector>
-#include "../Math/Vector3.h"
+#include "Vector3.h"
 
-#include "../ECS/CameraComponent.h"
+#include "Components/CameraComponent.h"
 
 using Microsoft::WRL::ComPtr;
 using std::unique_ptr;
 using std::vector;
+using std::mutex;
+
 class SwapChain;
 class Buffer;
 
@@ -41,5 +44,7 @@ private:
 	unique_ptr<SwapChain> m_swapChain;
 
 	D3D_FEATURE_LEVEL m_featureLevel;
+
+	mutex m_render_mutex;
 };
 

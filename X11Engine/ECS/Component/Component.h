@@ -1,5 +1,5 @@
 #pragma once
-#include "../Helper.h"
+#include "Helper.h"
 #include "IComponent.h"
 
 namespace ECS {

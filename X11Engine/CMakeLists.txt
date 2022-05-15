@@ -8,6 +8,14 @@ configure_file("Graphics/VertexShader.hlsl" "" COPYONLY)
 
 add_executable(Engine WIN32 ${SOURCES} ${HEADERS})
 
+target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+	ECS/Component
+	ECS/Entity
+	ECS/System
+	Math
+	Memory
+)
+
 target_link_libraries(Engine "d3d11" "dxgi" "d3dcompiler")
 
 set_target_properties(Engine PROPERTIES

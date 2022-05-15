@@ -10,7 +10,7 @@ using std::vector;
 using std::unordered_map;
 using std::mutex;
 
-#define EVENT_BUFFER_SIZE 1048576
+#define EVENT_BUFFER_SIZE 1024
 
 class EventManager
 {

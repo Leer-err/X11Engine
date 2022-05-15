@@ -1,7 +1,7 @@
 #pragma once
 #include "Component.h"
 #include "PositionComponent.h"
-#include "../Math/Matrix.h"
+#include "Matrix.h"
 
 struct CameraComponent : ECS::Component<CameraComponent> {
 	CameraComponent(EntityId owner, PositionComponent* position) : Component(owner),

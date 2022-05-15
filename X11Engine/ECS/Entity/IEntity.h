@@ -1,5 +1,5 @@
 #pragma once
-#include "../Types.h"
+#include "Types.h"
 #include "ComponentManager.h"
 #include <vector>
 
