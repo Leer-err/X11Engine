@@ -4,7 +4,7 @@ struct input
     float4 color : COLOR;
 };
 
-float4 main(input color) : SV_TARGET
+float4 main(input in_data) : SV_TARGET
 {
-    return color.color;
+    return float4(1.f, 1.f, 1.f, 1.f);
 }

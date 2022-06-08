@@ -38,7 +38,6 @@ Graphics::Graphics(UINT width, UINT height, HWND hWnd)
 	m_factory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER);
 
 	ID3D11Texture2D1* backBuffer = m_swapChain->GetBuffer(0);
-
 	m_device->CreateRenderTargetView1(backBuffer, nullptr, &m_rtv);
 
 	D3D11_VIEWPORT viewport = {};
@@ -60,12 +59,14 @@ Graphics::Graphics(UINT width, UINT height, HWND hWnd)
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
-	ThrowIfFailed(m_device->CreateInputLayout(&layout[0], 1, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout));
-	m_context->IASetInputLayout(m_inputLayout.Get());
+	ThrowIfFailed(m_device->CreateInputLayout(layout, 2, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout));
 	ThrowIfFailed(m_device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &m_pixelShader));
 	ThrowIfFailed(m_device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &m_vertexShader));
+
+	m_context->IASetInputLayout(m_inputLayout.Get());
 	m_context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
 	m_context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
@@ -82,11 +83,6 @@ void Graphics::PreFrame(CameraComponent* camera)
 	constexpr FLOAT color[4] = { 0.f,0.f,0.f,0.f };
 	m_context->OMSetRenderTargets(1, reinterpret_cast<ID3D11RenderTargetView**>(m_rtv.GetAddressOf()), nullptr);
 	m_context->ClearRenderTargetView(m_rtv.Get(), &color[0]);
-
-	matrix pr = camera->projectionMatrix.Transpose();
-	const void* p = &pr;
-	Buffer constantBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, m_device.Get(), p, sizeof(float) * 16 };
-	m_context->VSSetConstantBuffers(0, 1, constantBuffer.GetAddress());
 }
 
 void Graphics::PostFrame()
@@ -94,17 +90,24 @@ void Graphics::PostFrame()
 	m_swapChain->Present();
 }
 
-void Graphics::Draw(const vector<vector3>& vertices, const vector<uint32_t>& indices)
+void Graphics::Draw(const vector<vertex>& vertices, const vector<uint32_t>& indices, const matrix& model, CameraComponent* camera)
 {
-	Buffer vertexBuffer = { D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, m_device.Get(), vertices.data(), sizeof(vector3) * vertices.size()};
-	Buffer indexBuffer = { D3D11_USAGE_DEFAULT, D3D11_BIND_INDEX_BUFFER, m_device.Get(), indices.data(), sizeof(uint32_t) * indices.size()};
+	Buffer vertexBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, m_device.Get(), vertices.data(), sizeof(vertex) * vertices.size()};
+	Buffer indexBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_INDEX_BUFFER, m_device.Get(), indices.data(), sizeof(uint32_t) * indices.size()};
 
-	UINT stride = sizeof(FLOAT) * 3;
+	UINT stride = sizeof(vertex);
 	UINT offset = 0;
+
+	matrix pr = model * camera->viewMatrix * camera->projectionMatrix;
+	pr = pr.Transpose();
+	const void* p = &pr;
+	Buffer constantBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, m_device.Get(), p, sizeof(matrix)};
+	m_context->VSSetConstantBuffers(1, 1, constantBuffer.GetAddress());
 
 	m_render_mutex.lock();
 	m_context->IASetVertexBuffers(0, 1, vertexBuffer.GetAddress(), &stride, &offset);
 	m_context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
 
 	m_context->DrawIndexed(indices.size(), 0, 0);
 	m_render_mutex.unlock();

@@ -10,22 +10,22 @@ struct matrix {
 	inline matrix(const vector4& a, const vector4& b, const vector4& c, const vector4& d) : rows{ a, b, c, d } {}
 	inline matrix(const DirectX::XMMATRIX& matr) { DirectX::XMStoreFloat4x4(&this->matr, matr); }
 
-	inline matrix Transpose() {
+	inline matrix Transpose() const {
 		return DirectX::XMMatrixTranspose(*this);
 	}
 
-	inline matrix __vectorcall operator+(const matrix& other) {
+	inline matrix __vectorcall operator+(const matrix& other) const {
 		return DirectX::XMMATRIX(*this) + DirectX::XMMATRIX(other);
 	}
-	inline matrix __vectorcall operator-(const matrix& other) {
+	inline matrix __vectorcall operator-(const matrix& other) const {
 		return DirectX::XMMATRIX(*this) - DirectX::XMMATRIX(other);
 	}
 
-    matrix __vectorcall operator*(const matrix& m) {
+    matrix __vectorcall operator*(const matrix& m) const {
         return DirectX::XMMatrixMultiply(*this, m);
     }
 
-    vector4 __vectorcall operator*(const vector4& v) {
+    vector4 __vectorcall operator*(const vector4& v) const {
         return DirectX::XMVector4Transform(v, *this);
     }
 

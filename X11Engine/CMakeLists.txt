@@ -3,20 +3,36 @@ cmake_minimum_required (VERSION 3.8)
 file(GLOB_RECURSE SOURCES *.cpp)
 file(GLOB_RECURSE HEADERS *.h)
 
-configure_file("Graphics/PixelShader.hlsl" "" COPYONLY)
-configure_file("Graphics/VertexShader.hlsl" "" COPYONLY)
+include(FetchContent)
+
+FetchContent_Declare(assimp
+  GIT_REPOSITORY    https://github.com/assimp/assimp.git
+  GIT_TAG           c8dafe0d2887242285c0080c6cbbea8c1f1c8094
+)
+FetchContent_MakeAvailable(assimp)
+
+set(ASSIMP_DLL ${assimp_BINARY_DIR}/bin/assimp-vc143-mtd.dll)
+message(${ASSIMP_DLL})
+
+install(FILES ${ASSIMP_DLL} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+configure_file("Graphics/PixelShader.hlsl" ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+configure_file("Graphics/VertexShader.hlsl" ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+configure_file("models/Minecraft_Axolotl.fbx" ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+configure_file("models/AxolV.png" ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
 add_executable(Engine WIN32 ${SOURCES} ${HEADERS})
 
-target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+target_include_directories(Engine PRIVATE
+	${CMAKE_CURRENT_SOURCE_DIR}
 	ECS/Component
 	ECS/Entity
 	ECS/System
-	Math
+	Types
 	Memory
 )
 
-target_link_libraries(Engine "d3d11" "dxgi" "d3dcompiler")
+target_link_libraries(Engine "d3d11" "dxgi" "d3dcompiler" assimp)
 
 set_target_properties(Engine PROPERTIES
 	CXX_STANDARD 17

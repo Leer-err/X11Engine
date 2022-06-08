@@ -5,8 +5,8 @@
 
 struct quaternion {
     inline quaternion(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
-    inline quaternion(float pitch, float yaw, float roll) { DirectX::XMQuaternionRotationRollPitchYaw(pitch, yaw, roll); }
-    inline quaternion(vector3 angles) { DirectX::XMQuaternionRotationRollPitchYawFromVector(angles); }
+    inline quaternion(float pitch, float yaw, float roll) { DirectX::XMStoreFloat4(&this->vec, DirectX::XMQuaternionRotationRollPitchYaw(pitch, yaw, roll)); }
+    inline quaternion(vector3 angles) { DirectX::XMStoreFloat4(&this->vec, DirectX::XMQuaternionRotationRollPitchYawFromVector(angles)); }
     inline quaternion(const DirectX::XMVECTOR vec) { DirectX::XMStoreFloat4(&this->vec, vec); }
 
     inline quaternion __vectorcall operator*(quaternion& other) {

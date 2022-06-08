@@ -1,7 +1,18 @@
-cbuffer data : register(b0)
+cbuffer frameData : register(b0)
 {
-    matrix projection;
+    
 };
+
+cbuffer modelData : register(b1)
+{
+    matrix wvpMatrix;
+};
+
+cbuffer drawData : register(b2)
+{
+    
+};
+
 
 struct output
 {
@@ -9,10 +20,16 @@ struct output
     float4 color : COLOR;
 };
 
-output main(float4 pos : POSITION)
+struct input
+{
+    float4 pos : POSITION;
+    float2 uv : TEXCOORD;
+};
+
+output main(input in_data)
 {
     output a;
-    a.pos = mul(pos, projection);
-    a.color = pos;
+    a.pos = mul(in_data.pos, wvpMatrix);
+    a.color = in_data.pos;
     return a;
 }

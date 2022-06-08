@@ -7,7 +7,7 @@
 #include <mutex>
 #include "Helper.h"
 #include <vector>
-#include "Vector3.h"
+#include "Vertex.h"
 
 #include "Components/CameraComponent.h"
 
@@ -28,7 +28,7 @@ public:
 
 	void PreFrame(CameraComponent* camera);
 	void PostFrame();
-	void Draw(const vector<vector3>& vertices, const vector<uint32_t>& indices);
+	void Draw(const vector<vertex>& vertices, const vector<uint32_t>& indices, const matrix& model, CameraComponent* camera);
 	inline IDXGIFactory7* GetFactory() const { return m_factory.Get(); }
 	inline ID3D11Device5* GetDevice() const { return m_device.Get(); }
 private:
@@ -40,6 +40,7 @@ private:
 	ComPtr<ID3D11InputLayout> m_inputLayout;
 	ComPtr<ID3D11PixelShader> m_pixelShader;
 	ComPtr<ID3D11VertexShader> m_vertexShader;
+	ComPtr<ID3D11Texture2D1> m_texture;
 
 	unique_ptr<SwapChain> m_swapChain;
 
