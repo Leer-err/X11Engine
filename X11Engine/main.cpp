@@ -13,18 +13,18 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "Logger/Logger.h"
+
 using std::thread;
 
-std::atomic<bool> IsRunning = true;
-
 void Update(Graphics& g, CameraComponent* camera) {
-	while (IsRunning) {
+	while (Window::get().IsRunning()) {
 		vector<future<void>> completed_tasks;
 		g.PreFrame(camera);
 		for (auto mesh = ECS::ComponentManager::Get()->begin<MeshComponent>(); mesh != ECS::ComponentManager::Get()->end<MeshComponent>(); ++mesh) {
 			EntityId entity = mesh->GetOwner();
 			const PositionComponent* pos = ECS::ComponentManager::Get()->GetComponent<PositionComponent>(entity);
-			matrix model = TranslationMatrix(pos->position)/* * RotationMatrix(q)*/;
+			matrix model = TranslationMatrix(pos->position) * RotationMatrix(quaternion{0.f, 0.f, 1.57f});
 			completed_tasks.emplace_back(TaskManager::get().submit(&Graphics::Draw, &g, std::ref(mesh->vertices), std::ref(mesh->indices), std::ref(model), camera));
 		}
 		for (const auto& task : completed_tasks) {
@@ -77,13 +77,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
 	ECS::ComponentManager::Get()->AddComponent<MeshComponent>(a, vert, ind);
 
-	Window::Get();
-	//thread th(&Window::Run, &Window::Get());
-	Graphics g{ 1920, 1080, Window::Get().GetHandle() };
+	Window::get();
+	Graphics g{ 1920, 1080, Window::get().GetHandle() };
 	thread th2(Update, std::ref(g), cameraComponent);
-	Window::Get().Run();
-	IsRunning = false;
+	Window::get().Run();
 	th2.join();
-	//th.join();
 	return 0;
 }

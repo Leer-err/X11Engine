@@ -2,10 +2,6 @@
 #include <Windows.h>
 #include "Types.h"
 
-inline void ThrowIfFailed(HRESULT hr) {
-	if (!SUCCEEDED(hr)) throw;
-}
-
 template<class T>
 class Helper {
 public:

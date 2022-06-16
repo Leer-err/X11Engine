@@ -1,6 +1,8 @@
 #pragma once
 #include <Windows.h>
+#include <atomic>
 
+using std::atomic;
 
 class Window
 {
@@ -25,7 +27,7 @@ public:
 		m_hWnd = CreateWindow(wnd.lpszClassName, "", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, rect.right - rect.left, rect.bottom - rect.top, HWND_DESKTOP, NULL, NULL, NULL);
 	}
 
-	static Window& Get() {
+	static Window& get() {
 		static Window instance;
 		return instance;
 	}
@@ -42,19 +44,26 @@ public:
 	}
 
 	void Run() {
-		m_message = {};
-		while (m_message.message != WM_QUIT) {
-			if (PeekMessage(&m_message, NULL, NULL, NULL, PM_REMOVE)) {
-				TranslateMessage(&m_message);
-				DispatchMessage(&m_message);
+		m_running = true;
+		MSG message = {};
+		while (message.message != WM_QUIT) {
+			if (PeekMessage(&message, NULL, NULL, NULL, PM_REMOVE)) {
+				TranslateMessage(&message);
+				DispatchMessage(&message);
 			}
 		}
+		Terminate();
 	}
+
+	inline void Terminate() { m_running = false; }
+
+	inline bool IsRunning() const { return m_running; }
 
 	inline HWND GetHandle() const { return m_hWnd; }
 private:
 	HWND m_hWnd;
-	MSG m_message;
 	int m_width;
 	int m_height;
+
+	atomic<bool> m_running;
 };

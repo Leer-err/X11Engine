@@ -14,8 +14,6 @@ using std::async;
 using std::thread;
 using std::pair;
 
-extern std::atomic<bool> IsRunning;
-
 class TaskManager {
 public:
 	static TaskManager& get() {

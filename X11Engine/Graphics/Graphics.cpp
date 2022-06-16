@@ -1,6 +1,8 @@
 #include "Graphics.h"
 #include "SwapChain.h"
 #include "Buffer.h"
+#include "Logger/Logger.h"
+#include "Window.h"
 
 Graphics::Graphics(UINT width, UINT height, HWND hWnd)
 {
@@ -23,15 +25,34 @@ Graphics::Graphics(UINT width, UINT height, HWND hWnd)
 	};
 	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
-	ThrowIfFailed(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory)));
-	factory.As(&m_factory);
-	ThrowIfFailed(m_factory->EnumAdapters1(0, &adapter));
-	adapter.As(&m_adapter);
-	ThrowIfFailed(D3D11CreateDevice(m_adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, createDeviceFlags, &featureLevels[0], numFeatureLevels,
-		D3D11_SDK_VERSION, &device, &m_featureLevel, &context));
+	if (SUCCEEDED(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory))) 
+		&& SUCCEEDED(factory.As(&m_factory))) {
+		Logger::get().Debug(L"DXGI Factory created successfully");
+	}
+	else {
+		Logger::get().Error(L"DXGI Factory creation failed");
+		Window::get().Terminate();
+	}
 
-	device.As(&m_device);
-	context.As(&m_context);
+	if (SUCCEEDED(m_factory->EnumAdapters1(0, &adapter))
+		&& SUCCEEDED(adapter.As(&m_adapter))) {
+		Logger::get().Debug(L"Adapter created successfully");
+	}
+	else {
+		Logger::get().Error(L"Adapter creation failed");
+		Window::get().Terminate();
+	}
+
+	if (SUCCEEDED(D3D11CreateDevice(m_adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, createDeviceFlags, &featureLevels[0], numFeatureLevels,
+		D3D11_SDK_VERSION, &device, &m_featureLevel, &context))
+		&& SUCCEEDED(device.As(&m_device))
+		&& SUCCEEDED(context.As(&m_context))) {
+		Logger::get().Debug(L"Device and context created successfully");
+	}
+	else {
+		Logger::get().Error(L"Device and context creation failed");
+		Window::get().Terminate();
+	}
 
 	m_swapChain = std::make_unique<SwapChain>(width, height, hWnd, m_factory.Get(), m_device.Get());
 
@@ -53,8 +74,8 @@ Graphics::Graphics(UINT width, UINT height, HWND hWnd)
 	shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
-	ThrowIfFailed(D3DCompileFromFile(L"PixelShader.hlsl", nullptr, nullptr, "main", "ps_5_0", shaderFlags, 0, &psBlob, &errorBlob));
-	ThrowIfFailed(D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_5_0", shaderFlags, 0, &vsBlob, &errorBlob));
+	D3DCompileFromFile(L"PixelShader.hlsl", nullptr, nullptr, "main", "ps_5_0", shaderFlags, 0, &psBlob, &errorBlob);
+	D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_5_0", shaderFlags, 0, &vsBlob, &errorBlob);
 
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
@@ -62,9 +83,9 @@ Graphics::Graphics(UINT width, UINT height, HWND hWnd)
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
-	ThrowIfFailed(m_device->CreateInputLayout(layout, 2, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout));
-	ThrowIfFailed(m_device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &m_pixelShader));
-	ThrowIfFailed(m_device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &m_vertexShader));
+	m_device->CreateInputLayout(layout, 2, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout);
+	m_device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &m_pixelShader);
+	m_device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &m_vertexShader);
 
 	m_context->IASetInputLayout(m_inputLayout.Get());
 	m_context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
