@@ -1,10 +1,13 @@
 struct input
 {
     float4 pos : SV_POSITION;
-    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
+
+Texture2D tex : register(t0);
+SamplerState samp : register(s0);
 
 float4 main(input in_data) : SV_TARGET
 {
-    return float4(1.f, 1.f, 1.f, 1.f);
+    return tex.Sample(samp, in_data.uv);
 }

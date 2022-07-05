@@ -4,7 +4,7 @@
 #include "Logger/Logger.h"
 #include "Window.h"
 
-Graphics::Graphics(UINT width, UINT height, HWND hWnd)
+Graphics::Graphics()
 {
 	ComPtr<ID3D11Device> device;
 	ComPtr<ID3D11DeviceContext> context;
@@ -14,6 +14,10 @@ Graphics::Graphics(UINT width, UINT height, HWND hWnd)
 	ComPtr<ID3DBlob> vsBlob;
 	ComPtr<ID3DBlob> psBlob;
 	ComPtr<ID3DBlob> errorBlob;
+
+	HWND hWnd = Window::get().GetHandle();
+	int height = Window::get().GetHeight();
+	int width = Window::get().GetWidth();
 
 	UINT createDeviceFlags = 0;
 #ifdef _DEBUG
@@ -75,7 +79,7 @@ Graphics::Graphics(UINT width, UINT height, HWND hWnd)
 #endif
 
 	D3DCompileFromFile(L"PixelShader.hlsl", nullptr, nullptr, "main", "ps_5_0", shaderFlags, 0, &psBlob, &errorBlob);
-	D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_5_0", shaderFlags, 0, &vsBlob, &errorBlob);
+	HRESULT hr = D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_5_0", shaderFlags, 0, &vsBlob, &errorBlob);
 
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
@@ -92,6 +96,22 @@ Graphics::Graphics(UINT width, UINT height, HWND hWnd)
 	m_context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
 	m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	CD3D11_SAMPLER_DESC samDesc(D3D11_DEFAULT);
+	samDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samDesc.MipLODBias = 0.0f;
+	samDesc.MaxAnisotropy = 1;
+	samDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samDesc.BorderColor[0] = 0;
+	samDesc.BorderColor[1] = 0;
+	samDesc.BorderColor[2] = 0;
+	samDesc.BorderColor[3] = 0;
+	samDesc.MinLOD = 0;
+	samDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	m_device->CreateSamplerState(&samDesc, m_sampler.GetAddressOf());
 }
 
 Graphics::~Graphics()
@@ -111,7 +131,7 @@ void Graphics::PostFrame()
 	m_swapChain->Present();
 }
 
-void Graphics::Draw(const vector<vertex>& vertices, const vector<uint32_t>& indices, const matrix& model, CameraComponent* camera)
+void Graphics::Draw(const vector<vertex>& vertices, const vector<uint32_t>& indices, const matrix& model, Texture& tex, CameraComponent* camera)
 {
 	Buffer vertexBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, m_device.Get(), vertices.data(), sizeof(vertex) * vertices.size()};
 	Buffer indexBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_INDEX_BUFFER, m_device.Get(), indices.data(), sizeof(uint32_t) * indices.size()};
@@ -120,12 +140,18 @@ void Graphics::Draw(const vector<vertex>& vertices, const vector<uint32_t>& indi
 	UINT offset = 0;
 
 	matrix pr = model * camera->viewMatrix * camera->projectionMatrix;
-	pr = pr.Transpose();
 	const void* p = &pr;
 	Buffer constantBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, m_device.Get(), p, sizeof(matrix)};
 	m_context->VSSetConstantBuffers(1, 1, constantBuffer.GetAddress());
 
 	m_render_mutex.lock();
+
+	ComPtr<ID3D11ShaderResourceView> srv;
+	m_device->CreateShaderResourceView(tex.GetTexture(), nullptr, srv.GetAddressOf());
+
+	m_context->PSSetShaderResources(0, 1, srv.GetAddressOf());
+	m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
+
 	m_context->IASetVertexBuffers(0, 1, vertexBuffer.GetAddress(), &stride, &offset);
 	m_context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 

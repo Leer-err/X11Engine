@@ -8,6 +8,7 @@
 #include "Helper.h"
 #include <vector>
 #include "Vertex.h"
+#include "Texture.h"
 
 #include "Components/CameraComponent.h"
 
@@ -22,16 +23,21 @@ class Buffer;
 class Graphics
 {
 public:
-	Graphics(UINT width, UINT height, HWND hWnd);
-
-	~Graphics();
+	static Graphics& get() {
+		static Graphics instance;
+		return instance;
+	}
 
 	void PreFrame(CameraComponent* camera);
 	void PostFrame();
-	void Draw(const vector<vertex>& vertices, const vector<uint32_t>& indices, const matrix& model, CameraComponent* camera);
+	void Draw(const vector<vertex>& vertices, const vector<uint32_t>& indices, const matrix& model, Texture& tex, CameraComponent* camera);
 	inline IDXGIFactory7* GetFactory() const { return m_factory.Get(); }
 	inline ID3D11Device5* GetDevice() const { return m_device.Get(); }
 private:
+	Graphics();
+
+	~Graphics();
+
 	ComPtr<IDXGIFactory7> m_factory;
 	ComPtr<ID3D11Device5> m_device;
 	ComPtr<ID3D11DeviceContext4> m_context;
@@ -41,6 +47,8 @@ private:
 	ComPtr<ID3D11PixelShader> m_pixelShader;
 	ComPtr<ID3D11VertexShader> m_vertexShader;
 	ComPtr<ID3D11Texture2D1> m_texture;
+
+	ComPtr<ID3D11SamplerState> m_sampler;
 
 	unique_ptr<SwapChain> m_swapChain;
 

@@ -18,12 +18,8 @@ SwapChain::SwapChain(UINT width, UINT height, HWND hWnd, IDXGIFactory7* factory,
 	desc.Height = height;
 	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
-	if (FAILED(factory->CreateSwapChainForHwnd(device, hWnd, &desc, nullptr, nullptr, &swapChain))) {
-		Logger::get().Error(L"Swap chain creation failed");
-		Window::get().Terminate();
-	}
-
-	if (SUCCEEDED(swapChain.As(&m_swapChain))) {
+	if (SUCCEEDED(factory->CreateSwapChainForHwnd(device, hWnd, &desc, nullptr, nullptr, &swapChain))
+		&& SUCCEEDED(swapChain.As(&m_swapChain))) {
 		Logger::get().Debug(L"Swap chain created successfully");
 	}
 	else {

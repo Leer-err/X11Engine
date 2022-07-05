@@ -17,19 +17,20 @@ cbuffer drawData : register(b2)
 struct output
 {
     float4 pos : SV_POSITION;
-    float4 color : COLOR;
+    float2 uv : TEXCOORD;
 };
 
 struct input
 {
-    float4 pos : POSITION;
+    float3 pos : POSITION;
     float2 uv : TEXCOORD;
 };
 
 output main(input in_data)
 {
     output a;
-    a.pos = mul(in_data.pos, wvpMatrix);
-    a.color = in_data.pos;
+    float4 pos = float4(in_data.pos, 1.f);
+    a.pos = mul(wvpMatrix, pos);
+    a.uv = in_data.uv;
     return a;
 }
