@@ -1,13 +1,15 @@
 #pragma once
+#include <unordered_map>
+#include <iostream>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <wincodec.h>
-#include <memory>
 
-#include "Graphics/Texture.h"
+#include "Graphics/Model.h"
 
-using std::unique_ptr;
+using std::unordered_map;
+using std::string;
 
 class Loader {
 public:
@@ -16,11 +18,15 @@ public:
 		return instance;
 	}
 
-	Texture LoadTextureFromFile(const wchar_t* filename);
-	
+	Model LoadModelFromFile(const char* filename);
+	Texture LoadTextureFromFile(const char* filename);
+	Material LoadMaterial(const aiMaterial* material);
 private:
 	Loader() = default;
-
 	Loader(const Loader&) = delete;
 	Loader& operator=(const Loader&) = delete;
+	Loader(const Loader&&) = delete;
+	Loader& operator=(const Loader&&) = delete;
+
+	unordered_map<string, Model> m_modelRegistry;
 };

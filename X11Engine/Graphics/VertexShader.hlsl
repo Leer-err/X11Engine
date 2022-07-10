@@ -30,7 +30,7 @@ output main(input in_data)
 {
     output a;
     float4 pos = float4(in_data.pos, 1.f);
-    a.pos = mul(wvpMatrix, pos);
+    a.pos = mul(pos, wvpMatrix);
     a.uv = in_data.uv;
     return a;
 }

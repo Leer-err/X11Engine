@@ -97,21 +97,14 @@ Graphics::Graphics()
 
 	m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	CD3D11_SAMPLER_DESC samDesc(D3D11_DEFAULT);
-	samDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samDesc.MipLODBias = 0.0f;
-	samDesc.MaxAnisotropy = 1;
-	samDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samDesc.BorderColor[0] = 0;
-	samDesc.BorderColor[1] = 0;
-	samDesc.BorderColor[2] = 0;
-	samDesc.BorderColor[3] = 0;
-	samDesc.MinLOD = 0;
-	samDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	m_device->CreateSamplerState(&samDesc, m_sampler.GetAddressOf());
+	ComPtr<ID3D11Texture2D> depthStencil;
+	CD3D11_TEXTURE2D_DESC dsvDesc(DXGI_FORMAT_D24_UNORM_S8_UINT, 1920, 1080);
+	dsvDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+	m_device->CreateTexture2D(&dsvDesc, NULL, &depthStencil);
+
+	m_context->OMSetDepthStencilState(nullptr, 0);
+	m_device->CreateDepthStencilView(depthStencil.Get(), NULL, &m_depthStencilView);
 }
 
 Graphics::~Graphics()
@@ -122,8 +115,9 @@ Graphics::~Graphics()
 void Graphics::PreFrame(CameraComponent* camera)
 {
 	constexpr FLOAT color[4] = { 0.f,0.f,0.f,0.f };
-	m_context->OMSetRenderTargets(1, reinterpret_cast<ID3D11RenderTargetView**>(m_rtv.GetAddressOf()), nullptr);
+	m_context->OMSetRenderTargets(1, reinterpret_cast<ID3D11RenderTargetView**>(m_rtv.GetAddressOf()), m_depthStencilView.Get());
 	m_context->ClearRenderTargetView(m_rtv.Get(), &color[0]);
+	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.f, 0);
 }
 
 void Graphics::PostFrame()
@@ -131,31 +125,33 @@ void Graphics::PostFrame()
 	m_swapChain->Present();
 }
 
-void Graphics::Draw(const vector<vertex>& vertices, const vector<uint32_t>& indices, const matrix& model, Texture& tex, CameraComponent* camera)
+void Graphics::Draw(const Model& model, const matrix& mvpMatrix)
 {
-	Buffer vertexBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, m_device.Get(), vertices.data(), sizeof(vertex) * vertices.size()};
-	Buffer indexBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_INDEX_BUFFER, m_device.Get(), indices.data(), sizeof(uint32_t) * indices.size()};
-
 	UINT stride = sizeof(vertex);
 	UINT offset = 0;
 
-	matrix pr = model * camera->viewMatrix * camera->projectionMatrix;
-	const void* p = &pr;
-	Buffer constantBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, m_device.Get(), p, sizeof(matrix)};
+	matrix m = mvpMatrix.Transpose();
+	const void* p = &m;
+	Buffer constantBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, m_device.Get(), p, sizeof(matrix) };
 	m_context->VSSetConstantBuffers(1, 1, constantBuffer.GetAddress());
 
-	m_render_mutex.lock();
+	for (const auto& mesh : model.meshes) {
+		Buffer vertexBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, m_device.Get(), mesh.vertices.data(), sizeof(vertex) * mesh.vertices.size() };
+		Buffer indexBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_INDEX_BUFFER, m_device.Get(), mesh.indices.data(), sizeof(uint32_t) * mesh.indices.size() };
 
-	ComPtr<ID3D11ShaderResourceView> srv;
-	m_device->CreateShaderResourceView(tex.GetTexture(), nullptr, srv.GetAddressOf());
+		m_render_mutex.lock();
 
-	m_context->PSSetShaderResources(0, 1, srv.GetAddressOf());
-	m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
+		ComPtr<ID3D11ShaderResourceView> srv;
+		m_device->CreateShaderResourceView(model.materials[mesh.materialIndex].texture.GetTexture(), nullptr, srv.GetAddressOf());
 
-	m_context->IASetVertexBuffers(0, 1, vertexBuffer.GetAddress(), &stride, &offset);
-	m_context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+		m_context->PSSetShaderResources(0, 1, srv.GetAddressOf());
+		m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
+
+		m_context->IASetVertexBuffers(0, 1, vertexBuffer.GetAddress(), &stride, &offset);
+		m_context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 
-	m_context->DrawIndexed(indices.size(), 0, 0);
-	m_render_mutex.unlock();
+		m_context->DrawIndexed(mesh.indices.size(), 0, 0);
+		m_render_mutex.unlock();
+	}
 }
