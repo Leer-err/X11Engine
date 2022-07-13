@@ -7,6 +7,7 @@
 #include <wincodec.h>
 
 #include "Graphics/Model.h"
+#include "Graphics/Graphics.h"
 
 using std::unordered_map;
 using std::string;
@@ -19,7 +20,7 @@ public:
 	}
 
 	Model LoadModelFromFile(const char* filename);
-	Texture LoadTextureFromFile(const char* filename);
+	ComPtr<ID3D11Texture2D> LoadTextureFromFile(const char* filename);
 	Material LoadMaterial(const aiMaterial* material);
 private:
 	Loader() = default;

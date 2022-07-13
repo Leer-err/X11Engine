@@ -82,7 +82,7 @@ namespace ECS {
 	protected:
 		SystemManager()
 		{
-			m_allocator = shared_ptr<Memory::LinearAllocator>(new Memory::LinearAllocator(Memory::GlobalAllocator::Instance().allocate(10485760, 256), 10485760));
+			m_allocator = shared_ptr<Memory::LinearAllocator>(new Memory::LinearAllocator(Memory::GlobalAllocator::Instance().allocate(8192, 256), 8192));
 		}
 	private:
 		SystemManager(const SystemManager&) = delete;

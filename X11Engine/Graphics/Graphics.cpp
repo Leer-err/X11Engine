@@ -1,6 +1,5 @@
 #include "Graphics.h"
 #include "SwapChain.h"
-#include "Buffer.h"
 #include "Logger/Logger.h"
 #include "Window.h"
 
@@ -79,7 +78,7 @@ Graphics::Graphics()
 #endif
 
 	D3DCompileFromFile(L"PixelShader.hlsl", nullptr, nullptr, "main", "ps_5_0", shaderFlags, 0, &psBlob, &errorBlob);
-	HRESULT hr = D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_5_0", shaderFlags, 0, &vsBlob, &errorBlob);
+	D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_5_0", shaderFlags, 0, &vsBlob, &errorBlob);
 
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
@@ -102,9 +101,19 @@ Graphics::Graphics()
 	dsvDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
 	m_device->CreateTexture2D(&dsvDesc, NULL, &depthStencil);
+	m_device->CreateDepthStencilView(depthStencil.Get(), NULL, &m_depthStencilView);
 
 	m_context->OMSetDepthStencilState(nullptr, 0);
-	m_device->CreateDepthStencilView(depthStencil.Get(), NULL, &m_depthStencilView);
+
+	m_cbModel = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, nullptr, sizeof(matrix));
+	m_context->VSSetConstantBuffers(1, 1, m_cbModel.GetAddressOf());
+
+	m_vertexBuffer = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, nullptr, sizeof(vertex) * VERTEX_BUFFER_SIZE);
+	m_indexBuffer = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_INDEX_BUFFER, nullptr, sizeof(uint32_t) * INDEX_BUFFER_SIZE);
+	UINT stride = sizeof(vertex);
+	UINT offset = 0;
+	m_context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &stride, &offset);
+	m_context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 }
 
 Graphics::~Graphics()
@@ -112,12 +121,13 @@ Graphics::~Graphics()
 	m_context->ClearState();
 }
 
-void Graphics::PreFrame(CameraComponent* camera)
+void Graphics::PreFrame()
 {
-	constexpr FLOAT color[4] = { 0.f,0.f,0.f,0.f };
+	static constexpr FLOAT color[4] = { 0.f,0.f,0.f,0.f };
 	m_context->OMSetRenderTargets(1, reinterpret_cast<ID3D11RenderTargetView**>(m_rtv.GetAddressOf()), m_depthStencilView.Get());
-	m_context->ClearRenderTargetView(m_rtv.Get(), &color[0]);
-	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.f, 0);
+
+	m_context->ClearRenderTargetView(m_rtv.Get(), color);
+	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 }
 
 void Graphics::PostFrame()
@@ -127,31 +137,75 @@ void Graphics::PostFrame()
 
 void Graphics::Draw(const Model& model, const matrix& mvpMatrix)
 {
-	UINT stride = sizeof(vertex);
-	UINT offset = 0;
 
 	matrix m = mvpMatrix.Transpose();
 	const void* p = &m;
-	Buffer constantBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, m_device.Get(), p, sizeof(matrix) };
-	m_context->VSSetConstantBuffers(1, 1, constantBuffer.GetAddress());
+	UpdateBuffer(m_cbModel, p, NULL);
 
 	for (const auto& mesh : model.meshes) {
-		Buffer vertexBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, m_device.Get(), mesh.vertices.data(), sizeof(vertex) * mesh.vertices.size() };
-		Buffer indexBuffer{ D3D11_USAGE_DEFAULT, D3D11_BIND_INDEX_BUFFER, m_device.Get(), mesh.indices.data(), sizeof(uint32_t) * mesh.indices.size() };
+		UpdateBuffer(m_vertexBuffer, mesh.vertices.data(), mesh.vertices.size() * sizeof(vertex));
+		UpdateBuffer(m_indexBuffer, mesh.indices.data(), mesh.indices.size() * sizeof(uint32_t));
 
 		m_render_mutex.lock();
 
 		ComPtr<ID3D11ShaderResourceView> srv;
-		m_device->CreateShaderResourceView(model.materials[mesh.materialIndex].texture.GetTexture(), nullptr, srv.GetAddressOf());
+		m_device->CreateShaderResourceView(model.materials[mesh.materialIndex].texture.Get(), nullptr, srv.GetAddressOf());
 
 		m_context->PSSetShaderResources(0, 1, srv.GetAddressOf());
 		m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
 
-		m_context->IASetVertexBuffers(0, 1, vertexBuffer.GetAddress(), &stride, &offset);
-		m_context->IASetIndexBuffer(indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-
 		m_context->DrawIndexed(mesh.indices.size(), 0, 0);
 		m_render_mutex.unlock();
 	}
+}
+
+ComPtr<ID3D11Buffer> Graphics::CreateBuffer(const D3D11_USAGE usage, const D3D11_BIND_FLAG bind, const void* data, const size_t dataSize) const
+{
+	ComPtr<ID3D11Buffer> buf;
+
+	D3D11_BUFFER_DESC desc = {};
+	desc.Usage = usage;
+	desc.ByteWidth = dataSize;
+	desc.BindFlags = bind;
+	desc.CPUAccessFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA res = {};
+	res.pSysMem = data;
+
+	D3D11_SUBRESOURCE_DATA* pInitialData = data == nullptr ? nullptr : &res;
+
+	m_device->CreateBuffer(&desc, pInitialData, &buf);
+
+	return buf;
+}
+
+void Graphics::UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, size_t size) const
+{
+	CD3D11_BOX box(0, 0, 0, size, 1, 1);
+	const D3D11_BOX* pbox = size == 0 ? nullptr : &box;
+	m_context->UpdateSubresource(buf.Get(), 0, pbox, data, 0, 0);
+}
+
+ComPtr<ID3D11Texture2D> Graphics::CreateTexture(int width, int height, const void* pData) const
+{
+	ComPtr<ID3D11Texture2D> texture;
+
+	D3D11_TEXTURE2D_DESC desc = {};
+	desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	desc.ArraySize = 1;
+	desc.MipLevels = 1;
+	desc.Width = width;
+	desc.Height = height;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_DYNAMIC;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	D3D11_SUBRESOURCE_DATA res = {};
+	res.pSysMem = pData;
+	res.SysMemPitch = width * 4;
+	res.SysMemSlicePitch = width * height * 4;
+
+	m_device->CreateTexture2D(&desc, &res, texture.GetAddressOf());
+	return texture;
 }

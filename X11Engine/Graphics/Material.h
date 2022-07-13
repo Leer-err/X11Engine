@@ -1,6 +1,9 @@
 #pragma once
-#include "Texture.h"
+#include <wrl/client.h>
+#include <d3d11_4.h>
+
+using Microsoft::WRL::ComPtr;
 
 struct Material {
-	Texture texture;
+	ComPtr<ID3D11Texture2D> texture;
 };

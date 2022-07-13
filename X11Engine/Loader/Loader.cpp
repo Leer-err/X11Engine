@@ -6,7 +6,7 @@
 
 using std::unique_ptr;
 
-Texture Loader::LoadTextureFromFile(const char* filename)
+ComPtr<ID3D11Texture2D> Loader::LoadTextureFromFile(const char* filename)
 {
 	ComPtr<IWICImagingFactory> factory;
 	ComPtr<IWICBitmapDecoder> decoder;
@@ -32,9 +32,9 @@ Texture Loader::LoadTextureFromFile(const char* filename)
 	frameDecoder->GetPixelFormat(&format);
 	if (format == GUID_WICPixelFormat32bppBGRA) {
 		hr = frameDecoder->CopyPixels(nullptr, width * 4, width * height * 4, reinterpret_cast<BYTE*>(buffer.get()));
-		return { (int)width, (int)height, buffer.get() };
+		return Graphics::get().CreateTexture(width, height, buffer.get());
 	}
-	return Texture();
+	return {};
 }
 
 Material Loader::LoadMaterial(const aiMaterial* material)
