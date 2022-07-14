@@ -30,8 +30,8 @@ public:
 		return instance;
 	}
 
-	void PreFrame();
-	void PostFrame();
+	void Clear();
+	void Present();
 	void Draw(const Model& model, const matrix& mvpMatrix);
 
 	ComPtr<ID3D11Buffer> CreateBuffer(const D3D11_USAGE usage, const D3D11_BIND_FLAG bind, const void* data, const size_t dataSize) const;
@@ -55,6 +55,10 @@ private:
 	ComPtr<ID3D11PixelShader> m_pixelShader;
 	ComPtr<ID3D11VertexShader> m_vertexShader;
 	ComPtr<ID3D11DepthStencilView> m_depthStencilView;
+
+#ifdef _DEBUG
+	ComPtr<ID3D11Debug> m_debug;
+#endif
 
 	ComPtr<ID3D11SamplerState> m_sampler;
 

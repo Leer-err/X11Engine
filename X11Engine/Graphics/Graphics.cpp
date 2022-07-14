@@ -57,6 +57,10 @@ Graphics::Graphics()
 		Window::get().Terminate();
 	}
 
+#ifdef _DEBUG
+	m_device->QueryInterface(m_debug.GetAddressOf());
+#endif
+
 	m_swapChain = std::make_unique<SwapChain>(width, height, hWnd, m_factory.Get(), m_device.Get());
 
 	m_factory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER);
@@ -119,9 +123,12 @@ Graphics::Graphics()
 Graphics::~Graphics()
 {
 	m_context->ClearState();
+#ifdef _DEBUG
+	m_debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+#endif
 }
 
-void Graphics::PreFrame()
+void Graphics::Clear()
 {
 	static constexpr FLOAT color[4] = { 0.f,0.f,0.f,0.f };
 	m_context->OMSetRenderTargets(1, reinterpret_cast<ID3D11RenderTargetView**>(m_rtv.GetAddressOf()), m_depthStencilView.Get());
@@ -130,7 +137,7 @@ void Graphics::PreFrame()
 	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 }
 
-void Graphics::PostFrame()
+void Graphics::Present()
 {
 	m_swapChain->Present();
 }

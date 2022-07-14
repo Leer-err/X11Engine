@@ -5,19 +5,22 @@
 #include "EntityManager.h"
 #include "SystemManager.h"
 #include "Systems/RenderSystem.h"
+#include "Systems/MovementSystem.h"
 #include "Components/RenderComponent.h"
 #include "Components/TransformComponent.h"
 #include "Components/CameraComponent.h"
 #include "Entities/Cube.h"
 #include "TaskManager/TaskManager.h"
 #include "Loader/Loader.h"
+#include "Event/EventManager.h"
 
 #include "Logger/Logger.h"
 
 using std::thread;
 
-void Update(CameraComponent* camera) {
+void Update() {
 	while (Window::get().IsRunning()) {
+		EventManager::get()->DispatchEvents();
 		ECS::SystemManager::Get()->PreUpdate();
 		ECS::SystemManager::Get()->Update();
 		ECS::SystemManager::Get()->PostUpdate();
@@ -35,10 +38,14 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
 	ECS::ComponentManager::Get()->AddComponent<RenderComponent>(a, m);
 
+	MovementSystem* s = ECS::SystemManager::Get()->AddSystem<MovementSystem>(cameraPos);
 	ECS::SystemManager::Get()->AddSystem<RenderSystem>();
 
+	EventDelegate e = {&MovementSystem::Move, s};
+	EventManager::get()->AddEventCallback(EventType::KeyDown, &e);
+
 	Window::get();
-	thread th2(Update, cameraComponent);
+	thread th2(Update);
 	Window::get().Run();
 	th2.join();
 	return 0;

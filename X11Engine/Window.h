@@ -2,6 +2,8 @@
 #include <Windows.h>
 #include <atomic>
 
+#include "Event/EventManager.h"
+
 using std::atomic;
 
 class Window
@@ -17,6 +19,9 @@ public:
 		case WM_DESTROY:
 			PostQuitMessage(0);
 			return 0;
+		case WM_KEYDOWN:
+			EventManager::get()->RaiseEvent<KeyDown>(wParam);
+			break;
 		default:
 			return DefWindowProc(hWnd, msg, wParam, lParam);
 		}

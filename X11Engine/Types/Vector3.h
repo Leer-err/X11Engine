@@ -20,8 +20,8 @@ struct vector3 {
 	inline vector3 __vectorcall operator+(const vector3& other) const {	return DirectX::XMVectorAdd(*this, other); }
 	inline vector3 __vectorcall operator-(const vector3& other) const { return DirectX::XMVectorSubtract(*this, other); }
 
-	inline vector3& __vectorcall operator+=(const vector3& other) { *this = DirectX::XMVectorAdd(*this, other); }
-	inline vector3& __vectorcall operator-=(const vector3& other) { *this = DirectX::XMVectorSubtract(*this, other); }
+	inline vector3& __vectorcall operator+=(const vector3& other) { return *this = DirectX::XMVectorAdd(*this, other); }
+	inline vector3& __vectorcall operator-=(const vector3& other) { return *this = DirectX::XMVectorSubtract(*this, other); }
 
 	inline vector3 __vectorcall operator*(const float& value) const { return DirectX::XMVectorMultiply(*this, DirectX::XMVectorReplicate(value)); }
 	inline vector3 __vectorcall operator/(const float& value) const { return DirectX::XMVectorDivide(*this, DirectX::XMVectorReplicate(value)); }

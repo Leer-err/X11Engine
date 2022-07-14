@@ -39,10 +39,11 @@ namespace ECS {
 			for (int i = 0; i < m_workOrder.size(); i++) {
 				if (m_workOrder[i]->m_priority <= system->m_priority) {
 					m_workOrder.insert(m_workOrder.begin() + i, system);
-					break;
+					return (T*)system;
 				}
 			}
 
+			m_workOrder.push_back(system);
 			return (T*)system;
 		}
 

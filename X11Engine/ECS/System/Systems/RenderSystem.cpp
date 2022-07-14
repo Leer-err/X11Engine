@@ -15,13 +15,14 @@ using std::vector;
 
 void RenderSystem::PreUpdate()
 {
-	Graphics::get().PreFrame();
+	Graphics::get().Clear();
 }
 
 void RenderSystem::Update()
 {
 	vector<future<void>> completed_tasks;
 	CameraComponent* camera = ECS::ComponentManager::Get()->begin<CameraComponent>().Get();
+	camera->viewMatrix = LookToMatrix(camera->position->position, camera->viewDirection, { 0.f, 1.f, 0.f });
 	for (auto mesh = ECS::ComponentManager::Get()->begin<RenderComponent>(); mesh != ECS::ComponentManager::Get()->end<RenderComponent>(); ++mesh) {
 		EntityId entity = mesh->GetOwner();
 		const TransformComponent* pos = ECS::ComponentManager::Get()->GetComponent<TransformComponent>(entity);
@@ -36,5 +37,5 @@ void RenderSystem::Update()
 
 void RenderSystem::PostUpdate()
 {
-	Graphics::get().PostFrame();
+	Graphics::get().Present();
 }
