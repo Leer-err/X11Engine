@@ -1,42 +1,37 @@
 #pragma once
 #include "System.h"
-#include "ECS/Component/Components/TransformComponent.h"
-#include "Event/Event.h"
-#include "Event/EventManager.h"
+#include "Controls/Keyboard.h"
 
 class MovementSystem : public ECS::System<MovementSystem> {
 public:
-	MovementSystem(TransformComponent* player) : m_player(player), m_moveX(0.f), m_moveZ(0.f) {}
+	MovementSystem(TransformComponent* player) : m_player(player) {}
 
 	void PreUpdate() override {};
 	void Update() override {
-		m_player->position += vector3(m_moveX, 0.f, m_moveZ);
-	};
-	void PostUpdate() override { 
-		m_moveX = 0.f;
-		m_moveZ = 0.f;
-	};
+		vector3 move = { 0.f, 0.f, 0.f };
 
-	void Move(const Event* event) {
-		switch (((KeyDown*)event)->keyCode)
-		{
-		case 'W':
-			m_moveZ += 1.f;
-			break;
-		case 'S':
-			m_moveZ -= 1.f;
-			break;
-		case 'A':
-			m_moveX -= 1.f;
-			break;
-		case 'D':
-			m_moveX += 1.f;
-			break;
-		default:
-			break;
+		if (Keyboard::get()->IsPressed('W')) {
+			move.z += 1.f;
 		}
-	}
+		if (Keyboard::get()->IsPressed('S')) {
+			move.z -= 1.f;
+		}
+		if (Keyboard::get()->IsPressed('A')) {
+			move.x -= 1.f;
+		}
+		if (Keyboard::get()->IsPressed('D')) {
+			move.x += 1.f;
+		}
+		if (Keyboard::get()->IsPressed('E')) {
+			move.y += 1.f;
+		}
+		if (Keyboard::get()->IsPressed('Q')) {
+			move.y -= 1.f;
+		}
+
+		m_player->position += move;
+	};
+	void PostUpdate() override {};
 private:
 	TransformComponent* m_player;
-	float m_moveX, m_moveZ;
 };

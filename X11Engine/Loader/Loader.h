@@ -20,7 +20,7 @@ public:
 	}
 
 	Model LoadModelFromFile(const char* filename);
-	ComPtr<ID3D11Texture2D> LoadTextureFromFile(const char* filename);
+	ComPtr<ID3D11ShaderResourceView> LoadTextureFromFile(const char* filename);
 	Material LoadMaterial(const aiMaterial* material);
 private:
 	Loader() = default;

@@ -24,6 +24,7 @@ struct input
 {
     float3 pos : POSITION;
     float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
 };
 
 output main(input in_data)

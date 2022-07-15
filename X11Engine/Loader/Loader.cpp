@@ -6,7 +6,7 @@
 
 using std::unique_ptr;
 
-ComPtr<ID3D11Texture2D> Loader::LoadTextureFromFile(const char* filename)
+ComPtr<ID3D11ShaderResourceView> Loader::LoadTextureFromFile(const char* filename)
 {
 	ComPtr<IWICImagingFactory> factory;
 	ComPtr<IWICBitmapDecoder> decoder;
@@ -32,7 +32,7 @@ ComPtr<ID3D11Texture2D> Loader::LoadTextureFromFile(const char* filename)
 	frameDecoder->GetPixelFormat(&format);
 	if (format == GUID_WICPixelFormat32bppBGRA) {
 		hr = frameDecoder->CopyPixels(nullptr, width * 4, width * height * 4, reinterpret_cast<BYTE*>(buffer.get()));
-		return Graphics::get().CreateTexture(width, height, buffer.get());
+		return Graphics::get().CreateShaderResource(DXGI_FORMAT_B8G8R8A8_UNORM, width, height, buffer.get());
 	}
 	return {};
 }
@@ -63,7 +63,8 @@ Model Loader::LoadModelFromFile(const char* filename)
 		for (int j = 0; j < pMesh->mNumVertices; j++) {
 			const aiVector3D pos = pMesh->mVertices[j];
 			const aiVector3D uv = pMesh->mTextureCoords[0][j];
-			vert.emplace_back(vector3{ pos.x, pos.y, pos.z }, vector2{ uv.x, uv.y });
+			const aiVector3D normal = pMesh->mNormals[j];
+			vert.emplace_back(vector3{ pos.x, pos.y, pos.z }, vector2{ uv.x, uv.y }, vector3{normal.x, normal.y, normal.z});
 		}
 		for (int j = 0; j < pMesh->mNumFaces; j++) {
 			const aiFace face = pMesh->mFaces[j];

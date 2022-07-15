@@ -8,4 +8,5 @@ struct vertex {
 
 	vector3 pos;
 	vector2 uv;
+	vector3 normal;
 };

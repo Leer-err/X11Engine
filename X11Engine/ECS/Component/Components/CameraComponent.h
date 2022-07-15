@@ -6,10 +6,8 @@
 struct CameraComponent : ECS::Component<CameraComponent> {
 	CameraComponent(EntityId owner, vector3 viewDirection, TransformComponent* position) : Component(owner),
 		position(position), viewDirection(viewDirection), 
-		projectionMatrix(PerspectiveProjectionMatrix(16.f / 9.f, 60.f/180*3.14f, 1000.f, 0.1f)),
-		viewMatrix(LookToMatrix(position->position, viewDirection, {0.f, 1.f, 0.f})) {}
+		projectionMatrix(PerspectiveProjectionMatrix(16.f / 9.f, 60.f/180*3.14f, 1000.f, 0.1f)) {}
 	matrix projectionMatrix;
-	matrix viewMatrix;
 	vector3 viewDirection;
 	TransformComponent* position;
 };

@@ -22,12 +22,12 @@ void RenderSystem::Update()
 {
 	vector<future<void>> completed_tasks;
 	CameraComponent* camera = ECS::ComponentManager::Get()->begin<CameraComponent>().Get();
-	camera->viewMatrix = LookToMatrix(camera->position->position, camera->viewDirection, { 0.f, 1.f, 0.f });
+	matrix viewMatrix = LookToMatrix(camera->position->position, camera->viewDirection, { 0.f, 1.f, 0.f });
 	for (auto mesh = ECS::ComponentManager::Get()->begin<RenderComponent>(); mesh != ECS::ComponentManager::Get()->end<RenderComponent>(); ++mesh) {
 		EntityId entity = mesh->GetOwner();
 		const TransformComponent* pos = ECS::ComponentManager::Get()->GetComponent<TransformComponent>(entity);
 		matrix model = ScalingMatrix(pos->scale) * RotationMatrix(pos->rotation) * TranslationMatrix(pos->position);
-		matrix mvpMatrix = model * camera->viewMatrix * camera->projectionMatrix;
+		matrix mvpMatrix = model * viewMatrix * camera->projectionMatrix;
 		completed_tasks.emplace_back(TaskManager::get().submit(&Graphics::Draw, &Graphics::get(), std::ref(mesh->model), std::ref(mvpMatrix)));
 	}
 	for (const auto& task : completed_tasks) {

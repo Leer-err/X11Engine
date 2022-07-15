@@ -13,6 +13,7 @@
 #include "TaskManager/TaskManager.h"
 #include "Loader/Loader.h"
 #include "Event/EventManager.h"
+#include "Controls/Keyboard.h"
 
 #include "Logger/Logger.h"
 
@@ -41,8 +42,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	MovementSystem* s = ECS::SystemManager::Get()->AddSystem<MovementSystem>(cameraPos);
 	ECS::SystemManager::Get()->AddSystem<RenderSystem>();
 
-	EventDelegate e = {&MovementSystem::Move, s};
-	EventManager::get()->AddEventCallback(EventType::KeyDown, &e);
+	EventDelegate down = {&Keyboard::OnKeyDown, Keyboard::get()};
+	EventDelegate up = {&Keyboard::OnKeyUp, Keyboard::get()};
+	EventManager::get()->AddEventCallback(EventType::KeyDown, &down);
+	EventManager::get()->AddEventCallback(EventType::KeyUp, &up);
 
 	Window::get();
 	thread th2(Update);

@@ -22,6 +22,9 @@ public:
 		case WM_KEYDOWN:
 			EventManager::get()->RaiseEvent<KeyDown>(wParam);
 			break;
+		case WM_KEYUP:
+			EventManager::get()->RaiseEvent<KeyUp>(wParam);
+			break;
 		default:
 			return DefWindowProc(hWnd, msg, wParam, lParam);
 		}

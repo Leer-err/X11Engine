@@ -87,10 +87,11 @@ Graphics::Graphics()
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	m_device->CreateInputLayout(layout, 2, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout);
+	m_device->CreateInputLayout(layout, _ARRAYSIZE(layout), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout);
 	m_device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &m_pixelShader);
 	m_device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &m_vertexShader);
 
@@ -155,10 +156,7 @@ void Graphics::Draw(const Model& model, const matrix& mvpMatrix)
 
 		m_render_mutex.lock();
 
-		ComPtr<ID3D11ShaderResourceView> srv;
-		m_device->CreateShaderResourceView(model.materials[mesh.materialIndex].texture.Get(), nullptr, srv.GetAddressOf());
-
-		m_context->PSSetShaderResources(0, 1, srv.GetAddressOf());
+		m_context->PSSetShaderResources(0, 1, model.materials[mesh.materialIndex].texture.GetAddressOf());
 		m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
 
 		m_context->DrawIndexed(mesh.indices.size(), 0, 0);
@@ -166,7 +164,7 @@ void Graphics::Draw(const Model& model, const matrix& mvpMatrix)
 	}
 }
 
-ComPtr<ID3D11Buffer> Graphics::CreateBuffer(const D3D11_USAGE usage, const D3D11_BIND_FLAG bind, const void* data, const size_t dataSize) const
+ComPtr<ID3D11Buffer> Graphics::CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG bind, const void* data, size_t dataSize) const
 {
 	ComPtr<ID3D11Buffer> buf;
 
@@ -193,12 +191,13 @@ void Graphics::UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, s
 	m_context->UpdateSubresource(buf.Get(), 0, pbox, data, 0, 0);
 }
 
-ComPtr<ID3D11Texture2D> Graphics::CreateTexture(int width, int height, const void* pData) const
+ComPtr<ID3D11ShaderResourceView> Graphics::CreateShaderResource(DXGI_FORMAT format, int width, int height, const void* pData) const
 {
 	ComPtr<ID3D11Texture2D> texture;
+	ComPtr<ID3D11ShaderResourceView> resource;
 
 	D3D11_TEXTURE2D_DESC desc = {};
-	desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	desc.Format = format;
 	desc.ArraySize = 1;
 	desc.MipLevels = 1;
 	desc.Width = width;
@@ -214,5 +213,7 @@ ComPtr<ID3D11Texture2D> Graphics::CreateTexture(int width, int height, const voi
 	res.SysMemSlicePitch = width * height * 4;
 
 	m_device->CreateTexture2D(&desc, &res, texture.GetAddressOf());
-	return texture;
+	m_device->CreateShaderResourceView(texture.Get(), nullptr, resource.GetAddressOf());
+
+	return resource;
 }

@@ -34,9 +34,9 @@ public:
 	void Present();
 	void Draw(const Model& model, const matrix& mvpMatrix);
 
-	ComPtr<ID3D11Buffer> CreateBuffer(const D3D11_USAGE usage, const D3D11_BIND_FLAG bind, const void* data, const size_t dataSize) const;
+	ComPtr<ID3D11Buffer> CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG bind, const void* data, size_t dataSize) const;
 	void UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, size_t size) const;
-	ComPtr<ID3D11Texture2D> CreateTexture(int width, int height, const void* pData) const;
+	ComPtr<ID3D11ShaderResourceView> CreateShaderResource(DXGI_FORMAT format, int width, int height, const void* pData) const;
 
 	inline IDXGIFactory7* GetFactory() const { return m_factory.Get(); }
 	inline ID3D11Device5* GetDevice() const { return m_device.Get(); }

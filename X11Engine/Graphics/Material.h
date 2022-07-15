@@ -5,5 +5,5 @@
 using Microsoft::WRL::ComPtr;
 
 struct Material {
-	ComPtr<ID3D11Texture2D> texture;
+	ComPtr<ID3D11ShaderResourceView> texture;
 };
