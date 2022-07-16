@@ -29,6 +29,7 @@ void Update() {
 }
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+	Window::get();
 	Model m = Loader::get().LoadModelFromFile("Minecraft_Axolotl.fbx");
 
 	EntityId a = ECS::EntityManager::Get()->CreateEntity<Cube>();
@@ -47,7 +48,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	EventManager::get()->AddEventCallback(EventType::KeyDown, &down);
 	EventManager::get()->AddEventCallback(EventType::KeyUp, &up);
 
-	Window::get();
 	thread th2(Update);
 	Window::get().Run();
 	th2.join();

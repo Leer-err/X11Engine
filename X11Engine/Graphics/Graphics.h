@@ -24,6 +24,22 @@ constexpr uint32_t INDEX_BUFFER_SIZE = 100000;
 
 class Graphics
 {
+	struct {
+		matrix projection;
+	} CB_VS_PER_WINDOW;
+
+	struct {
+		matrix view;
+		vector3 lightPos;
+	} CB_VS_PER_FRAME;
+
+	struct {
+		matrix world;
+	} CB_VS_PER_MODEL;
+
+	struct {
+		vector3 ambientColor;
+	} CB_PS_PER_FRAME;
 public:
 	static Graphics& get() {
 		static Graphics instance;
@@ -32,10 +48,20 @@ public:
 
 	void Clear();
 	void Present();
-	void Draw(const Model& model, const matrix& mvpMatrix);
+	void Draw(const Model& model);
+
+	void SetProjectionMatrix();
+	void SetViewMatrix(const vector3& viewDirection, const vector3& cameraPosition);
+	void SetWorldMatrix(const matrix& world);
+	inline void SetAmbientColor(vector3 color);
+	inline void SetLight(vector3 pos, vector3 color);
+
+	void UpdatePerFrameBuffers();
+	void UpdatePerModelBuffers();
+	void UpdatePerWoindowBuffers();
 
 	ComPtr<ID3D11Buffer> CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG bind, const void* data, size_t dataSize) const;
-	void UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, size_t size) const;
+	void UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, size_t size = 0) const;
 	ComPtr<ID3D11ShaderResourceView> CreateShaderResource(DXGI_FORMAT format, int width, int height, const void* pData) const;
 
 	inline IDXGIFactory7* GetFactory() const { return m_factory.Get(); }
@@ -63,9 +89,10 @@ private:
 	ComPtr<ID3D11SamplerState> m_sampler;
 
 	unique_ptr<SwapChain> m_swapChain;
-	ComPtr<ID3D11Buffer> m_cbFrame;
-	ComPtr<ID3D11Buffer> m_cbModel;
-	ComPtr<ID3D11Buffer> m_cbDraw;
+	ComPtr<ID3D11Buffer> m_CBVSFrame;
+	ComPtr<ID3D11Buffer> m_CBVSModel;
+	ComPtr<ID3D11Buffer> m_CBVSWindow;
+	ComPtr<ID3D11Buffer> m_CBPSFrame;
 	ComPtr<ID3D11Buffer> m_vertexBuffer;
 	ComPtr<ID3D11Buffer> m_indexBuffer;
 

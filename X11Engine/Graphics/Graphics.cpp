@@ -110,8 +110,14 @@ Graphics::Graphics()
 
 	m_context->OMSetDepthStencilState(nullptr, 0);
 
-	m_cbModel = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, nullptr, sizeof(matrix));
-	m_context->VSSetConstantBuffers(1, 1, m_cbModel.GetAddressOf());
+	m_CBVSModel = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, nullptr, (sizeof(CB_VS_PER_MODEL) >> 4) + 1 << 4);
+	m_CBVSFrame = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, nullptr, (sizeof(CB_VS_PER_FRAME) >> 4) + 1 << 4);
+	m_CBVSWindow = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, nullptr, (sizeof(CB_VS_PER_WINDOW) >> 4) + 1 << 4);
+	m_CBPSFrame = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, nullptr, (sizeof(CB_PS_PER_FRAME) >> 4) + 1 << 4);
+	m_context->VSSetConstantBuffers(0, 1, m_CBVSWindow.GetAddressOf());
+	m_context->VSSetConstantBuffers(1, 1, m_CBVSFrame.GetAddressOf());
+	m_context->VSSetConstantBuffers(2, 1, m_CBVSModel.GetAddressOf());
+	m_context->PSSetConstantBuffers(0, 1, m_CBPSFrame.GetAddressOf());
 
 	m_vertexBuffer = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, nullptr, sizeof(vertex) * VERTEX_BUFFER_SIZE);
 	m_indexBuffer = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_INDEX_BUFFER, nullptr, sizeof(uint32_t) * INDEX_BUFFER_SIZE);
@@ -119,6 +125,12 @@ Graphics::Graphics()
 	UINT offset = 0;
 	m_context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &stride, &offset);
 	m_context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+	SetProjectionMatrix();
+	UpdatePerWoindowBuffers();
+
+	SetAmbientColor({ 0.1f, 0.3f, 0.2f });
+	SetLight({ 0.f, 0.f, 0.f }, {});
 }
 
 Graphics::~Graphics()
@@ -143,13 +155,8 @@ void Graphics::Present()
 	m_swapChain->Present();
 }
 
-void Graphics::Draw(const Model& model, const matrix& mvpMatrix)
+void Graphics::Draw(const Model& model)
 {
-
-	matrix m = mvpMatrix.Transpose();
-	const void* p = &m;
-	UpdateBuffer(m_cbModel, p, NULL);
-
 	for (const auto& mesh : model.meshes) {
 		UpdateBuffer(m_vertexBuffer, mesh.vertices.data(), mesh.vertices.size() * sizeof(vertex));
 		UpdateBuffer(m_indexBuffer, mesh.indices.data(), mesh.indices.size() * sizeof(uint32_t));
@@ -162,6 +169,49 @@ void Graphics::Draw(const Model& model, const matrix& mvpMatrix)
 		m_context->DrawIndexed(mesh.indices.size(), 0, 0);
 		m_render_mutex.unlock();
 	}
+}
+
+void Graphics::SetProjectionMatrix()
+{
+	int width = Window::get().GetWidth();
+	int height = Window::get().GetHeight();
+	CB_VS_PER_WINDOW.projection = PerspectiveProjectionMatrix((float)width / height, 60.f / 180.f * 3.14f, 1000.f, 0.01f).Transpose();
+}
+
+void Graphics::SetViewMatrix(const vector3& viewDirection, const vector3& cameraPosition)
+{
+	CB_VS_PER_FRAME.view = LookToMatrix(cameraPosition, viewDirection, {0.f, 1.f, 0.f}).Transpose();
+}
+
+void Graphics::SetWorldMatrix(const matrix& world)
+{
+	CB_VS_PER_MODEL.world = world.Transpose();
+}
+
+void Graphics::SetAmbientColor(vector3 color)
+{
+	CB_PS_PER_FRAME.ambientColor = color;
+}
+
+void Graphics::SetLight(vector3 pos, vector3 color)
+{
+	CB_VS_PER_FRAME.lightPos = pos;
+}
+
+void Graphics::UpdatePerFrameBuffers()
+{
+	UpdateBuffer(m_CBVSFrame, &CB_VS_PER_FRAME);
+	UpdateBuffer(m_CBPSFrame, &CB_PS_PER_FRAME);
+}
+
+void Graphics::UpdatePerModelBuffers()
+{
+	UpdateBuffer(m_CBVSModel, &CB_VS_PER_MODEL);
+}
+
+void Graphics::UpdatePerWoindowBuffers()
+{
+	UpdateBuffer(m_CBVSWindow, &CB_VS_PER_WINDOW);
 }
 
 ComPtr<ID3D11Buffer> Graphics::CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG bind, const void* data, size_t dataSize) const

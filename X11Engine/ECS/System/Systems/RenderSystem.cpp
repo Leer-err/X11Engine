@@ -22,13 +22,15 @@ void RenderSystem::Update()
 {
 	vector<future<void>> completed_tasks;
 	CameraComponent* camera = ECS::ComponentManager::Get()->begin<CameraComponent>().Get();
-	matrix viewMatrix = LookToMatrix(camera->position->position, camera->viewDirection, { 0.f, 1.f, 0.f });
+	Graphics::get().SetViewMatrix(camera->viewDirection, camera->transform->position);
+	Graphics::get().UpdatePerFrameBuffers();
 	for (auto mesh = ECS::ComponentManager::Get()->begin<RenderComponent>(); mesh != ECS::ComponentManager::Get()->end<RenderComponent>(); ++mesh) {
 		EntityId entity = mesh->GetOwner();
 		const TransformComponent* pos = ECS::ComponentManager::Get()->GetComponent<TransformComponent>(entity);
-		matrix model = ScalingMatrix(pos->scale) * RotationMatrix(pos->rotation) * TranslationMatrix(pos->position);
-		matrix mvpMatrix = model * viewMatrix * camera->projectionMatrix;
-		completed_tasks.emplace_back(TaskManager::get().submit(&Graphics::Draw, &Graphics::get(), std::ref(mesh->model), std::ref(mvpMatrix)));
+		matrix world = ScalingMatrix(pos->scale) * RotationMatrix(pos->rotation) * TranslationMatrix(pos->position);
+		Graphics::get().SetWorldMatrix(world);
+		Graphics::get().UpdatePerModelBuffers();
+		completed_tasks.emplace_back(TaskManager::get().submit(&Graphics::Draw, &Graphics::get(), std::cref(mesh->model)));
 	}
 	for (const auto& task : completed_tasks) {
 		task.wait();

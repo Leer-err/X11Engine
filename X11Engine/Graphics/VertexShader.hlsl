@@ -1,16 +1,17 @@
-cbuffer frameData : register(b0)
+cbuffer windowData : register(b0)
 {
-    
+    matrix projection;
+}
+
+cbuffer frameData : register(b1)
+{
+    matrix view;
+    float3 lightPos;
 };
 
-cbuffer modelData : register(b1)
+cbuffer modelData : register(b2)
 {
-    matrix wvpMatrix;
-};
-
-cbuffer drawData : register(b2)
-{
-    
+    matrix world;
 };
 
 
@@ -18,6 +19,8 @@ struct output
 {
     float4 pos : SV_POSITION;
     float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
+    float3 lightDir : LIGHT;
 };
 
 struct input
@@ -31,7 +34,11 @@ output main(input in_data)
 {
     output a;
     float4 pos = float4(in_data.pos, 1.f);
-    a.pos = mul(pos, wvpMatrix);
+    a.pos = mul(pos, world);
+    a.pos = mul(a.pos, view);
+    a.pos = mul(a.pos, projection);
     a.uv = in_data.uv;
+    a.normal = in_data.normal;
+    a.lightDir = normalize(lightPos - in_data.pos);
     return a;
 }
