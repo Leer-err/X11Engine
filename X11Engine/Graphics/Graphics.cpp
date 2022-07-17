@@ -178,9 +178,9 @@ void Graphics::SetProjectionMatrix()
 	CB_VS_PER_WINDOW.projection = PerspectiveProjectionMatrix((float)width / height, 60.f / 180.f * 3.14f, 1000.f, 0.01f).Transpose();
 }
 
-void Graphics::SetViewMatrix(const vector3& viewDirection, const vector3& cameraPosition)
+void Graphics::SetViewMatrix(const quaternion& viewRotation, const vector3& cameraPosition)
 {
-	CB_VS_PER_FRAME.view = LookToMatrix(cameraPosition, viewDirection, {0.f, 1.f, 0.f}).Transpose();
+	CB_VS_PER_FRAME.view = LookToMatrix(cameraPosition, vector3(0.f, 0.f, 1.f).rotate(viewRotation), vector3(0.f, 1.f, 0.f).rotate(viewRotation)).Transpose();
 }
 
 void Graphics::SetWorldMatrix(const matrix& world)

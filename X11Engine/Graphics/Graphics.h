@@ -51,7 +51,7 @@ public:
 	void Draw(const Model& model);
 
 	void SetProjectionMatrix();
-	void SetViewMatrix(const vector3& viewDirection, const vector3& cameraPosition);
+	void SetViewMatrix(const quaternion& viewDirection, const vector3& cameraPosition);
 	void SetWorldMatrix(const matrix& world);
 	inline void SetAmbientColor(vector3 color);
 	inline void SetLight(vector3 pos, vector3 color);

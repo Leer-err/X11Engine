@@ -1,5 +1,5 @@
 #pragma once
-#include "System.h"
+#include "ECS/System/System.h"
 #include "Controls/Keyboard.h"
 
 class MovementSystem : public ECS::System<MovementSystem> {
@@ -11,25 +11,25 @@ public:
 		vector3 move = { 0.f, 0.f, 0.f };
 
 		if (Keyboard::get()->IsPressed('W')) {
-			move.z += 1.f;
+			move.z += 0.1f;
 		}
 		if (Keyboard::get()->IsPressed('S')) {
-			move.z -= 1.f;
+			move.z -= 0.1f;
 		}
 		if (Keyboard::get()->IsPressed('A')) {
-			move.x -= 1.f;
+			move.x -= 0.1f;
 		}
 		if (Keyboard::get()->IsPressed('D')) {
-			move.x += 1.f;
+			move.x += 0.1f;
 		}
 		if (Keyboard::get()->IsPressed('E')) {
-			move.y += 1.f;
+			move.y += 0.1f;
 		}
 		if (Keyboard::get()->IsPressed('Q')) {
-			move.y -= 1.f;
+			move.y -= 0.1f;
 		}
 
-		m_player->position += move;
+		m_player->position += move.rotate(m_player->rotation);
 	};
 	void PostUpdate() override {};
 private:

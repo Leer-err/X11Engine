@@ -16,6 +16,13 @@ struct vector3 {
 	inline vector3 negate() const {
 		return DirectX::XMVectorNegate(*this);
 	}
+	inline vector3 rotate(float pitch, float yaw, float roll) {
+		DirectX::XMVECTOR rot = DirectX::XMQuaternionRotationRollPitchYaw(pitch, yaw, roll);
+		return DirectX::XMVector3Rotate(*this, rot);
+	}
+	inline vector3 rotate(DirectX::XMVECTOR rot) {
+		return DirectX::XMVector3Rotate(*this, rot);
+	}
 
 	inline vector3 __vectorcall operator+(const vector3& other) const {	return DirectX::XMVectorAdd(*this, other); }
 	inline vector3 __vectorcall operator-(const vector3& other) const { return DirectX::XMVectorSubtract(*this, other); }

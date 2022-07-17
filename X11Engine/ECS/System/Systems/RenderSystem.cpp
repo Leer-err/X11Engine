@@ -22,7 +22,7 @@ void RenderSystem::Update()
 {
 	vector<future<void>> completed_tasks;
 	CameraComponent* camera = ECS::ComponentManager::Get()->begin<CameraComponent>().Get();
-	Graphics::get().SetViewMatrix(camera->viewDirection, camera->transform->position);
+	Graphics::get().SetViewMatrix(camera->transform->rotation, camera->transform->position);
 	Graphics::get().UpdatePerFrameBuffers();
 	for (auto mesh = ECS::ComponentManager::Get()->begin<RenderComponent>(); mesh != ECS::ComponentManager::Get()->end<RenderComponent>(); ++mesh) {
 		EntityId entity = mesh->GetOwner();

@@ -1,6 +1,7 @@
 #pragma once
 #include <Windows.h>
 #include <atomic>
+#include <windowsx.h>
 
 #include "Event/EventManager.h"
 
@@ -24,6 +25,18 @@ public:
 			break;
 		case WM_KEYUP:
 			EventManager::get()->RaiseEvent<KeyUp>(wParam);
+			break;
+		case WM_MOUSEMOVE: 
+			{
+			POINT center;
+			center.x = Window::get().m_width / 2;
+			center.y = Window::get().m_height / 2;
+			float x = (static_cast<float>(GET_X_LPARAM(lParam)) - center.x) / Window::get().m_width;
+			float y = (static_cast<float>(GET_Y_LPARAM(lParam)) - center.y) / Window::get().m_height;
+			EventManager::get()->RaiseEvent<MouseMove>(x, y);
+			ClientToScreen(hWnd, &center);
+			SetCursorPos(center.x, center.y); 
+			}
 			break;
 		default:
 			return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -67,6 +80,8 @@ private:
 		rect.top = 0;
 		rect.right = m_width;
 		rect.bottom = m_height;
+
+		AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW | WS_VISIBLE, false);
 
 		m_hWnd = CreateWindow(wnd.lpszClassName, "", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0, 0, rect.right - rect.left, rect.bottom - rect.top, HWND_DESKTOP, NULL, NULL, NULL);
 	}

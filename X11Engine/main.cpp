@@ -6,6 +6,7 @@
 #include "SystemManager.h"
 #include "Systems/RenderSystem.h"
 #include "Systems/MovementSystem.h"
+#include "Systems/LookSystem.h"
 #include "Components/RenderComponent.h"
 #include "Components/TransformComponent.h"
 #include "Components/CameraComponent.h"
@@ -14,6 +15,7 @@
 #include "Loader/Loader.h"
 #include "Event/EventManager.h"
 #include "Controls/Keyboard.h"
+#include "Controls/Mouse.h"
 
 #include "Logger/Logger.h"
 
@@ -34,19 +36,22 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
 	EntityId a = ECS::EntityManager::Get()->CreateEntity<Cube>();
 	EntityId camera = ECS::EntityManager::Get()->CreateEntity<Cube>();
-	TransformComponent* b = ECS::ComponentManager::Get()->AddComponent<TransformComponent>(a, vector3( -0.5f, 0.0f, 3.f ));
+	TransformComponent* b = ECS::ComponentManager::Get()->AddComponent<TransformComponent>(a, vector3( 0.0f, 0.0f, 0.f ), vector3(0.f, -0.75f, 0.f));
 	TransformComponent* cameraPos = ECS::ComponentManager::Get()->AddComponent<TransformComponent>(camera, vector3( 0.0f, 0.0f, 0.0f ));
 	CameraComponent* cameraComponent = ECS::ComponentManager::Get()->AddComponent<CameraComponent>(camera, vector3(0.f, 0.f, 1.f), cameraPos);
 
 	ECS::ComponentManager::Get()->AddComponent<RenderComponent>(a, m);
 
-	MovementSystem* s = ECS::SystemManager::Get()->AddSystem<MovementSystem>(cameraPos);
+	ECS::SystemManager::Get()->AddSystem<MovementSystem>(cameraPos);
+	ECS::SystemManager::Get()->AddSystem<LookSystem>(cameraPos);
 	ECS::SystemManager::Get()->AddSystem<RenderSystem>();
 
 	EventDelegate down = {&Keyboard::OnKeyDown, Keyboard::get()};
 	EventDelegate up = {&Keyboard::OnKeyUp, Keyboard::get()};
 	EventManager::get()->AddEventCallback(EventType::KeyDown, &down);
 	EventManager::get()->AddEventCallback(EventType::KeyUp, &up);
+	EventDelegate mouse = { &Mouse::OnMove, Mouse::get() };
+	EventManager::get()->AddEventCallback(EventType::MouseMove, &mouse);
 
 	thread th2(Update);
 	Window::get().Run();

@@ -2,6 +2,7 @@
 #include <immintrin.h>
 #include <DirectXMath.h>
 #include "Vector4.h"
+#include "Vector3.h"
 
 struct quaternion {
     inline quaternion() : x(0.f), y(0.f), z(0.f), w(1.f) {}
