@@ -35,10 +35,10 @@ output main(input in_data)
     output a;
     float4 pos = float4(in_data.pos, 1.f);
     a.pos = mul(pos, world);
+    a.lightDir = normalize(lightPos - a.pos.xyz);
     a.pos = mul(a.pos, view);
     a.pos = mul(a.pos, projection);
     a.uv = in_data.uv;
     a.normal = in_data.normal;
-    a.lightDir = normalize(lightPos - in_data.pos);
     return a;
 }
