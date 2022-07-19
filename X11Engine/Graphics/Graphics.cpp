@@ -129,7 +129,7 @@ Graphics::Graphics()
 	SetProjectionMatrix();
 	UpdatePerWoindowBuffers();
 
-	SetAmbientColor({ 0.1f, 0.3f, 0.2f });
+	SetAmbientColor({ 0.1f, 0.3f, 0.2f, 1.f });
 	SetLight({ 0.f, 0.f, 0.f }, {});
 }
 
@@ -181,6 +181,7 @@ void Graphics::SetProjectionMatrix()
 void Graphics::SetViewMatrix(const quaternion& viewRotation, const vector3& cameraPosition)
 {
 	CB_VS_PER_FRAME.view = LookToMatrix(cameraPosition, vector3(0.f, 0.f, 1.f).rotate(viewRotation), vector3(0.f, 1.f, 0.f).rotate(viewRotation)).Transpose();
+	CB_PS_PER_FRAME.viewPos = cameraPosition;
 }
 
 void Graphics::SetWorldMatrix(const matrix& world)
@@ -188,14 +189,14 @@ void Graphics::SetWorldMatrix(const matrix& world)
 	CB_VS_PER_MODEL.world = world.Transpose();
 }
 
-void Graphics::SetAmbientColor(vector3 color)
+void Graphics::SetAmbientColor(vector4 color)
 {
 	CB_PS_PER_FRAME.ambientColor = color;
 }
 
 void Graphics::SetLight(vector3 pos, vector3 color)
 {
-	CB_VS_PER_FRAME.lightPos = pos;
+	CB_PS_PER_FRAME.lightPos = pos;
 }
 
 void Graphics::UpdatePerFrameBuffers()
