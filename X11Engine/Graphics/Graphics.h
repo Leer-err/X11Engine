@@ -34,6 +34,7 @@ class Graphics
 
 	struct {
 		matrix world;
+		matrix normalMatrix;
 	} CB_VS_PER_MODEL;
 
 	struct {

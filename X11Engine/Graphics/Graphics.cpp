@@ -187,6 +187,7 @@ void Graphics::SetViewMatrix(const quaternion& viewRotation, const vector3& came
 void Graphics::SetWorldMatrix(const matrix& world)
 {
 	CB_VS_PER_MODEL.world = world.Transpose();
+	CB_VS_PER_MODEL.normalMatrix = world.Inverse();
 }
 
 void Graphics::SetAmbientColor(vector4 color)

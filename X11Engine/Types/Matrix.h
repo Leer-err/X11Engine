@@ -13,6 +13,9 @@ struct matrix {
 	inline matrix Transpose() const {
 		return DirectX::XMMatrixTranspose(*this);
 	}
+	inline matrix Inverse() const {
+		return DirectX::XMMatrixInverse(nullptr, *this);
+	}
 
 	inline matrix __vectorcall operator+(const matrix& other) const {
 		return DirectX::XMMATRIX(*this) + DirectX::XMMATRIX(other);

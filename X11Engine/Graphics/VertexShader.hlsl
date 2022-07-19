@@ -11,6 +11,7 @@ cbuffer frameData : register(b1)
 cbuffer modelData : register(b2)
 {
     matrix world;
+    matrix normalMatrix;
 };
 
 
@@ -33,11 +34,12 @@ output main(input in_data)
 {
     output a;
     float4 pos = float4(in_data.pos, 1.f);
+    float4 normal = float4(in_data.normal, 1.f);
     a.pos = mul(pos, world);
     a.fragPos = a.pos.xyz;
     a.pos = mul(a.pos, view);
     a.pos = mul(a.pos, projection);
     a.uv = in_data.uv;
-    a.normal = in_data.normal;
+    a.normal = mul(normal, normalMatrix).xyz;
     return a;
 }
