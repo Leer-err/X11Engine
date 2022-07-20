@@ -127,10 +127,7 @@ Graphics::Graphics()
 	m_context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	SetProjectionMatrix();
-	UpdatePerWoindowBuffers();
-
-	SetAmbientColor({ 0.1f, 0.3f, 0.2f });
-	SetLight({ 0.f, 0.f, 0.f }, {1.f, 1.f, 1.f});
+	UpdatePerWindowBuffers();
 }
 
 Graphics::~Graphics()
@@ -215,7 +212,7 @@ void Graphics::UpdatePerModelBuffers()
 	UpdateBuffer(m_CBVSModel, &CB_VS_PER_MODEL);
 }
 
-void Graphics::UpdatePerWoindowBuffers()
+void Graphics::UpdatePerWindowBuffers()
 {
 	UpdateBuffer(m_CBVSWindow, &CB_VS_PER_WINDOW);
 }

@@ -5,10 +5,12 @@
 
 #include "Graphics/Graphics.h"
 #include "ECS/Component/ComponentManager.h"
+#include "ECS/Entity/EntityManager.h"
 #include "TaskManager/TaskManager.h"
 #include "ECS/Component/Components/RenderComponent.h"
 #include "ECS/Component/Components/TransformComponent.h"
 #include "ECS/Component/Components/CameraComponent.h"
+#include "ECS/Component/Components/PointLightComponent.h"
 
 using std::future;
 using std::vector;
@@ -21,8 +23,12 @@ void RenderSystem::PreUpdate()
 void RenderSystem::Update()
 {
 	vector<future<void>> completed_tasks;
-	CameraComponent* camera = ECS::ComponentManager::Get()->begin<CameraComponent>().Get();
-	Graphics::get().SetViewMatrix(camera->transform->rotation, camera->transform->position);
+	EntityId camera = ECS::ComponentManager::Get()->begin<CameraComponent>().Get()->GetOwner();
+	TransformComponent* cameraTransform = ECS::EntityManager::Get()->GetEntity(camera)->GetComponent<TransformComponent>();
+	PointLightComponent* light = ECS::ComponentManager::Get()->begin<PointLightComponent>().Get();
+	TransformComponent* lightTransform = ECS::EntityManager::Get()->GetEntity(light->GetOwner())->GetComponent<TransformComponent>();
+	Graphics::get().SetViewMatrix(cameraTransform->rotation, cameraTransform->position);
+	Graphics::get().SetLight(lightTransform->position, light->color);
 	Graphics::get().UpdatePerFrameBuffers();
 	for (auto mesh = ECS::ComponentManager::Get()->begin<RenderComponent>(); mesh != ECS::ComponentManager::Get()->end<RenderComponent>(); ++mesh) {
 		EntityId entity = mesh->GetOwner();

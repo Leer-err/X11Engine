@@ -5,6 +5,7 @@ namespace ECS {
 	template<class E>
 	class Entity : public IEntity {
 	public:
+		Entity(EntityId id) : IEntity(id) {}
 		virtual ~Entity() {};
 
 		inline const TypeId GetEntityTypeId() const override { return TYPE_ID; };

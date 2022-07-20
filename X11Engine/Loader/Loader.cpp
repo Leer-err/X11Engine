@@ -1,8 +1,6 @@
 #include "Loader.h"
 
 #include <memory>
-#include <filesystem>
-#include <tchar.h>
 
 using std::unique_ptr;
 
@@ -40,7 +38,6 @@ ComPtr<ID3D11ShaderResourceView> Loader::LoadTextureFromFile(const char* filenam
 Material Loader::LoadMaterial(const aiMaterial* material)
 {
 	Material mat;
-	string currentPath = std::filesystem::current_path().string();
 	if (material->GetTextureCount(aiTextureType_BASE_COLOR) > 0) {
 		aiString path;
 		if (material->GetTexture(aiTextureType_BASE_COLOR, 0, &path) == AI_SUCCESS) {
@@ -80,7 +77,8 @@ Model Loader::LoadModelFromFile(const char* filename)
 {
 	Model model;
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(filename,
+	string path = currentPath + filename;
+	const aiScene* scene = importer.ReadFile(path.c_str(),
 		aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
 
 	for (int i = 0; i < scene->mNumMeshes; i++) {

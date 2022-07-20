@@ -1,5 +1,7 @@
 #pragma once
+
 #include "ECS/System/System.h"
+#include "ECS/Component/Components/TransformComponent.h"
 #include "Controls/Keyboard.h"
 
 class MovementSystem : public ECS::System<MovementSystem> {

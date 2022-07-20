@@ -47,7 +47,7 @@ namespace ECS {
 			entity->m_id = id;
 			entity->m_componentManager = m_componentManager;
 
-			entity = new (ptr)T(args...);
+			entity = new (ptr)T(id, args...);
 
 			m_entities.emplace(id, entity);
 			return id;

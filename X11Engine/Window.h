@@ -45,6 +45,9 @@ public:
 	}
 
 	void Run() {
+		POINT center {m_width/2, m_height/2};
+		ClientToScreen(m_hWnd, &center);
+		SetCursorPos(center.x, center.y);
 		m_running = true;
 		MSG message = {};
 		while (message.message != WM_QUIT) {

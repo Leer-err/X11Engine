@@ -39,15 +39,15 @@ class Graphics
 
 	struct {
 		vector3 ambientColor;
-		char p0;
+		char p0[4];
 		vector3 diffuseColor;
-		char p1;
+		char p1[4];
 		vector3 specularColor;
-		char p2;
+		char p2[4];
 		vector3 lightPos;
-		char p3;
+		char p3[4];
 		vector3 viewPos;
-	} CB_PS_PER_FRAME;
+	} CB_PS_PER_FRAME; // char's here just for 16 byte memory alignment
 public:
 	static Graphics& get() {
 		static Graphics instance;
@@ -61,12 +61,12 @@ public:
 	void SetProjectionMatrix();
 	void SetViewMatrix(const quaternion& viewDirection, const vector3& cameraPosition);
 	void SetWorldMatrix(const matrix& world);
-	inline void SetAmbientColor(vector3 color);
-	inline void SetLight(vector3 pos, vector3 color);
+	void SetAmbientColor(vector3 color);
+	void SetLight(vector3 pos, vector3 color);
 
 	void UpdatePerFrameBuffers();
 	void UpdatePerModelBuffers();
-	void UpdatePerWoindowBuffers();
+	void UpdatePerWindowBuffers();
 
 	ComPtr<ID3D11Buffer> CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG bind, const void* data, size_t dataSize) const;
 	void UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, size_t size = 0) const;

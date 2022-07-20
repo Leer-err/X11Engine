@@ -10,6 +10,7 @@
 #include "Components/RenderComponent.h"
 #include "Components/TransformComponent.h"
 #include "Components/CameraComponent.h"
+#include "Components/PointLightComponent.h"
 #include "Entities/Cube.h"
 #include "TaskManager/TaskManager.h"
 #include "Loader/Loader.h"
@@ -32,13 +33,16 @@ void Update() {
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 	Window::get();
-	Model m = Loader::get().LoadModelFromFile("D:\\repos\\X11Engine\\out\\build\\x64-Debug\\X11Engine\\aseets\\Minecraft_Axolotl.fbx");
+	Model m = Loader::get().LoadModelFromFile("\\aseets\\Minecraft_Axolotl.fbx");
 
 	EntityId a = ECS::EntityManager::Get()->CreateEntity<Cube>();
+	EntityId light = ECS::EntityManager::Get()->CreateEntity<Cube>();
 	EntityId camera = ECS::EntityManager::Get()->CreateEntity<Cube>();
-	TransformComponent* b = ECS::ComponentManager::Get()->AddComponent<TransformComponent>(a, vector3( -0.5f, 0.0f, 3.f ), vector3(0.f, 0.f, 0.f));
+	ECS::ComponentManager::Get()->AddComponent<TransformComponent>(a, vector3( -0.5f, 0.0f, 3.f ), vector3(0.f, 0.f, 0.f));
+	ECS::ComponentManager::Get()->AddComponent<TransformComponent>(light, vector3( 0.f, 0.f, 0.f ));
 	TransformComponent* cameraPos = ECS::ComponentManager::Get()->AddComponent<TransformComponent>(camera, vector3( 0.0f, 0.0f, 0.0f ));
-	CameraComponent* cameraComponent = ECS::ComponentManager::Get()->AddComponent<CameraComponent>(camera, vector3(0.f, 0.f, 1.f), cameraPos);
+	ECS::ComponentManager::Get()->AddComponent<CameraComponent>(camera, vector3(0.f, 0.f, 1.f));
+	ECS::ComponentManager::Get()->AddComponent<PointLightComponent>(light, vector3(1.f, 1.f, 1.f));
 
 	ECS::ComponentManager::Get()->AddComponent<RenderComponent>(a, m);
 
@@ -52,6 +56,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	EventManager::get()->AddEventCallback(EventType::KeyUp, &up);
 	EventDelegate mouse = { &Mouse::OnMove, Mouse::get() };
 	EventManager::get()->AddEventCallback(EventType::MouseMove, &mouse);
+
+	Graphics::get().SetAmbientColor({ .1f, .1f, .3f });
 
 	thread th2(Update);
 	Window::get().Run();

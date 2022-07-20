@@ -5,6 +5,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <wincodec.h>
+#include <filesystem>
 
 #include "Graphics/Model.h"
 #include "Graphics/Graphics.h"
@@ -23,11 +24,12 @@ public:
 	ComPtr<ID3D11ShaderResourceView> LoadTextureFromFile(const char* filename);
 	Material LoadMaterial(const aiMaterial* material);
 private:
-	Loader() = default;
+	Loader() : currentPath(std::filesystem::current_path().string()) {}
 	Loader(const Loader&) = delete;
 	Loader& operator=(const Loader&) = delete;
 	Loader(const Loader&&) = delete;
 	Loader& operator=(const Loader&&) = delete;
 
 	unordered_map<string, Model> m_modelRegistry;
+	string currentPath;
 };
