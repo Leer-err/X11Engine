@@ -129,8 +129,8 @@ Graphics::Graphics()
 	SetProjectionMatrix();
 	UpdatePerWoindowBuffers();
 
-	SetAmbientColor({ 0.1f, 0.3f, 0.2f, 1.f });
-	SetLight({ 0.f, 0.f, 0.f }, {});
+	SetAmbientColor({ 0.1f, 0.3f, 0.2f });
+	SetLight({ 0.f, 0.f, 0.f }, {1.f, 1.f, 1.f});
 }
 
 Graphics::~Graphics()
@@ -163,7 +163,9 @@ void Graphics::Draw(const Model& model)
 
 		m_render_mutex.lock();
 
-		m_context->PSSetShaderResources(0, 1, model.materials[mesh.materialIndex].texture.GetAddressOf());
+		m_context->PSSetShaderResources(0, 1, model.materials[mesh.materialIndex].baseColor.GetAddressOf());
+		m_context->PSSetShaderResources(1, 1, model.materials[mesh.materialIndex].diffuse.GetAddressOf());
+		m_context->PSSetShaderResources(2, 1, model.materials[mesh.materialIndex].specular.GetAddressOf());
 		m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
 
 		m_context->DrawIndexed(mesh.indices.size(), 0, 0);
@@ -190,7 +192,7 @@ void Graphics::SetWorldMatrix(const matrix& world)
 	CB_VS_PER_MODEL.normalMatrix = world.Inverse();
 }
 
-void Graphics::SetAmbientColor(vector4 color)
+void Graphics::SetAmbientColor(vector3 color)
 {
 	CB_PS_PER_FRAME.ambientColor = color;
 }
@@ -198,6 +200,8 @@ void Graphics::SetAmbientColor(vector4 color)
 void Graphics::SetLight(vector3 pos, vector3 color)
 {
 	CB_PS_PER_FRAME.lightPos = pos;
+	CB_PS_PER_FRAME.diffuseColor = color;
+	CB_PS_PER_FRAME.specularColor = color;
 }
 
 void Graphics::UpdatePerFrameBuffers()

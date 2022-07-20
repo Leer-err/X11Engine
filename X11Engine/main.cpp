@@ -32,7 +32,7 @@ void Update() {
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 	Window::get();
-	Model m = Loader::get().LoadModelFromFile("Minecraft_Axolotl.fbx");
+	Model m = Loader::get().LoadModelFromFile("D:\\repos\\X11Engine\\out\\build\\x64-Debug\\X11Engine\\aseets\\Minecraft_Axolotl.fbx");
 
 	EntityId a = ECS::EntityManager::Get()->CreateEntity<Cube>();
 	EntityId camera = ECS::EntityManager::Get()->CreateEntity<Cube>();

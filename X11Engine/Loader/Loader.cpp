@@ -22,7 +22,7 @@ ComPtr<ID3D11ShaderResourceView> Loader::LoadTextureFromFile(const char* filenam
 	wchar_t* wpath = new wchar_t[size];
 	mbstowcs(wpath, filename, size);
 
-	factory->CreateDecoderFromFilename(wpath, NULL, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &decoder);
+	hr = factory->CreateDecoderFromFilename(wpath, NULL, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &decoder);
 
 	decoder->GetFrame(0, &frameDecoder);
 
@@ -39,12 +39,41 @@ ComPtr<ID3D11ShaderResourceView> Loader::LoadTextureFromFile(const char* filenam
 
 Material Loader::LoadMaterial(const aiMaterial* material)
 {
+	Material mat;
+	string currentPath = std::filesystem::current_path().string();
+	if (material->GetTextureCount(aiTextureType_BASE_COLOR) > 0) {
+		aiString path;
+		if (material->GetTexture(aiTextureType_BASE_COLOR, 0, &path) == AI_SUCCESS) {
+			mat.baseColor = LoadTextureFromFile(path.data) ;
+		}
+	}
+	else {
+		string path = currentPath + "\\aseets\\TexturePlaceholder.png";
+		mat.baseColor = LoadTextureFromFile(path.c_str());
+	}
+
 	if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
 		aiString path;
 		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
-			return { LoadTextureFromFile(path.data) };
+			mat.baseColor = LoadTextureFromFile(path.data);
 		}
 	}
+	else {
+		string path = currentPath + "\\aseets\\WhitePlaceholder.png";
+		mat.baseColor = LoadTextureFromFile(path.c_str());
+	}
+
+	if (material->GetTextureCount(aiTextureType_SPECULAR) > 0) {
+		aiString path;
+		if (material->GetTexture(aiTextureType_SPECULAR, 0, &path) == AI_SUCCESS) {
+			mat.specular = LoadTextureFromFile(path.data);
+		}
+	}
+	else {
+		string path = currentPath + "\\aseets\\WhitePlaceholder.png";
+		mat.specular = LoadTextureFromFile(path.c_str());
+	}
+	return mat;
 }
 
 Model Loader::LoadModelFromFile(const char* filename)

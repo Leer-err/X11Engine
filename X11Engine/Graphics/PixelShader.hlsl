@@ -1,6 +1,8 @@
 cbuffer frame : register(b0)
 {
-    float4 ambientColor;
+    float3 ambientColor;
+    float3 diffuseColor;
+    float3 specularColor;
     float3 lightPos;
     float3 viewPos;
 }
@@ -13,7 +15,9 @@ struct input
     float3 normal : NORMAL;
 };
 
-Texture2D tex : register(t0);
+Texture2D baseColor : register(t0);
+Texture2D diffuseTex : register(t1);
+Texture2D specularTex : register(t2);
 SamplerState samp : register(s0);
 
 float4 main(input in_data) : SV_TARGET
@@ -22,7 +26,10 @@ float4 main(input in_data) : SV_TARGET
     float3 viewDir = normalize(viewPos - in_data.fragPos);
     float3 reflectLight = reflect(-lightDir, in_data.normal);
     
-    float4 diffuse = max(dot(in_data.normal, lightDir), 0.f) * float4(.7f, .7f, .7f, .7f);
-    float4 specular = pow(max(dot(viewDir, reflectLight), 0.f), 32) * float4(1.f, 1.f, 1.f, 1.f);
-    return tex.Sample(samp, in_data.uv) * (ambientColor + diffuse + specular);
+    float3 diffuse = max(dot(in_data.normal, lightDir), 0.f) * diffuseColor;
+    float4 diff = float4(diffuse, 1.f) * diffuseTex.Sample(samp, in_data.uv);
+    float3 specular = pow(max(dot(viewDir, reflectLight), 0.f), 32) * specularColor;
+    float4 spec = float4(specular, 1.f) * specularTex.Sample(samp, in_data.uv);
+    
+    return baseColor.Sample(samp, in_data.uv) + spec + diff;
 }

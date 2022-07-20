@@ -18,7 +18,7 @@ TaskManager::~TaskManager()
 
 void TaskManager::Worker()
 {
-	while (Window::get().IsRunning()) {
+	while (Window::get().IsRunning() || m_queue.size() != 0) {
 		m_mutex.lock();
 		if (!m_queue.empty()) {
 			auto func = std::move(m_queue.front());

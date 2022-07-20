@@ -38,8 +38,14 @@ class Graphics
 	} CB_VS_PER_MODEL;
 
 	struct {
-		vector4 ambientColor;
+		vector3 ambientColor;
+		char p0;
+		vector3 diffuseColor;
+		char p1;
+		vector3 specularColor;
+		char p2;
 		vector3 lightPos;
+		char p3;
 		vector3 viewPos;
 	} CB_PS_PER_FRAME;
 public:
@@ -55,7 +61,7 @@ public:
 	void SetProjectionMatrix();
 	void SetViewMatrix(const quaternion& viewDirection, const vector3& cameraPosition);
 	void SetWorldMatrix(const matrix& world);
-	inline void SetAmbientColor(vector4 color);
+	inline void SetAmbientColor(vector3 color);
 	inline void SetLight(vector3 pos, vector3 color);
 
 	void UpdatePerFrameBuffers();

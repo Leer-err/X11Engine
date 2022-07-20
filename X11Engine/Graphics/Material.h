@@ -5,5 +5,7 @@
 using Microsoft::WRL::ComPtr;
 
 struct Material {
-	ComPtr<ID3D11ShaderResourceView> texture;
+	ComPtr<ID3D11ShaderResourceView> baseColor;
+	ComPtr<ID3D11ShaderResourceView> diffuse;
+	ComPtr<ID3D11ShaderResourceView> specular;
 };
