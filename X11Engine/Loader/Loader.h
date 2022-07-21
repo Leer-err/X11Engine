@@ -20,16 +20,22 @@ public:
 		return instance;
 	}
 
-	Model LoadModelFromFile(const char* filename);
+	Model* LoadModelFromFile(const char* filename);
 	ComPtr<ID3D11ShaderResourceView> LoadTextureFromFile(const char* filename);
 	Material LoadMaterial(const aiMaterial* material);
 private:
-	Loader() : currentPath(std::filesystem::current_path().string()) {}
+	Loader() : m_currentPath(std::filesystem::current_path().string()) {
+		CoInitialize(NULL);
+
+		CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_factory));
+	}
 	Loader(const Loader&) = delete;
 	Loader& operator=(const Loader&) = delete;
 	Loader(const Loader&&) = delete;
 	Loader& operator=(const Loader&&) = delete;
 
 	unordered_map<string, Model> m_modelRegistry;
-	string currentPath;
+	unordered_map<string, ComPtr<ID3D11ShaderResourceView>> m_textureRegistry;
+	string m_currentPath;
+	ComPtr<IWICImagingFactory> m_factory;
 };

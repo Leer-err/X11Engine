@@ -152,18 +152,18 @@ void Graphics::Present()
 	m_swapChain->Present();
 }
 
-void Graphics::Draw(const Model& model)
+void Graphics::Draw(const Model* model)
 {
-	for (const auto& mesh : model.meshes) {
+	for (const auto& mesh : model->meshes) {
 		UpdateBuffer(m_vertexBuffer, mesh.vertices.data(), mesh.vertices.size() * sizeof(vertex));
 		UpdateBuffer(m_indexBuffer, mesh.indices.data(), mesh.indices.size() * sizeof(uint32_t));
 
 		m_render_mutex.lock();
 
-		m_context->PSSetShaderResources(0, 1, model.materials[mesh.materialIndex].baseColor.GetAddressOf());
-		m_context->PSSetShaderResources(1, 1, model.materials[mesh.materialIndex].diffuse.GetAddressOf());
-		m_context->PSSetShaderResources(2, 1, model.materials[mesh.materialIndex].specular.GetAddressOf());
-		m_context->PSSetShaderResources(3, 1, model.materials[mesh.materialIndex].emission.GetAddressOf());
+		m_context->PSSetShaderResources(0, 1, model->materials[mesh.materialIndex].baseColor.GetAddressOf());
+		m_context->PSSetShaderResources(1, 1, model->materials[mesh.materialIndex].diffuse.GetAddressOf());
+		m_context->PSSetShaderResources(2, 1, model->materials[mesh.materialIndex].specular.GetAddressOf());
+		m_context->PSSetShaderResources(3, 1, model->materials[mesh.materialIndex].emission.GetAddressOf());
 		m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
 
 		m_context->DrawIndexed(mesh.indices.size(), 0, 0);

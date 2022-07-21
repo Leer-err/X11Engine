@@ -33,7 +33,7 @@ void Update() {
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 	Window::get();
-	Model m = Loader::get().LoadModelFromFile("\\aseets\\Minecraft_Axolotl.fbx");
+	Model* m = Loader::get().LoadModelFromFile("\\aseets\\Minecraft_Axolotl.fbx");
 
 	EntityId a = ECS::EntityManager::Get()->CreateEntity<Cube>();
 	EntityId light = ECS::EntityManager::Get()->CreateEntity<Cube>();

@@ -6,6 +6,6 @@
 using std::vector;
 
 struct RenderComponent : public ECS::Component<RenderComponent> {
-	RenderComponent(EntityId owner, Model model) : Component(owner), model(model) {}
-	Model model;
+	RenderComponent(EntityId owner, Model* model) : Component(owner), model(model) {}
+	Model* model;
 };

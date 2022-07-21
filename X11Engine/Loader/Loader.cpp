@@ -6,21 +6,21 @@ using std::unique_ptr;
 
 ComPtr<ID3D11ShaderResourceView> Loader::LoadTextureFromFile(const char* filename)
 {
-	ComPtr<IWICImagingFactory> factory;
 	ComPtr<IWICBitmapDecoder> decoder;
 	ComPtr<IWICBitmapFrameDecode> frameDecoder;
 	WICPixelFormatGUID format;
 	UINT width, height;
 
-	CoInitialize(NULL);
-
-	HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&factory));
+	const auto& tex = m_textureRegistry.find(filename);
+	if (tex != m_textureRegistry.end()) {
+		return tex->second;
+	}
 
 	int size = strlen(filename) + 1;
 	wchar_t* wpath = new wchar_t[size];
 	mbstowcs(wpath, filename, size);
 
-	hr = factory->CreateDecoderFromFilename(wpath, NULL, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &decoder);
+	m_factory->CreateDecoderFromFilename(wpath, NULL, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &decoder);
 
 	decoder->GetFrame(0, &frameDecoder);
 
@@ -29,8 +29,10 @@ ComPtr<ID3D11ShaderResourceView> Loader::LoadTextureFromFile(const char* filenam
 	unique_ptr<char[]> buffer(new char [height * width * 4]);
 	frameDecoder->GetPixelFormat(&format);
 	if (format == GUID_WICPixelFormat32bppBGRA) {
-		hr = frameDecoder->CopyPixels(nullptr, width * 4, width * height * 4, reinterpret_cast<BYTE*>(buffer.get()));
-		return Graphics::get().CreateShaderResource(DXGI_FORMAT_B8G8R8A8_UNORM, width, height, buffer.get());
+		frameDecoder->CopyPixels(nullptr, width * 4, width * height * 4, reinterpret_cast<BYTE*>(buffer.get()));
+		ComPtr<ID3D11ShaderResourceView> res = Graphics::get().CreateShaderResource(DXGI_FORMAT_B8G8R8A8_UNORM, width, height, buffer.get());
+		m_textureRegistry.emplace(filename, res);
+		return res;
 	}
 	return {};
 }
@@ -41,58 +43,64 @@ Material Loader::LoadMaterial(const aiMaterial* material)
 	if (material->GetTextureCount(aiTextureType_BASE_COLOR) > 0) {
 		aiString relPath;
 		if (material->GetTexture(aiTextureType_BASE_COLOR, 0, &relPath) == AI_SUCCESS) {
-			string path = currentPath + "\\aseets\\" + relPath.data;
+			string path = m_currentPath + "\\aseets\\" + relPath.data;
 			mat.baseColor = LoadTextureFromFile(path.c_str());
 		}
 	}
 	else {
-		string path = currentPath + "\\aseets\\TexturePlaceholder.png";
+		string path = m_currentPath + "\\aseets\\TexturePlaceholder.png";
 		mat.baseColor = LoadTextureFromFile(path.c_str());
 	}
 
 	if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
 		aiString relPath;
 		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &relPath) == AI_SUCCESS) {
-			string path = currentPath + "\\aseets\\" + relPath.data;
+			string path = m_currentPath + "\\aseets\\" + relPath.data;
 			mat.diffuse = LoadTextureFromFile(path.c_str());
 		}
 	}
 	else {
-		string path = currentPath + "\\aseets\\WhitePlaceholder.png";
+		string path = m_currentPath + "\\aseets\\WhitePlaceholder.png";
 		mat.diffuse = LoadTextureFromFile(path.c_str());
 	}
 
 	if (material->GetTextureCount(aiTextureType_SPECULAR) > 0) {
 		aiString relPath;
 		if (material->GetTexture(aiTextureType_SPECULAR, 0, &relPath) == AI_SUCCESS) {
-			string path = currentPath + "\\aseets\\" + relPath.data;
+			string path = m_currentPath + "\\aseets\\" + relPath.data;
 			mat.specular = LoadTextureFromFile(path.c_str());
 		}
 	}
 	else {
-		string path = currentPath + "\\aseets\\WhitePlaceholder.png";
+		string path = m_currentPath + "\\aseets\\WhitePlaceholder.png";
 		mat.specular = LoadTextureFromFile(path.c_str());
 	}
 
 	if (material->GetTextureCount(aiTextureType_EMISSIVE) > 0) {
 		aiString relPath;
 		if (material->GetTexture(aiTextureType_EMISSIVE, 0, &relPath) == AI_SUCCESS) {
-			string path = currentPath + "\\aseets\\" + relPath.data;
+			string path = m_currentPath + "\\aseets\\" + relPath.data;
 			mat.emission = LoadTextureFromFile(path.c_str());
 		}
 	}
 	else {
-		string path = currentPath + "\\aseets\\BlackPlaceholder.png";
+		string path = m_currentPath + "\\aseets\\BlackPlaceholder.png";
 		mat.emission = LoadTextureFromFile(path.c_str());
 	}
 	return mat;
 }
 
-Model Loader::LoadModelFromFile(const char* filename)
+Model* Loader::LoadModelFromFile(const char* filename)
 {
 	Model model;
 	Assimp::Importer importer;
-	string path = currentPath + filename;
+	string path = m_currentPath + filename;
+
+	const auto& mod = m_modelRegistry.find(filename);
+	if (mod != m_modelRegistry.end()) {
+		return &(mod->second);
+	}
+
 	const aiScene* scene = importer.ReadFile(path.c_str(),
 		aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
 
@@ -123,5 +131,5 @@ Model Loader::LoadModelFromFile(const char* filename)
 		model.materials.push_back(LoadMaterial(pMaterial));
 	}
 
-	return model;
+	return &(m_modelRegistry.emplace(filename, model).first->second);
 }

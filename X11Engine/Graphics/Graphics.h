@@ -56,7 +56,7 @@ public:
 
 	void Clear();
 	void Present();
-	void Draw(const Model& model);
+	void Draw(const Model* model);
 
 	void SetProjectionMatrix();
 	void SetViewMatrix(const quaternion& viewDirection, const vector3& cameraPosition);
