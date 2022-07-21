@@ -8,4 +8,5 @@ struct Material {
 	ComPtr<ID3D11ShaderResourceView> baseColor;
 	ComPtr<ID3D11ShaderResourceView> diffuse;
 	ComPtr<ID3D11ShaderResourceView> specular;
+	ComPtr<ID3D11ShaderResourceView> emission;
 };

@@ -26,6 +26,8 @@ message(${CMAKE_CURRENT_BINARY_DIR})
 
 file(GLOB ASSETS "models/*.*")
 file(COPY ${ASSETS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/aseets)
+configure_file("Graphics/PixelShader.hlsl" ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+configure_file("Graphics/VertexShader.hlsl" ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
 add_executable(Engine WIN32 ${SOURCES} ${HEADERS})
 

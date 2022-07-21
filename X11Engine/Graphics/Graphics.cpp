@@ -163,6 +163,7 @@ void Graphics::Draw(const Model& model)
 		m_context->PSSetShaderResources(0, 1, model.materials[mesh.materialIndex].baseColor.GetAddressOf());
 		m_context->PSSetShaderResources(1, 1, model.materials[mesh.materialIndex].diffuse.GetAddressOf());
 		m_context->PSSetShaderResources(2, 1, model.materials[mesh.materialIndex].specular.GetAddressOf());
+		m_context->PSSetShaderResources(3, 1, model.materials[mesh.materialIndex].emission.GetAddressOf());
 		m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
 
 		m_context->DrawIndexed(mesh.indices.size(), 0, 0);

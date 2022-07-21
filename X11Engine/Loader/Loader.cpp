@@ -39,9 +39,10 @@ Material Loader::LoadMaterial(const aiMaterial* material)
 {
 	Material mat;
 	if (material->GetTextureCount(aiTextureType_BASE_COLOR) > 0) {
-		aiString path;
-		if (material->GetTexture(aiTextureType_BASE_COLOR, 0, &path) == AI_SUCCESS) {
-			mat.baseColor = LoadTextureFromFile(path.data) ;
+		aiString relPath;
+		if (material->GetTexture(aiTextureType_BASE_COLOR, 0, &relPath) == AI_SUCCESS) {
+			string path = currentPath + "\\aseets\\" + relPath.data;
+			mat.baseColor = LoadTextureFromFile(path.c_str());
 		}
 	}
 	else {
@@ -50,25 +51,39 @@ Material Loader::LoadMaterial(const aiMaterial* material)
 	}
 
 	if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
-		aiString path;
-		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
-			mat.baseColor = LoadTextureFromFile(path.data);
+		aiString relPath;
+		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &relPath) == AI_SUCCESS) {
+			string path = currentPath + "\\aseets\\" + relPath.data;
+			mat.diffuse = LoadTextureFromFile(path.c_str());
 		}
 	}
 	else {
 		string path = currentPath + "\\aseets\\WhitePlaceholder.png";
-		mat.baseColor = LoadTextureFromFile(path.c_str());
+		mat.diffuse = LoadTextureFromFile(path.c_str());
 	}
 
 	if (material->GetTextureCount(aiTextureType_SPECULAR) > 0) {
-		aiString path;
-		if (material->GetTexture(aiTextureType_SPECULAR, 0, &path) == AI_SUCCESS) {
-			mat.specular = LoadTextureFromFile(path.data);
+		aiString relPath;
+		if (material->GetTexture(aiTextureType_SPECULAR, 0, &relPath) == AI_SUCCESS) {
+			string path = currentPath + "\\aseets\\" + relPath.data;
+			mat.specular = LoadTextureFromFile(path.c_str());
 		}
 	}
 	else {
 		string path = currentPath + "\\aseets\\WhitePlaceholder.png";
 		mat.specular = LoadTextureFromFile(path.c_str());
+	}
+
+	if (material->GetTextureCount(aiTextureType_EMISSIVE) > 0) {
+		aiString relPath;
+		if (material->GetTexture(aiTextureType_EMISSIVE, 0, &relPath) == AI_SUCCESS) {
+			string path = currentPath + "\\aseets\\" + relPath.data;
+			mat.emission = LoadTextureFromFile(path.c_str());
+		}
+	}
+	else {
+		string path = currentPath + "\\aseets\\BlackPlaceholder.png";
+		mat.emission = LoadTextureFromFile(path.c_str());
 	}
 	return mat;
 }

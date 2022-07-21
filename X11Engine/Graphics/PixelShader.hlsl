@@ -18,6 +18,7 @@ struct input
 Texture2D baseColor : register(t0);
 Texture2D diffuseTex : register(t1);
 Texture2D specularTex : register(t2);
+Texture2D emissionTex : register(t3);
 SamplerState samp : register(s0);
 
 float4 main(input in_data) : SV_TARGET
@@ -31,5 +32,7 @@ float4 main(input in_data) : SV_TARGET
     float3 specular = pow(max(dot(viewDir, reflectLight), 0.f), 32) * specularColor;
     float4 spec = float4(specular, 1.f) * specularTex.Sample(samp, in_data.uv);
     
-    return baseColor.Sample(samp, in_data.uv) + spec + diff;
+    float4 emission = emissionTex.Sample(samp, in_data.uv);
+    
+    return float4(ambientColor, 1.f) * diffuseTex.Sample(samp, in_data.uv) + spec + diff + emission;
 }
