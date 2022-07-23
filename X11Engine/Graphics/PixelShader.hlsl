@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+#include "ShaderDefines.h"
+
+=======
+>>>>>>> 8639105361384194a33ded6c06dbc7c7f29b56e1
 struct DirLight
 {
     float3 direction;
