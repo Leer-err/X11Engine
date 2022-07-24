@@ -190,16 +190,12 @@ void Graphics::SetWorldMatrix(const matrix& world)
 	CB_VS_PER_MODEL.normalMatrix = world.Inverse();
 }
 
-void Graphics::SetAmbientColor(vector3 color)
+void Graphics::SetDirLight(const vector3& direction, const vector3& ambientColor, const vector3& diffuseColor, const vector3& specularColor)
 {
-	CB_PS_PER_FRAME.ambientColor = color;
-}
-
-void Graphics::SetLight(vector3 pos, vector3 color)
-{
-	CB_PS_PER_FRAME.lightPos = pos;
-	CB_PS_PER_FRAME.diffuseColor = color;
-	CB_PS_PER_FRAME.specularColor = color;
+	CB_PS_PER_FRAME.dirLight.ambient = ambientColor;
+	CB_PS_PER_FRAME.dirLight.diffuse = diffuseColor;
+	CB_PS_PER_FRAME.dirLight.specular = specularColor;
+	CB_PS_PER_FRAME.dirLight.direction = direction;
 }
 
 void Graphics::UpdatePerFrameBuffers()

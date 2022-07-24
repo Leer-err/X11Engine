@@ -38,7 +38,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	EntityId a = ECS::EntityManager::Get()->CreateEntity<Cube>();
 	EntityId light = ECS::EntityManager::Get()->CreateEntity<Cube>();
 	EntityId camera = ECS::EntityManager::Get()->CreateEntity<Cube>();
-	ECS::ComponentManager::Get()->AddComponent<TransformComponent>(a, vector3( -0.5f, 0.0f, 3.f ), vector3(0.f, 0.f, 0.f));
+	ECS::ComponentManager::Get()->AddComponent<TransformComponent>(a, vector3( 15.f, 0.0f, 3.f ), vector3(0.f, 0.f, 0.f));
 	ECS::ComponentManager::Get()->AddComponent<TransformComponent>(light, vector3( 0.f, 0.f, 0.f ));
 	TransformComponent* cameraPos = ECS::ComponentManager::Get()->AddComponent<TransformComponent>(camera, vector3( 0.0f, 0.0f, 0.0f ));
 	ECS::ComponentManager::Get()->AddComponent<CameraComponent>(camera, vector3(0.f, 0.f, 1.f));
@@ -57,7 +57,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	EventDelegate mouse = { &Mouse::OnMove, Mouse::get() };
 	EventManager::get()->AddEventCallback(EventType::MouseMove, &mouse);
 
-	Graphics::get().SetAmbientColor({ .1f, .1f, .3f });
+	Graphics::get().SetDirLight({ 0.f, 0.f, 1.f }, { .1f, .1f, .3f }, { 1.f, 1.f, 1.f }, { 1.f, 1.f, 1.f });
 
 	thread th2(Update);
 	Window::get().Run();

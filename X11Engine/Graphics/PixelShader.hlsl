@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-#include "ShaderDefines.h"
-
-=======
->>>>>>> 8639105361384194a33ded6c06dbc7c7f29b56e1
 struct DirLight
 {
     float3 direction;
@@ -41,11 +36,8 @@ SamplerState samp : register(s0);
 
 cbuffer frame : register(b0)
 {
-    float3 ambientColor;
-    float3 diffuseColor;
-    float3 specularColor;
-    float3 lightPos;
     float3 viewPos;
+    DirLight dirLight;
 }
 
 float3 CalcDirLight(DirLight light, float3 normal, float3 viewDir, float2 texCoord)
@@ -83,16 +75,9 @@ float3 CalcPointLight(PointLight light, float3 pos, float3 normal, float3 viewDi
 
 float4 main(input in_data) : SV_TARGET
 {
-    float3 lightDir = normalize(lightPos - in_data.fragPos);
     float3 viewDir = normalize(viewPos - in_data.fragPos);
-    float3 reflectLight = reflect(-lightDir, in_data.normal);
-    
-    float3 diffuse = max(dot(in_data.normal, lightDir), 0.f) * diffuseColor;
-    float4 diff = float4(diffuse, 1.f) * diffuseTex.Sample(samp, in_data.uv);
-    float3 specular = pow(max(dot(viewDir, reflectLight), 0.f), 32) * specularColor;
-    float4 spec = float4(specular, 1.f) * specularTex.Sample(samp, in_data.uv);
     
     float4 emission = emissionTex.Sample(samp, in_data.uv);
     
-    return float4(ambientColor, 1.f) * diffuseTex.Sample(samp, in_data.uv) + spec + diff + emission;
+    return float4(CalcDirLight(dirLight, in_data.normal, viewDir, in_data.uv), 1.f) + emission;
 }

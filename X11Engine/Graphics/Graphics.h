@@ -24,6 +24,19 @@ constexpr uint32_t INDEX_BUFFER_SIZE = 100000;
 
 class Graphics
 {
+	struct DirLight
+	{
+		vector3 direction;
+		char p0[4];
+
+		vector3 ambient;
+		char p1[4];
+		vector3 diffuse;
+		char p2[4];
+		vector3 specular;
+		char p3[4];
+	};
+
 	struct {
 		matrix projection;
 	} CB_VS_PER_WINDOW;
@@ -38,15 +51,9 @@ class Graphics
 	} CB_VS_PER_MODEL;
 
 	struct {
-		vector3 ambientColor;
-		char p0[4];
-		vector3 diffuseColor;
-		char p1[4];
-		vector3 specularColor;
-		char p2[4];
-		vector3 lightPos;
-		char p3[4];
 		vector3 viewPos;
+		char p0[4];
+		DirLight dirLight;
 	} CB_PS_PER_FRAME; // char's here just for 16 byte memory alignment
 public:
 	static Graphics& get() {
@@ -61,8 +68,7 @@ public:
 	void SetProjectionMatrix();
 	void SetViewMatrix(const quaternion& viewDirection, const vector3& cameraPosition);
 	void SetWorldMatrix(const matrix& world);
-	void SetAmbientColor(vector3 color);
-	void SetLight(vector3 pos, vector3 color);
+	void SetDirLight(const vector3& direction, const vector3& ambientColor, const vector3& diffuseColor, const vector3& specularColor);
 
 	void UpdatePerFrameBuffers();
 	void UpdatePerModelBuffers();
