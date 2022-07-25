@@ -25,8 +25,8 @@ void RenderSystem::Update()
 	vector<future<void>> completed_tasks;
 	EntityId camera = ECS::ComponentManager::Get()->begin<CameraComponent>().Get()->GetOwner();
 	TransformComponent* cameraTransform = ECS::EntityManager::Get()->GetEntity(camera)->GetComponent<TransformComponent>();
-	PointLightComponent* light = ECS::ComponentManager::Get()->begin<PointLightComponent>().Get();
-	TransformComponent* lightTransform = ECS::EntityManager::Get()->GetEntity(light->GetOwner())->GetComponent<TransformComponent>();
+	//PointLightComponent* light = ECS::ComponentManager::Get()->begin<PointLightComponent>().Get();
+	//TransformComponent* lightTransform = ECS::EntityManager::Get()->GetEntity(light->GetOwner())->GetComponent<TransformComponent>();
 	Graphics::get().SetViewMatrix(cameraTransform->rotation, cameraTransform->position);
 	/*Graphics::get().SetLight(lightTransform->position, light->color);*/
 	Graphics::get().UpdatePerFrameBuffers();

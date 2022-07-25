@@ -10,14 +10,14 @@ struct DirLight
 struct PointLight
 {
     float3 position;
-    
-    float constant;
-    float lin;
-    float quadratic;
 
     float3 ambient;
     float3 diffuse;
     float3 specular;
+    
+    float constant;
+    float lin;
+    float quadratic;
 };
 
 struct input
@@ -38,6 +38,7 @@ cbuffer frame : register(b0)
 {
     float3 viewPos;
     DirLight dirLight;
+    PointLight pointLight;
 }
 
 float3 CalcDirLight(DirLight light, float3 normal, float3 viewDir, float2 texCoord)
@@ -64,7 +65,7 @@ float3 CalcPointLight(PointLight light, float3 pos, float3 normal, float3 viewDi
     float spec = pow(max(dot(reflectDir, viewDir), 0.f), 32);
     
     float distance = length(light.position - pos);
-    float attentuation = 1.f / (light.constant + light.lin * distance + light.quadratic + pow(distance, 2));
+    float attentuation = 1.f / (light.constant + light.lin * distance + light.quadratic * pow(distance, 2));
 
     float3 ambient = light.ambient * diffuseTex.Sample(samp, texCoord).xyz;
     float3 diffuse = light.diffuse * diff * diffuseTex.Sample(samp, texCoord).xyz;
@@ -79,5 +80,5 @@ float4 main(input in_data) : SV_TARGET
     
     float4 emission = emissionTex.Sample(samp, in_data.uv);
     
-    return float4(CalcDirLight(dirLight, in_data.normal, viewDir, in_data.uv), 1.f) + emission;
+    return float4(CalcDirLight(dirLight, in_data.normal, viewDir, in_data.uv) + CalcPointLight(pointLight, in_data.fragPos, in_data.normal, viewDir, in_data.uv), 1.f) + emission;
 }

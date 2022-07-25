@@ -190,12 +190,23 @@ void Graphics::SetWorldMatrix(const matrix& world)
 	CB_VS_PER_MODEL.normalMatrix = world.Inverse();
 }
 
-void Graphics::SetDirLight(const vector3& direction, const vector3& ambientColor, const vector3& diffuseColor, const vector3& specularColor)
+void Graphics::SetDirLight(const DirLight& light)
 {
-	CB_PS_PER_FRAME.dirLight.ambient = ambientColor;
-	CB_PS_PER_FRAME.dirLight.diffuse = diffuseColor;
-	CB_PS_PER_FRAME.dirLight.specular = specularColor;
-	CB_PS_PER_FRAME.dirLight.direction = direction;
+	CB_PS_PER_FRAME.dirLight.ambient = light.ambient;
+	CB_PS_PER_FRAME.dirLight.diffuse = light.diffuse;
+	CB_PS_PER_FRAME.dirLight.specular = light.specular;
+	CB_PS_PER_FRAME.dirLight.direction = light.direction;
+}
+
+void Graphics::SetPointLight(const PointLight& light, const vector3& position)
+{
+	CB_PS_PER_FRAME.pointLight.position = position;
+	CB_PS_PER_FRAME.pointLight.ambient = light.ambient;
+	CB_PS_PER_FRAME.pointLight.diffuse = light.diffuse;
+	CB_PS_PER_FRAME.pointLight.specular = light.specular;
+	CB_PS_PER_FRAME.pointLight.lin = light.lin;
+	CB_PS_PER_FRAME.pointLight.quadratic = light.quadratic;
+	CB_PS_PER_FRAME.pointLight.constant = light.constant;
 }
 
 void Graphics::UpdatePerFrameBuffers()

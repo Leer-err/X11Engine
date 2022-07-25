@@ -8,6 +8,7 @@
 #include "Helper.h"
 #include <vector>
 #include "Model.h"
+#include "Light.h"
 
 #include "Components/CameraComponent.h"
 
@@ -24,19 +25,6 @@ constexpr uint32_t INDEX_BUFFER_SIZE = 100000;
 
 class Graphics
 {
-	struct DirLight
-	{
-		vector3 direction;
-		char p0[4];
-
-		vector3 ambient;
-		char p1[4];
-		vector3 diffuse;
-		char p2[4];
-		vector3 specular;
-		char p3[4];
-	};
-
 	struct {
 		matrix projection;
 	} CB_VS_PER_WINDOW;
@@ -53,9 +41,35 @@ class Graphics
 	struct {
 		vector3 viewPos;
 		char p0[4];
-		DirLight dirLight;
+		struct 
+		{
+			vector3 direction;
+			char p0[4];
+			vector3 ambient;
+			char p1[4];
+			vector3 diffuse;
+			char p2[4];
+			vector3 specular;
+			char p3[4];
+		} dirLight;
+
+		struct
+		{
+			vector3 position;
+			char p0[4];
+			vector3 ambient;
+			char p1[4];
+			vector3 diffuse;
+			char p2[4];
+			vector3 specular;
+
+			float constant;
+			float lin;
+			float quadratic;
+		} pointLight;
 	} CB_PS_PER_FRAME; // char's here just for 16 byte memory alignment
 public:
+
 	static Graphics& get() {
 		static Graphics instance;
 		return instance;
@@ -68,7 +82,8 @@ public:
 	void SetProjectionMatrix();
 	void SetViewMatrix(const quaternion& viewDirection, const vector3& cameraPosition);
 	void SetWorldMatrix(const matrix& world);
-	void SetDirLight(const vector3& direction, const vector3& ambientColor, const vector3& diffuseColor, const vector3& specularColor);
+	void SetDirLight(const DirLight& light);
+	void SetPointLight(const PointLight& light, const vector3& position);
 
 	void UpdatePerFrameBuffers();
 	void UpdatePerModelBuffers();
