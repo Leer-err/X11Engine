@@ -1,3 +1,5 @@
+#define MAX_POINT_LIGHTS 4
+
 struct DirLight
 {
     float3 direction;
@@ -37,8 +39,9 @@ SamplerState samp : register(s0);
 cbuffer frame : register(b0)
 {
     float3 viewPos;
+    int lightCount;
     DirLight dirLight;
-    PointLight pointLight;
+    PointLight pointLight[4];
 }
 
 float3 CalcDirLight(DirLight light, float3 normal, float3 viewDir, float2 texCoord)
@@ -80,5 +83,14 @@ float4 main(input in_data) : SV_TARGET
     
     float4 emission = emissionTex.Sample(samp, in_data.uv);
     
-    return float4(CalcDirLight(dirLight, in_data.normal, viewDir, in_data.uv) + CalcPointLight(pointLight, in_data.fragPos, in_data.normal, viewDir, in_data.uv), 1.f) + emission;
+    float3 result = CalcDirLight(dirLight, in_data.normal, viewDir, in_data.uv);
+    //result += CalcPointLight(pointLight[0], in_data.fragPos, in_data.normal, viewDir, in_data.uv);
+    //result += CalcPointLight(pointLight[1], in_data.fragPos, in_data.normal, viewDir, in_data.uv);
+    
+    for (int i = 0; i < lightCount; i++)
+    {
+        result += CalcPointLight(pointLight[i], in_data.fragPos, in_data.normal, viewDir, in_data.uv);
+    }
+    
+    return float4(result, 1.f) + emission;
 }

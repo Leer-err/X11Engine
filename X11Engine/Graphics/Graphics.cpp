@@ -198,15 +198,16 @@ void Graphics::SetDirLight(const DirLight& light)
 	CB_PS_PER_FRAME.dirLight.direction = light.direction;
 }
 
-void Graphics::SetPointLight(const PointLight& light, const vector3& position)
+void Graphics::SetPointLight(int index, const PointLight& light, const vector3& position)
 {
-	CB_PS_PER_FRAME.pointLight.position = position;
-	CB_PS_PER_FRAME.pointLight.ambient = light.ambient;
-	CB_PS_PER_FRAME.pointLight.diffuse = light.diffuse;
-	CB_PS_PER_FRAME.pointLight.specular = light.specular;
-	CB_PS_PER_FRAME.pointLight.lin = light.lin;
-	CB_PS_PER_FRAME.pointLight.quadratic = light.quadratic;
-	CB_PS_PER_FRAME.pointLight.constant = light.constant;
+	CB_PS_PER_FRAME.pointLight[index].position = position;
+	CB_PS_PER_FRAME.pointLight[index].ambient = light.ambient;
+	CB_PS_PER_FRAME.pointLight[index].diffuse = light.diffuse;
+	CB_PS_PER_FRAME.pointLight[index].specular = light.specular;
+	CB_PS_PER_FRAME.pointLight[index].lin = light.lin;
+	CB_PS_PER_FRAME.pointLight[index].quadratic = light.quadratic;
+	CB_PS_PER_FRAME.pointLight[index].constant = light.constant;
+	CB_PS_PER_FRAME.lightCount = index + 1;
 }
 
 void Graphics::UpdatePerFrameBuffers()

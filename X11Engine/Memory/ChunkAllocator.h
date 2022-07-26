@@ -60,8 +60,8 @@ namespace Memory {
 			inline T& operator*() const { return *m_currentObject; }
 			inline T* operator->() const { return *m_currentObject; }
 
-			inline bool operator==(const iterator& other) { return (m_currentChunk == other.m_currentChunk) && (m_currentObject == other.m_currentObject); }
-			inline bool operator!=(const iterator& other) { return (m_currentChunk != other.m_currentChunk) && (m_currentObject != other.m_currentObject); }
+			inline bool operator==(const iterator& other) const { return (m_currentChunk == other.m_currentChunk) && (m_currentObject == other.m_currentObject); }
+			inline bool operator!=(const iterator& other) const { return (m_currentChunk != other.m_currentChunk) && (m_currentObject != other.m_currentObject); }
 		private:
 			typename std::list<MemoryChunk*>::iterator m_currentChunk;
 			typename std::list<MemoryChunk*>::iterator m_end;

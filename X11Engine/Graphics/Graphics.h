@@ -23,6 +23,8 @@ class SwapChain;
 constexpr uint32_t VERTEX_BUFFER_SIZE = 60000;
 constexpr uint32_t INDEX_BUFFER_SIZE = 100000;
 
+constexpr int MAX_POINT_LIGHTS = 4;
+
 class Graphics
 {
 	struct {
@@ -40,7 +42,7 @@ class Graphics
 
 	struct {
 		vector3 viewPos;
-		char p0[4];
+		int lightCount;
 		struct 
 		{
 			vector3 direction;
@@ -66,7 +68,8 @@ class Graphics
 			float constant;
 			float lin;
 			float quadratic;
-		} pointLight;
+			char p3[8];
+		} pointLight[MAX_POINT_LIGHTS];
 	} CB_PS_PER_FRAME; // char's here just for 16 byte memory alignment
 public:
 
@@ -83,7 +86,7 @@ public:
 	void SetViewMatrix(const quaternion& viewDirection, const vector3& cameraPosition);
 	void SetWorldMatrix(const matrix& world);
 	void SetDirLight(const DirLight& light);
-	void SetPointLight(const PointLight& light, const vector3& position);
+	void SetPointLight(int index, const PointLight& light, const vector3& position);
 
 	void UpdatePerFrameBuffers();
 	void UpdatePerModelBuffers();
