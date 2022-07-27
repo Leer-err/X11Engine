@@ -87,6 +87,9 @@ Material Loader::LoadMaterial(const aiMaterial* material)
 		string path = m_currentPath + "\\aseets\\BlackPlaceholder.png";
 		mat.emission = LoadTextureFromFile(path.c_str());
 	}
+
+	mat.pixelShader = Graphics::get().CreatePixelShader(L"PixelShader.hlsl", shaderFlags);
+	mat.vertexShader = Graphics::get().CreateVertexShader(L"VertexShader.hlsl", shaderFlags);
 	return mat;
 }
 

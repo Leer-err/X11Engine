@@ -11,8 +11,6 @@ Graphics::Graphics()
 	ComPtr<IDXGIAdapter1> adapter;
 
 	ComPtr<ID3DBlob> vsBlob;
-	ComPtr<ID3DBlob> psBlob;
-	ComPtr<ID3DBlob> errorBlob;
 
 	HWND hWnd = Window::get().GetHandle();
 	int height = Window::get().GetHeight();
@@ -75,15 +73,6 @@ Graphics::Graphics()
 
 	m_context->RSSetViewports(1, &viewport);
 
-	DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-#ifdef _DEBUG
-	shaderFlags |= D3DCOMPILE_DEBUG;
-	shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-	D3DCompileFromFile(L"PixelShader.hlsl", nullptr, nullptr, "main", "ps_5_0", shaderFlags, 0, &psBlob, &errorBlob);
-	D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_5_0", shaderFlags, 0, &vsBlob, &errorBlob);
-
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -91,13 +80,10 @@ Graphics::Graphics()
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
+	D3DCompileFromFile(L"VertexShader.hlsl", nullptr, nullptr, "main", "vs_5_0", 0, 0, &vsBlob, nullptr);
 	m_device->CreateInputLayout(layout, _ARRAYSIZE(layout), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_inputLayout);
-	m_device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &m_pixelShader);
-	m_device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &m_vertexShader);
 
 	m_context->IASetInputLayout(m_inputLayout.Get());
-	m_context->VSSetShader(m_vertexShader.Get(), nullptr, 0);
-	m_context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 
 	m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -159,6 +145,9 @@ void Graphics::Draw(const Model* model)
 		UpdateBuffer(m_indexBuffer, mesh.indices.data(), mesh.indices.size() * sizeof(uint32_t));
 
 		m_render_mutex.lock();
+
+		m_context->PSSetShader(model->materials[mesh.materialIndex].pixelShader.Get(), nullptr, 0);
+		m_context->VSSetShader(model->materials[mesh.materialIndex].vertexShader.Get(), nullptr, 0);
 
 		m_context->PSSetShaderResources(0, 1, model->materials[mesh.materialIndex].baseColor.GetAddressOf());
 		m_context->PSSetShaderResources(1, 1, model->materials[mesh.materialIndex].diffuse.GetAddressOf());
@@ -278,4 +267,40 @@ ComPtr<ID3D11ShaderResourceView> Graphics::CreateShaderResource(DXGI_FORMAT form
 	m_device->CreateShaderResourceView(texture.Get(), nullptr, resource.GetAddressOf());
 
 	return resource;
+}
+
+ComPtr<ID3D11PixelShader> Graphics::CreatePixelShader(const wchar_t* name, UINT flags)
+{
+	ComPtr<ID3DBlob> psBlob, errorBlob;
+	ComPtr<ID3D11PixelShader> shader;
+
+	if (SUCCEEDED(D3DCompileFromFile(name, nullptr, nullptr, "main", "ps_5_0", flags, 0, &psBlob, &errorBlob))) {
+		Logger::get().Debug(L"Pixel shader %s was loaded succesfully", name);
+	}
+	else {
+		Logger::get().Error(L"Pixel shader %s loading failed with %s", name, reinterpret_cast<wchar_t*>(errorBlob->GetBufferPointer()));
+		Window::get().Terminate();
+	}
+
+	m_device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &shader);
+
+	return shader;
+}
+
+ComPtr<ID3D11VertexShader> Graphics::CreateVertexShader(const wchar_t* name, UINT flags)
+{
+	ComPtr<ID3DBlob> psBlob, errorBlob;
+	ComPtr<ID3D11VertexShader> shader;
+
+	if (SUCCEEDED(D3DCompileFromFile(name, nullptr, nullptr, "main", "vs_5_0", flags, 0, &psBlob, &errorBlob))) {
+		Logger::get().Debug(L"Vertex shader %s was loaded succesfully", name);
+	}
+	else {
+		Logger::get().Error(L"Vertex shader %s loading failed with %s", name, reinterpret_cast<wchar_t*>(errorBlob->GetBufferPointer()));
+		Window::get().Terminate();
+	}
+
+	m_device->CreateVertexShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &shader);
+
+	return shader;
 }

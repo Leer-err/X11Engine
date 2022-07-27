@@ -87,6 +87,7 @@ float4 main(input in_data) : SV_TARGET
     //result += CalcPointLight(pointLight[0], in_data.fragPos, in_data.normal, viewDir, in_data.uv);
     //result += CalcPointLight(pointLight[1], in_data.fragPos, in_data.normal, viewDir, in_data.uv);
     
+    [unroll(MAX_POINT_LIGHTS)]
     for (int i = 0; i < lightCount; i++)
     {
         result += CalcPointLight(pointLight[i], in_data.fragPos, in_data.normal, viewDir, in_data.uv);

@@ -13,6 +13,13 @@
 using std::unordered_map;
 using std::string;
 
+#ifdef _DEBUG
+constexpr UINT shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS |
+	D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+constexpr UINT shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#endif
+
 class Loader {
 public:
 	static Loader& get() {
