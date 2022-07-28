@@ -24,10 +24,10 @@ endif()
 install(FILES ${ASSIMP_DLL} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 message(${CMAKE_CURRENT_BINARY_DIR})
 
-file(GLOB ASSETS "models/*.*")
+file(GLOB ASSETS "assets/*.*")
 file(COPY ${ASSETS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/aseets)
-configure_file("Graphics/PixelShader.hlsl" ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-configure_file("Graphics/VertexShader.hlsl" ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+file(GLOB SHADERS "Shaders/*.*")
+file(COPY ${SHADERS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(Engine WIN32 ${SOURCES} ${HEADERS})
 
