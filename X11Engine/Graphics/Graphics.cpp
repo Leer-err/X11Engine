@@ -269,38 +269,20 @@ ComPtr<ID3D11ShaderResourceView> Graphics::CreateShaderResource(DXGI_FORMAT form
 	return resource;
 }
 
-ComPtr<ID3D11PixelShader> Graphics::CreatePixelShader(const wchar_t* name, UINT flags)
+ComPtr<ID3D11PixelShader> Graphics::CreatePixelShader(ComPtr<ID3DBlob> shaderBytecode)
 {
-	ComPtr<ID3DBlob> psBlob, errorBlob;
 	ComPtr<ID3D11PixelShader> shader;
 
-	if (SUCCEEDED(D3DCompileFromFile(name, nullptr, nullptr, "main", "ps_5_0", flags, 0, &psBlob, &errorBlob))) {
-		Logger::get().Debug(L"Pixel shader %s was loaded succesfully", name);
-	}
-	else {
-		Logger::get().Error(L"Pixel shader %s loading failed with %s", name, reinterpret_cast<wchar_t*>(errorBlob->GetBufferPointer()));
-		Window::get().Terminate();
-	}
-
-	m_device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &shader);
+	m_device->CreatePixelShader(shaderBytecode->GetBufferPointer(), shaderBytecode->GetBufferSize(), nullptr, &shader);
 
 	return shader;
 }
 
-ComPtr<ID3D11VertexShader> Graphics::CreateVertexShader(const wchar_t* name, UINT flags)
+ComPtr<ID3D11VertexShader> Graphics::CreateVertexShader(ComPtr<ID3DBlob> shaderBytecode)
 {
-	ComPtr<ID3DBlob> psBlob, errorBlob;
 	ComPtr<ID3D11VertexShader> shader;
 
-	if (SUCCEEDED(D3DCompileFromFile(name, nullptr, nullptr, "main", "vs_5_0", flags, 0, &psBlob, &errorBlob))) {
-		Logger::get().Debug(L"Vertex shader %s was loaded succesfully", name);
-	}
-	else {
-		Logger::get().Error(L"Vertex shader %s loading failed with %s", name, reinterpret_cast<wchar_t*>(errorBlob->GetBufferPointer()));
-		Window::get().Terminate();
-	}
-
-	m_device->CreateVertexShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &shader);
+	m_device->CreateVertexShader(shaderBytecode->GetBufferPointer(), shaderBytecode->GetBufferSize(), nullptr, &shader);
 
 	return shader;
 }

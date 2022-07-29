@@ -88,9 +88,16 @@ Material Loader::LoadMaterial(const aiMaterial* material)
 		mat.emission = LoadTextureFromFile(path.c_str());
 	}
 
-	mat.pixelShader = Graphics::get().CreatePixelShader(L"PixelShader.hlsl", shaderFlags);
-	mat.vertexShader = Graphics::get().CreateVertexShader(L"VertexShader.hlsl", shaderFlags);
+	mat.pixelShader = Graphics::get().CreatePixelShader(CompileShaderFromFile(L"PixelShader.hlsl", "ps_5_0", shaderFlags));
+	mat.vertexShader = Graphics::get().CreateVertexShader(CompileShaderFromFile(L"VertexShader.hlsl", "vs_5_0", shaderFlags));
 	return mat;
+}
+
+ComPtr<ID3DBlob> Loader::CompileShaderFromFile(const wchar_t* filename, const char* target, UINT flags)
+{
+	ComPtr<ID3DBlob> res;
+	D3DCompileFromFile(filename, nullptr, nullptr, "main", target, NULL, NULL, &res, nullptr);
+	return res;
 }
 
 Model* Loader::LoadModelFromFile(const char* filename)

@@ -96,8 +96,8 @@ public:
 	void UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, size_t size = 0) const;
 	ComPtr<ID3D11ShaderResourceView> CreateShaderResource(DXGI_FORMAT format, int width, int height, const void* pData) const;
 
-	ComPtr<ID3D11PixelShader> CreatePixelShader(const wchar_t* name, UINT flags);
-	ComPtr<ID3D11VertexShader> CreateVertexShader(const wchar_t* name, UINT flags);
+	ComPtr<ID3D11PixelShader> CreatePixelShader(ComPtr<ID3DBlob> shaderBytecode);
+	ComPtr<ID3D11VertexShader> CreateVertexShader(ComPtr<ID3DBlob> shaderBytecode);
 
 	inline IDXGIFactory7* GetFactory() const { return m_factory.Get(); }
 	inline ID3D11Device5* GetDevice() const { return m_device.Get(); }
