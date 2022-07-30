@@ -100,6 +100,7 @@ Graphics::Graphics()
 	m_CBVSFrame = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, nullptr, (sizeof(CB_VS_PER_FRAME) >> 4) + 1 << 4);
 	m_CBVSWindow = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, nullptr, (sizeof(CB_VS_PER_WINDOW) >> 4) + 1 << 4);
 	m_CBPSFrame = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, nullptr, (sizeof(CB_PS_PER_FRAME) >> 4) + 1 << 4);
+	m_lightBuffer = CreateStructuredBuffer(MAX_POINT_LIGHTS, sizeof(Graphics::PointLight), true, false, nullptr);
 	m_context->VSSetConstantBuffers(0, 1, m_CBVSWindow.GetAddressOf());
 	m_context->VSSetConstantBuffers(1, 1, m_CBVSFrame.GetAddressOf());
 	m_context->VSSetConstantBuffers(2, 1, m_CBVSModel.GetAddressOf());
@@ -126,6 +127,7 @@ Graphics::~Graphics()
 
 void Graphics::Clear()
 {
+	pointLights.clear();
 	static constexpr FLOAT color[4] = { 0.f,0.f,0.f,0.f };
 	m_context->OMSetRenderTargets(1, reinterpret_cast<ID3D11RenderTargetView**>(m_rtv.GetAddressOf()), m_depthStencilView.Get());
 
@@ -187,22 +189,26 @@ void Graphics::SetDirLight(const DirLight& light)
 	CB_PS_PER_FRAME.dirLight.direction = light.direction;
 }
 
-void Graphics::SetPointLight(int index, const PointLight& light, const vector3& position)
+void Graphics::SetPointLight(const ::PointLight& light, const vector3& position)
 {
-	CB_PS_PER_FRAME.pointLight[index].position = position;
-	CB_PS_PER_FRAME.pointLight[index].ambient = light.ambient;
-	CB_PS_PER_FRAME.pointLight[index].diffuse = light.diffuse;
-	CB_PS_PER_FRAME.pointLight[index].specular = light.specular;
-	CB_PS_PER_FRAME.pointLight[index].lin = light.lin;
-	CB_PS_PER_FRAME.pointLight[index].quadratic = light.quadratic;
-	CB_PS_PER_FRAME.pointLight[index].constant = light.constant;
-	CB_PS_PER_FRAME.lightCount = index + 1;
+	PointLight pointLight;
+	pointLight.position = position;
+	pointLight.ambient = light.ambient;
+	pointLight.diffuse = light.diffuse;
+	pointLight.specular = light.specular;
+	pointLight.lin = light.lin;
+	pointLight.quadratic = light.quadratic;
+	pointLight.constant = light.constant;
+	pointLights.push_back(pointLight);
 }
 
 void Graphics::UpdatePerFrameBuffers()
 {
 	UpdateBuffer(m_CBVSFrame, &CB_VS_PER_FRAME);
 	UpdateBuffer(m_CBPSFrame, &CB_PS_PER_FRAME);
+	UpdateBuffer(m_lightBuffer, pointLights.data());
+	ComPtr<ID3D11ShaderResourceView> res = CreateBufferSRV(m_lightBuffer.Get(), sizeof(Graphics::PointLight), pointLights.size());
+	m_context->PSSetShaderResources(4, 1, res.GetAddressOf());
 }
 
 void Graphics::UpdatePerModelBuffers()
@@ -233,6 +239,42 @@ ComPtr<ID3D11Buffer> Graphics::CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG b
 	m_device->CreateBuffer(&desc, pInitialData, &buf);
 
 	return buf;
+}
+
+ComPtr<ID3D11Buffer> Graphics::CreateStructuredBuffer(UINT count, UINT structureSize, bool CPUWritable, bool GPUWritable, const void* data) const
+{
+	ID3D11Buffer* buffer;
+	D3D11_BUFFER_DESC desc = {};
+	desc.ByteWidth = count * structureSize;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	desc.StructureByteStride = structureSize;
+	desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+
+	D3D11_SUBRESOURCE_DATA subRes = {};
+	subRes.pSysMem = data;
+
+	D3D11_SUBRESOURCE_DATA* pInitialData = data == nullptr ? nullptr : &subRes;
+
+	if (!CPUWritable && !GPUWritable) {
+		desc.Usage = D3D11_USAGE_IMMUTABLE;
+		desc.CPUAccessFlags = 0;
+	}
+	if (CPUWritable && !GPUWritable) {
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	}
+	if (!CPUWritable && GPUWritable) {
+		desc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.CPUAccessFlags = 0;
+	}
+	if (CPUWritable && GPUWritable) {
+		return nullptr;
+	}
+
+	m_device->CreateBuffer(&desc, pInitialData, &buffer);
+
+	return buffer;
 }
 
 void Graphics::UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, size_t size) const
@@ -267,6 +309,20 @@ ComPtr<ID3D11ShaderResourceView> Graphics::CreateShaderResource(DXGI_FORMAT form
 	m_device->CreateShaderResourceView(texture.Get(), nullptr, resource.GetAddressOf());
 
 	return resource;
+}
+
+ComPtr<ID3D11ShaderResourceView> Graphics::CreateBufferSRV(ID3D11Resource* res, UINT elementSize, UINT numElements) const
+{
+	ID3D11ShaderResourceView* srv;
+	D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
+	desc.Format = DXGI_FORMAT_UNKNOWN;
+	desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+	desc.Buffer.ElementOffset = 0;
+	desc.Buffer.ElementWidth = numElements;
+
+	m_device->CreateShaderResourceView(res, &desc, &srv);
+
+	return srv;
 }
 
 ComPtr<ID3D11PixelShader> Graphics::CreatePixelShader(ComPtr<ID3DBlob> shaderBytecode)

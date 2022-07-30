@@ -26,12 +26,12 @@ void RenderSystem::Update()
 	EntityId camera = ECS::ComponentManager::Get()->begin<CameraComponent>().Get()->GetOwner();
 	TransformComponent* cameraTransform = ECS::EntityManager::Get()->GetEntity(camera)->GetComponent<TransformComponent>();
 	Graphics::get().SetViewMatrix(cameraTransform->rotation, cameraTransform->position);
-	Graphics::get().UpdatePerFrameBuffers();
 	auto& light = ECS::ComponentManager::Get()->begin<PointLightComponent>();
 	for (int i = 0; i < MAX_POINT_LIGHTS && light != ECS::ComponentManager::Get()->end<PointLightComponent>(); i++, ++light) {
 		vector3 pos = ECS::ComponentManager::Get()->GetComponent<TransformComponent>(light->GetOwner())->position;
-		Graphics::get().SetPointLight(i, light->light, pos);
+		Graphics::get().SetPointLight(light->light, pos);
 	}
+	Graphics::get().UpdatePerFrameBuffers();
 	for (auto& mesh = ECS::ComponentManager::Get()->begin<RenderComponent>(); mesh != ECS::ComponentManager::Get()->end<RenderComponent>(); ++mesh) {
 		EntityId entity = mesh->GetOwner();
 		const TransformComponent* pos = ECS::ComponentManager::Get()->GetComponent<TransformComponent>(entity);

@@ -54,23 +54,22 @@ class Graphics
 			vector3 specular;
 			char p3[4];
 		} dirLight;
-
-		struct
-		{
-			vector3 position;
-			char p0[4];
-			vector3 ambient;
-			char p1[4];
-			vector3 diffuse;
-			char p2[4];
-			vector3 specular;
-
-			float constant;
-			float lin;
-			float quadratic;
-			char p3[8];
-		} pointLight[MAX_POINT_LIGHTS];
 	} CB_PS_PER_FRAME; // char's here just for 16 byte memory alignment
+
+	struct PointLight
+	{
+		vector3 position;
+
+		vector3 ambient;
+		vector3 diffuse;
+		vector3 specular;
+
+		float constant;
+		float lin;
+		float quadratic;
+	};
+
+	vector<PointLight> pointLights;
 public:
 
 	static Graphics& get() {
@@ -86,15 +85,17 @@ public:
 	void SetViewMatrix(const quaternion& viewDirection, const vector3& cameraPosition);
 	void SetWorldMatrix(const matrix& world);
 	void SetDirLight(const DirLight& light);
-	void SetPointLight(int index, const PointLight& light, const vector3& position);
+	void SetPointLight(const ::PointLight& light, const vector3& position);
 
 	void UpdatePerFrameBuffers();
 	void UpdatePerModelBuffers();
 	void UpdatePerWindowBuffers();
 
 	ComPtr<ID3D11Buffer> CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG bind, const void* data, size_t dataSize) const;
+	ComPtr<ID3D11Buffer> CreateStructuredBuffer(UINT count, UINT structureSize, bool CPUWritable, bool GPUWritable, const void* data) const;
 	void UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, size_t size = 0) const;
 	ComPtr<ID3D11ShaderResourceView> CreateShaderResource(DXGI_FORMAT format, int width, int height, const void* pData) const;
+	ComPtr<ID3D11ShaderResourceView> CreateBufferSRV(ID3D11Resource* res, UINT elementSize, UINT numElements) const;
 
 	ComPtr<ID3D11PixelShader> CreatePixelShader(ComPtr<ID3DBlob> shaderBytecode);
 	ComPtr<ID3D11VertexShader> CreateVertexShader(ComPtr<ID3DBlob> shaderBytecode);
@@ -130,6 +131,7 @@ private:
 	ComPtr<ID3D11Buffer> m_CBPSFrame;
 	ComPtr<ID3D11Buffer> m_vertexBuffer;
 	ComPtr<ID3D11Buffer> m_indexBuffer;
+	ComPtr<ID3D11Buffer> m_lightBuffer;
 
 	D3D_FEATURE_LEVEL m_featureLevel;
 

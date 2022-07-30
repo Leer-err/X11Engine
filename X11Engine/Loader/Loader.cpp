@@ -96,7 +96,7 @@ Material Loader::LoadMaterial(const aiMaterial* material)
 ComPtr<ID3DBlob> Loader::CompileShaderFromFile(const wchar_t* filename, const char* target, UINT flags)
 {
 	ComPtr<ID3DBlob> res;
-	D3DCompileFromFile(filename, nullptr, nullptr, "main", target, NULL, NULL, &res, nullptr);
+	D3DCompileFromFile(filename, nullptr, nullptr, "main", target, flags, NULL, &res, nullptr);
 	return res;
 }
 

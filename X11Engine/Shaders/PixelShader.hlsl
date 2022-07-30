@@ -1,5 +1,3 @@
-#define MAX_POINT_LIGHTS 4
-
 struct DirLight
 {
     float3 direction;
@@ -36,12 +34,12 @@ Texture2D specularTex : register(t2);
 Texture2D emissionTex : register(t3);
 SamplerState samp : register(s0);
 
+StructuredBuffer<PointLight> pointLights : register(t4);
+
 cbuffer frame : register(b0)
 {
     float3 viewPos;
-    int lightCount;
     DirLight dirLight;
-    PointLight pointLight[4];
 }
 
 float3 CalcDirLight(DirLight light, float3 normal, float3 viewDir, float2 texCoord)
@@ -79,16 +77,19 @@ float3 CalcPointLight(PointLight light, float3 pos, float3 normal, float3 viewDi
 
 float4 main(input in_data) : SV_TARGET
 {
+    uint numLights, dump;
+    
     float3 viewDir = normalize(viewPos - in_data.fragPos);
     
     float4 emission = emissionTex.Sample(samp, in_data.uv);
     
     float3 result = CalcDirLight(dirLight, in_data.normal, viewDir, in_data.uv);
     
-    [unroll(MAX_POINT_LIGHTS)]
-    for (int i = 0; i < lightCount; i++)
+    pointLights.GetDimensions(numLights, dump);
+    
+    for (int i = 0; i < numLights; i++)
     {
-        result += CalcPointLight(pointLight[i], in_data.fragPos, in_data.normal, viewDir, in_data.uv);
+        result += CalcPointLight(pointLights[i], in_data.fragPos, in_data.normal, viewDir, in_data.uv);
     }
     
     return float4(result, 1.f) + emission;
