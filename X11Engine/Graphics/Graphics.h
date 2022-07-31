@@ -96,6 +96,7 @@ public:
 	void UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, size_t size = 0) const;
 	ComPtr<ID3D11ShaderResourceView> CreateShaderResource(DXGI_FORMAT format, int width, int height, const void* pData) const;
 	ComPtr<ID3D11ShaderResourceView> CreateBufferSRV(ID3D11Resource* res, UINT elementSize, UINT numElements) const;
+	ComPtr<ID3D11InputLayout> CreateInputLayoutFromShader(ComPtr<ID3DBlob> shaderBytecode);
 
 	ComPtr<ID3D11PixelShader> CreatePixelShader(ComPtr<ID3DBlob> shaderBytecode);
 	ComPtr<ID3D11VertexShader> CreateVertexShader(ComPtr<ID3DBlob> shaderBytecode);

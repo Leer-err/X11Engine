@@ -88,8 +88,11 @@ Material Loader::LoadMaterial(const aiMaterial* material)
 		mat.emission = LoadTextureFromFile(path.c_str());
 	}
 
+	const auto& vertexShader = CompileShaderFromFile(L"VertexShader.hlsl", "vs_5_0", shaderFlags);
+
+	mat.inputLayout = Graphics::get().CreateInputLayoutFromShader(vertexShader);
 	mat.pixelShader = Graphics::get().CreatePixelShader(CompileShaderFromFile(L"PixelShader.hlsl", "ps_5_0", shaderFlags));
-	mat.vertexShader = Graphics::get().CreateVertexShader(CompileShaderFromFile(L"VertexShader.hlsl", "vs_5_0", shaderFlags));
+	mat.vertexShader = Graphics::get().CreateVertexShader(vertexShader);
 	return mat;
 }
 

@@ -5,6 +5,7 @@
 using Microsoft::WRL::ComPtr;
 
 struct Material {
+	ComPtr<ID3D11InputLayout> inputLayout;
 	ComPtr<ID3D11PixelShader> pixelShader;
 	ComPtr<ID3D11VertexShader> vertexShader;
 
