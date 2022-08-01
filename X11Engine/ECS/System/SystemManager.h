@@ -14,15 +14,15 @@ namespace ECS {
 	class SystemManager
 	{
 	public:
-		inline static SystemManager* Get() {
+		inline static SystemManager* get() {
 			static SystemManager instance;
 			return &instance;
 		}
 
 		inline void Destroy() {
-			/*for (auto system : m_workOrder) {
+			for (auto system : m_workOrder) {
 				delete (system);
-			}*/
+			}
 		}
 
 		template<class T, class... Args>
@@ -83,7 +83,7 @@ namespace ECS {
 	protected:
 		SystemManager()
 		{
-			m_allocator = shared_ptr<Memory::LinearAllocator>(new Memory::LinearAllocator(Memory::GlobalAllocator::Instance().allocate(8192, 256), 8192));
+			m_allocator = shared_ptr<Memory::LinearAllocator>(new Memory::LinearAllocator(Memory::GlobalAllocator::get()->allocate(8192, 256), 8192));
 		}
 	private:
 		SystemManager(const SystemManager&) = delete;

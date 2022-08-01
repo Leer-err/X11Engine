@@ -30,7 +30,7 @@ ComPtr<ID3D11ShaderResourceView> Loader::LoadTextureFromFile(const char* filenam
 	frameDecoder->GetPixelFormat(&format);
 	if (format == GUID_WICPixelFormat32bppBGRA) {
 		frameDecoder->CopyPixels(nullptr, width * 4, width * height * 4, reinterpret_cast<BYTE*>(buffer.get()));
-		ComPtr<ID3D11ShaderResourceView> res = Graphics::get().CreateShaderResource(DXGI_FORMAT_B8G8R8A8_UNORM, width, height, buffer.get());
+		ComPtr<ID3D11ShaderResourceView> res = Graphics::get()->CreateShaderResource(DXGI_FORMAT_B8G8R8A8_UNORM, width, height, buffer.get());
 		m_textureRegistry.emplace(filename, res);
 		return res;
 	}
@@ -90,9 +90,9 @@ Material Loader::LoadMaterial(const aiMaterial* material)
 
 	const auto& vertexShader = CompileShaderFromFile(L"VertexShader.hlsl", "vs_5_0", shaderFlags);
 
-	mat.inputLayout = Graphics::get().CreateInputLayoutFromShader(vertexShader);
-	mat.pixelShader = Graphics::get().CreatePixelShader(CompileShaderFromFile(L"PixelShader.hlsl", "ps_5_0", shaderFlags));
-	mat.vertexShader = Graphics::get().CreateVertexShader(vertexShader);
+	mat.inputLayout = Graphics::get()->CreateInputLayoutFromShader(vertexShader);
+	mat.pixelShader = Graphics::get()->CreatePixelShader(CompileShaderFromFile(L"PixelShader.hlsl", "ps_5_0", shaderFlags));
+	mat.vertexShader = Graphics::get()->CreateVertexShader(vertexShader);
 	return mat;
 }
 

@@ -72,9 +72,9 @@ class Graphics
 	vector<PointLight> pointLights;
 public:
 
-	static Graphics& get() {
+	inline static Graphics* get() {
 		static Graphics instance;
-		return instance;
+		return &instance;
 	}
 
 	void Clear();
@@ -91,8 +91,10 @@ public:
 	void UpdatePerModelBuffers();
 	void UpdatePerWindowBuffers();
 
-	ComPtr<ID3D11Buffer> CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG bind, const void* data, size_t dataSize) const;
+	ComPtr<ID3D11Buffer> CreateConstantBuffer(bool CPUWritable, const void* data, size_t dataSize) const;
 	ComPtr<ID3D11Buffer> CreateStructuredBuffer(UINT count, UINT structureSize, bool CPUWritable, bool GPUWritable, const void* data) const;
+	void UpdateConstantBuffer(ID3D11Buffer* buffer, const void* data) const;
+	ComPtr<ID3D11Buffer> CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG bind, const void* data, size_t dataSize) const;
 	void UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, size_t size = 0) const;
 	ComPtr<ID3D11ShaderResourceView> CreateShaderResource(DXGI_FORMAT format, int width, int height, const void* pData) const;
 	ComPtr<ID3D11ShaderResourceView> CreateBufferSRV(ID3D11Resource* res, UINT elementSize, UINT numElements) const;

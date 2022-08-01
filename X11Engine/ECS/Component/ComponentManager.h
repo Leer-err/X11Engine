@@ -30,7 +30,7 @@ namespace ECS {
 			}
 		};
 	public:
-		inline static ComponentManager* Get() {
+		inline static ComponentManager* get() {
 			static ComponentManager instance;
 			return &instance;
 		}

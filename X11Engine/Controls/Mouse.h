@@ -4,7 +4,7 @@
 
 class Mouse {
 public:
-	static Mouse* get() {
+	inline static Mouse* get() {
 		static Mouse instance;
 		return &instance;
 	}

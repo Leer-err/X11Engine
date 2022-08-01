@@ -16,9 +16,9 @@ using std::pair;
 
 class TaskManager {
 public:
-	static TaskManager& get() {
+	inline static TaskManager* get() {
 		static TaskManager instance;
-		return instance;
+		return &instance;
 	}
 
 	template<typename F, typename ...ARGS>

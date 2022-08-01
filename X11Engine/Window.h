@@ -10,9 +10,9 @@ using std::atomic;
 class Window
 {
 public:
-	static Window& get() {
+	inline static Window* get() {
 		static Window instance;
-		return instance;
+		return &instance;
 	}
 
 	static LRESULT WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -29,10 +29,10 @@ public:
 		case WM_MOUSEMOVE: 
 			{
 			POINT center;
-			center.x = Window::get().m_width / 2;
-			center.y = Window::get().m_height / 2;
-			float x = (static_cast<float>(GET_X_LPARAM(lParam)) - center.x) / Window::get().m_width;
-			float y = (static_cast<float>(GET_Y_LPARAM(lParam)) - center.y) / Window::get().m_height;
+			center.x = Window::get()->m_width / 2;
+			center.y = Window::get()->m_height / 2;
+			float x = (static_cast<float>(GET_X_LPARAM(lParam)) - center.x) / Window::get()->m_width;
+			float y = (static_cast<float>(GET_Y_LPARAM(lParam)) - center.y) / Window::get()->m_height;
 			EventManager::get()->RaiseEvent<MouseMove>(x, y);
 			ClientToScreen(hWnd, &center);
 			SetCursorPos(center.x, center.y); 

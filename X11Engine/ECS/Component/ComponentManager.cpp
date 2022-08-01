@@ -1,11 +1,5 @@
 #include "ComponentManager.h"
 
-//inline ECS::ComponentManager* ECS::ComponentManager::Get()
-//{
-//	static ComponentManager instance;
-//	return &instance;
-//}
-
 inline void ECS::ComponentManager::Destroy()
 {
 	for (auto componentContainer : m_componentContainers) {

@@ -7,9 +7,9 @@ namespace Memory {
 	class GlobalAllocator
 	{
 	public:
-		static GlobalAllocator& Instance() {
-			static GlobalAllocator _instance;
-			return _instance;
+		inline static GlobalAllocator* get() {
+			static GlobalAllocator instance;
+			return &instance;
 		}
 		void* allocate(size_t size, uint8_t alignment);
 	private:

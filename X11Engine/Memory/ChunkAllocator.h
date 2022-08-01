@@ -69,7 +69,7 @@ namespace Memory {
 		};
 
 		ChunkAllocator() {
-			PoolAllocator* allocator = new PoolAllocator(sizeof(T), alignof(T), allocSize, GlobalAllocator::Instance().allocate(allocSize, alignof(T)));
+			PoolAllocator* allocator = new PoolAllocator(sizeof(T), alignof(T), allocSize, GlobalAllocator::get()->allocate(allocSize, alignof(T)));
 			m_chunks.push_back(new MemoryChunk(allocator));
 		}
 
@@ -100,7 +100,7 @@ namespace Memory {
 			}
 
 			if (slot == nullptr) {
-				PoolAllocator* allocator = new PoolAllocator(sizeof(T), alignof(T), allocSize, GlobalAllocator::Instance().allocate(allocSize, alignof(T)));
+				PoolAllocator* allocator = new PoolAllocator(sizeof(T), alignof(T), allocSize, GlobalAllocator::get()->allocate(allocSize, alignof(T)));
 				MemoryChunk* newChunk = new MemoryChunk(allocator);
 
 				// put new chunk in front

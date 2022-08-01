@@ -20,11 +20,11 @@ SwapChain::SwapChain(UINT width, UINT height, HWND hWnd, IDXGIFactory7* factory,
 
 	if (SUCCEEDED(factory->CreateSwapChainForHwnd(device, hWnd, &desc, nullptr, nullptr, &swapChain))
 		&& SUCCEEDED(swapChain.As(&m_swapChain))) {
-		Logger::get().Debug(L"Swap chain created successfully");
+		Logger::get()->Debug(L"Swap chain created successfully");
 	}
 	else {
-		Logger::get().Error(L"Swap chain creation failed");
-		Window::get().Terminate();
+		Logger::get()->Error(L"Swap chain creation failed");
+		Window::get()->Terminate();
 	}
 }
 
@@ -37,8 +37,8 @@ ID3D11Texture2D1* SwapChain::GetBuffer(UINT index)
 {
 	ID3D11Texture2D1* buffer;
 	if (FAILED(m_swapChain->GetBuffer(index, IID_PPV_ARGS(&buffer)))) {
-		Logger::get().Error(L"GetBuffer call failed");
-		Window::get().Terminate();
+		Logger::get()->Error(L"GetBuffer call failed");
+		Window::get()->Terminate();
 	}
 	return buffer;
 }
@@ -46,7 +46,7 @@ ID3D11Texture2D1* SwapChain::GetBuffer(UINT index)
 void SwapChain::Present()
 {
 	if (FAILED(m_swapChain->Present(0, 0))) {
-		Logger::get().Error(L"Present call failed");
-		Window::get().Terminate();
+		Logger::get()->Error(L"Present call failed");
+		Window::get()->Terminate();
 	}
 }

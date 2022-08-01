@@ -22,9 +22,9 @@ constexpr UINT shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 
 class Loader {
 public:
-	static Loader& get() {
+	inline static Loader* get() {
 		static Loader instance;
-		return instance;
+		return &instance;
 	}
 
 	Model* LoadModelFromFile(const char* filename);

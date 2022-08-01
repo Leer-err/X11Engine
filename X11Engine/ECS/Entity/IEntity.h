@@ -9,7 +9,7 @@ namespace ECS {
 	class IEntity {
 		friend class EntityManager;
 	public:
-		IEntity(EntityId id) : m_id(id), m_componentManager(ECS::ComponentManager::Get()) {}
+		IEntity(EntityId id) : m_id(id), m_componentManager(ECS::ComponentManager::get()) {}
 
 		template<class T, class... Args>
 		T* AddComponent(Args&&... args) {

@@ -12,9 +12,9 @@ Graphics::Graphics()
 
 	ComPtr<ID3DBlob> vsBlob;
 
-	HWND hWnd = Window::get().GetHandle();
-	int height = Window::get().GetHeight();
-	int width = Window::get().GetWidth();
+	HWND hWnd = Window::get()->GetHandle();
+	int height = Window::get()->GetHeight();
+	int width = Window::get()->GetWidth();
 
 	UINT createDeviceFlags = 0;
 #ifdef _DEBUG
@@ -28,31 +28,31 @@ Graphics::Graphics()
 
 	if (SUCCEEDED(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory))) 
 		&& SUCCEEDED(factory.As(&m_factory))) {
-		Logger::get().Debug(L"DXGI Factory created successfully");
+		Logger::get()->Debug(L"DXGI Factory created successfully");
 	}
 	else {
-		Logger::get().Error(L"DXGI Factory creation failed");
-		Window::get().Terminate();
+		Logger::get()->Error(L"DXGI Factory creation failed");
+		Window::get()->Terminate();
 	}
 
 	if (SUCCEEDED(m_factory->EnumAdapters1(0, &adapter))
 		&& SUCCEEDED(adapter.As(&m_adapter))) {
-		Logger::get().Debug(L"Adapter created successfully");
+		Logger::get()->Debug(L"Adapter created successfully");
 	}
 	else {
-		Logger::get().Error(L"Adapter creation failed");
-		Window::get().Terminate();
+		Logger::get()->Error(L"Adapter creation failed");
+		Window::get()->Terminate();
 	}
 
 	if (SUCCEEDED(D3D11CreateDevice(m_adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, createDeviceFlags, &featureLevels[0], numFeatureLevels,
 		D3D11_SDK_VERSION, &device, &m_featureLevel, &context))
 		&& SUCCEEDED(device.As(&m_device))
 		&& SUCCEEDED(context.As(&m_context))) {
-		Logger::get().Debug(L"Device and context created successfully");
+		Logger::get()->Debug(L"Device and context created successfully");
 	}
 	else {
-		Logger::get().Error(L"Device and context creation failed");
-		Window::get().Terminate();
+		Logger::get()->Error(L"Device and context creation failed");
+		Window::get()->Terminate();
 	}
 
 #ifdef _DEBUG
@@ -84,10 +84,10 @@ Graphics::Graphics()
 
 	m_context->OMSetDepthStencilState(nullptr, 0);
 
-	m_CBVSModel = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, nullptr, (sizeof(CB_VS_PER_MODEL) >> 4) + 1 << 4);
-	m_CBVSFrame = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, nullptr, (sizeof(CB_VS_PER_FRAME) >> 4) + 1 << 4);
-	m_CBVSWindow = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, nullptr, (sizeof(CB_VS_PER_WINDOW) >> 4) + 1 << 4);
-	m_CBPSFrame = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_CONSTANT_BUFFER, nullptr, (sizeof(CB_PS_PER_FRAME) >> 4) + 1 << 4);
+	m_CBVSModel = CreateConstantBuffer(true, nullptr, (sizeof(CB_VS_PER_MODEL) >> 4) + 1 << 4);
+	m_CBVSFrame = CreateConstantBuffer(true, nullptr, (sizeof(CB_VS_PER_FRAME) >> 4) + 1 << 4);
+	m_CBVSWindow = CreateConstantBuffer(true, nullptr, (sizeof(CB_VS_PER_WINDOW) >> 4) + 1 << 4);
+	m_CBPSFrame = CreateConstantBuffer(true, nullptr, (sizeof(CB_PS_PER_FRAME) >> 4) + 1 << 4);
 	m_lightBuffer = CreateStructuredBuffer(MAX_POINT_LIGHTS, sizeof(Graphics::PointLight), true, false, nullptr);
 	m_context->VSSetConstantBuffers(0, 1, m_CBVSWindow.GetAddressOf());
 	m_context->VSSetConstantBuffers(1, 1, m_CBVSFrame.GetAddressOf());
@@ -153,8 +153,8 @@ void Graphics::Draw(const Model* model)
 
 void Graphics::SetProjectionMatrix()
 {
-	int width = Window::get().GetWidth();
-	int height = Window::get().GetHeight();
+	int width = Window::get()->GetWidth();
+	int height = Window::get()->GetHeight();
 	CB_VS_PER_WINDOW.projection = PerspectiveProjectionMatrix((float)width / height, 60.f / 180.f * 3.14f, 1000.f, 0.01f).Transpose();
 }
 
@@ -193,8 +193,8 @@ void Graphics::SetPointLight(const ::PointLight& light, const vector3& position)
 
 void Graphics::UpdatePerFrameBuffers()
 {
-	UpdateBuffer(m_CBVSFrame, &CB_VS_PER_FRAME);
-	UpdateBuffer(m_CBPSFrame, &CB_PS_PER_FRAME);
+	UpdateConstantBuffer(m_CBVSFrame.Get(), &CB_VS_PER_FRAME);
+	UpdateConstantBuffer(m_CBPSFrame.Get(), &CB_PS_PER_FRAME);
 	UpdateBuffer(m_lightBuffer, pointLights.data());
 	ComPtr<ID3D11ShaderResourceView> res = CreateBufferSRV(m_lightBuffer.Get(), sizeof(Graphics::PointLight), pointLights.size());
 	m_context->PSSetShaderResources(4, 1, res.GetAddressOf());
@@ -202,12 +202,39 @@ void Graphics::UpdatePerFrameBuffers()
 
 void Graphics::UpdatePerModelBuffers()
 {
-	UpdateBuffer(m_CBVSModel, &CB_VS_PER_MODEL);
+	UpdateConstantBuffer(m_CBVSModel.Get(), &CB_VS_PER_MODEL);
 }
 
 void Graphics::UpdatePerWindowBuffers()
 {
-	UpdateBuffer(m_CBVSWindow, &CB_VS_PER_WINDOW);
+	UpdateConstantBuffer(m_CBVSWindow.Get(), &CB_VS_PER_WINDOW);
+}
+
+ComPtr<ID3D11Buffer> Graphics::CreateConstantBuffer(bool CPUWritable, const void* data, size_t dataSize) const
+{
+	ID3D11Buffer* buf;
+
+	D3D11_BUFFER_DESC desc = {};
+	desc.ByteWidth = dataSize;
+	desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+	if (CPUWritable) {
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+	}
+	else {
+		desc.CPUAccessFlags = NULL;
+		desc.Usage = D3D11_USAGE_IMMUTABLE;
+	}
+
+	D3D11_SUBRESOURCE_DATA res = {};
+	res.pSysMem = data;
+
+	D3D11_SUBRESOURCE_DATA* pInitialData = data == nullptr ? nullptr : &res;
+
+	m_device->CreateBuffer(&desc, pInitialData, &buf);
+
+	return buf;
 }
 
 ComPtr<ID3D11Buffer> Graphics::CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG bind, const void* data, size_t dataSize) const
@@ -264,6 +291,15 @@ ComPtr<ID3D11Buffer> Graphics::CreateStructuredBuffer(UINT count, UINT structure
 	m_device->CreateBuffer(&desc, pInitialData, &buffer);
 
 	return buffer;
+}
+
+void Graphics::UpdateConstantBuffer(ID3D11Buffer* buffer, const void* data) const
+{
+	D3D11_MAPPED_SUBRESOURCE res;
+
+	m_context->Map(buffer, 0, D3D11_MAP_WRITE_DISCARD, NULL, &res);
+	memcpy(res.pData, data, res.RowPitch);
+	m_context->Unmap(buffer, 0);
 }
 
 void Graphics::UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, size_t size) const

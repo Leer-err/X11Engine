@@ -6,7 +6,7 @@ using std::vector;
 
 class Keyboard {
 public:
-	static Keyboard* get() {
+	inline static Keyboard* get() {
 		static Keyboard instance;
 		return &instance;
 	}

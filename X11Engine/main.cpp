@@ -23,36 +23,36 @@
 using std::thread;
 
 void Update() {
-	while (Window::get().IsRunning()) {
+	while (Window::get()->IsRunning()) {
 		EventManager::get()->DispatchEvents();
-		ECS::SystemManager::Get()->PreUpdate();
-		ECS::SystemManager::Get()->Update();
-		ECS::SystemManager::Get()->PostUpdate();
+		ECS::SystemManager::get()->PreUpdate();
+		ECS::SystemManager::get()->Update();
+		ECS::SystemManager::get()->PostUpdate();
 	}
 }
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 	Window::get();
-	Model* m = Loader::get().LoadModelFromFile("\\aseets\\Minecraft_Axolotl.fbx");
+	Model* m = Loader::get()->LoadModelFromFile("\\aseets\\Minecraft_Axolotl.fbx");
 
-	EntityId a = ECS::EntityManager::Get()->CreateEntity<Cube>();
-	EntityId light = ECS::EntityManager::Get()->CreateEntity<Cube>();
-	EntityId light1 = ECS::EntityManager::Get()->CreateEntity<Cube>();
-	EntityId camera = ECS::EntityManager::Get()->CreateEntity<Cube>();
-	ECS::ComponentManager::Get()->AddComponent<TransformComponent>(a, vector3( 5.f, 0.0f, 0.f ), vector3(0.f, 0.f, 0.f));
-	ECS::ComponentManager::Get()->AddComponent<TransformComponent>(light, vector3( 0.f, 0.f, 0.f ));
-	ECS::ComponentManager::Get()->AddComponent<TransformComponent>(light1, vector3( 0.f, 0.f, 2.f ));
-	TransformComponent* cameraPos = ECS::ComponentManager::Get()->AddComponent<TransformComponent>(camera, vector3( 0.0f, 0.0f, 0.0f ));
-	ECS::ComponentManager::Get()->AddComponent<CameraComponent>(camera, vector3(0.f, 0.f, 1.f));
+	EntityId a = ECS::EntityManager::get()->CreateEntity<Cube>();
+	EntityId light = ECS::EntityManager::get()->CreateEntity<Cube>();
+	EntityId light1 = ECS::EntityManager::get()->CreateEntity<Cube>();
+	EntityId camera = ECS::EntityManager::get()->CreateEntity<Cube>();
+	ECS::ComponentManager::get()->AddComponent<TransformComponent>(a, vector3( 5.f, 0.0f, 0.f ), vector3(0.f, 0.f, 0.f));
+	ECS::ComponentManager::get()->AddComponent<TransformComponent>(light, vector3( 0.f, 0.f, 0.f ));
+	ECS::ComponentManager::get()->AddComponent<TransformComponent>(light1, vector3( 0.f, 0.f, 2.f ));
+	TransformComponent* cameraPos = ECS::ComponentManager::get()->AddComponent<TransformComponent>(camera, vector3( 0.0f, 0.0f, 0.0f ));
+	ECS::ComponentManager::get()->AddComponent<CameraComponent>(camera, vector3(0.f, 0.f, 1.f));
 
-	ECS::ComponentManager::Get()->AddComponent<RenderComponent>(a, m);
+	ECS::ComponentManager::get()->AddComponent<RenderComponent>(a, m);
 
-	ECS::ComponentManager::Get()->AddComponent<PointLightComponent>(light, PointLight{ 1.f, .09f, 0.032f, { .0f, .0f, .05f }, { 1.f, 1.f, 1.f }, { 1.f, 1.f, 1.f } });
-	ECS::ComponentManager::Get()->AddComponent<PointLightComponent>(light1, PointLight{ 1.f, .0003f, 0.00007f, { .0f, .0f, .05f }, { 1.f, 1.f, 1.f }, { 1.f, 1.f, 1.f } });
+	ECS::ComponentManager::get()->AddComponent<PointLightComponent>(light, PointLight{ 1.f, .09f, 0.032f, { .0f, .0f, .05f }, { 1.f, 1.f, 1.f }, { 1.f, 1.f, 1.f } });
+	ECS::ComponentManager::get()->AddComponent<PointLightComponent>(light1, PointLight{ 1.f, .0003f, 0.00007f, { .0f, .0f, .05f }, { 1.f, 1.f, 1.f }, { 1.f, 1.f, 1.f } });
 
-	ECS::SystemManager::Get()->AddSystem<MovementSystem>(cameraPos);
-	ECS::SystemManager::Get()->AddSystem<LookSystem>(cameraPos);
-	ECS::SystemManager::Get()->AddSystem<RenderSystem>();
+	ECS::SystemManager::get()->AddSystem<MovementSystem>(cameraPos);
+	ECS::SystemManager::get()->AddSystem<LookSystem>(cameraPos);
+	ECS::SystemManager::get()->AddSystem<RenderSystem>();
 
 	EventDelegate down = {&Keyboard::OnKeyDown, Keyboard::get()};
 	EventDelegate up = {&Keyboard::OnKeyUp, Keyboard::get()};
@@ -61,10 +61,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	EventDelegate mouse = { &Mouse::OnMove, Mouse::get() };
 	EventManager::get()->AddEventCallback(EventType::MouseMove, &mouse);
 
-	Graphics::get().SetDirLight({ { 0.f, 0.f, 1.f }, { .05f, .05f, .05f }, { 1.f, 1.f, 1.f }, { 1.f, 1.f, 1.f } });
+	Graphics::get()->SetDirLight({ { 0.f, 0.f, 1.f }, { .05f, .05f, .05f }, { 1.f, 1.f, 1.f }, { 1.f, 1.f, 1.f } });
 
 	thread th2(Update);
-	Window::get().Run();
+	Window::get()->Run();
 	th2.join();
 	return 0;
 }

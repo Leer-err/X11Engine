@@ -28,14 +28,10 @@ namespace ECS {
 			EntityContainer& operator=(const EntityContainer&) = delete;
 		};
 	public:
-		inline static EntityManager* Get() {
+		inline static EntityManager* get() {
 			static EntityManager instance;
 			return &instance;
 		}
-
-		/*inline void SetData(ComponentManager* componentManager) {
-			m_componentManager = componentManager;
-		}*/
 
 		void Destroy();
 
@@ -55,7 +51,7 @@ namespace ECS {
 		void DestroyEntity(EntityId id);
 		IEntity* GetEntity(EntityId id);
 	protected:
-		EntityManager() : m_nextId(0), m_componentManager(ECS::ComponentManager::Get()) {};
+		EntityManager() : m_nextId(0), m_componentManager(ECS::ComponentManager::get()) {};
 
 		template<class T>
 		EntityContainer<T>* GetEntityContiner() {

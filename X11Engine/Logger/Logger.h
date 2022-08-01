@@ -11,9 +11,9 @@ using std::forward;
 
 class Logger {
 public:
-	static Logger& get() {
+	inline static Logger* get() {
 		static Logger instance;
-		return instance;
+		return &instance;
 	}
 
 	template<typename... ARGS>
