@@ -13,10 +13,10 @@
 #include "Components/CameraComponent.h"
 
 using Microsoft::WRL::ComPtr;
+using std::make_unique;
+using std::mutex;
 using std::unique_ptr;
 using std::vector;
-using std::mutex;
-using std::make_unique;
 
 class SwapChain;
 
@@ -27,23 +27,27 @@ constexpr int MAX_POINT_LIGHTS = 4;
 
 class Graphics
 {
-	struct {
+	struct
+	{
 		matrix projection;
 	} CB_VS_PER_WINDOW;
 
-	struct {
+	struct
+	{
 		matrix view;
 	} CB_VS_PER_FRAME;
 
-	struct {
+	struct
+	{
 		matrix world;
 		matrix normalMatrix;
 	} CB_VS_PER_MODEL;
 
-	struct {
+	struct
+	{
 		vector3 viewPos;
 		int lightCount;
-		struct 
+		struct
 		{
 			vector3 direction;
 			char p0[4];
@@ -70,42 +74,46 @@ class Graphics
 	};
 
 	vector<PointLight> pointLights;
-public:
 
-	inline static Graphics* get() {
+public:
+	inline static Graphics *get()
+	{
 		static Graphics instance;
 		return &instance;
 	}
 
 	void Clear();
 	void Present();
-	void Draw(const Model* model);
+	void Draw(const Model *model);
 
 	void SetProjectionMatrix();
-	void SetViewMatrix(const quaternion& viewDirection, const vector3& cameraPosition);
-	void SetWorldMatrix(const matrix& world);
-	void SetDirLight(const DirLight& light);
-	void SetPointLight(const ::PointLight& light, const vector3& position);
+	void SetViewMatrix(const quaternion &viewDirection, const vector3 &cameraPosition);
+	void SetWorldMatrix(const matrix &world);
+	void SetDirLight(const DirLight &light);
+	void SetPointLight(const ::PointLight &light, const vector3 &position);
 
 	void UpdatePerFrameBuffers();
 	void UpdatePerModelBuffers();
 	void UpdatePerWindowBuffers();
 
-	ComPtr<ID3D11Buffer> CreateConstantBuffer(bool CPUWritable, const void* data, size_t dataSize) const;
-	ComPtr<ID3D11Buffer> CreateStructuredBuffer(UINT count, UINT structureSize, bool CPUWritable, bool GPUWritable, const void* data) const;
-	void UpdateConstantBuffer(ID3D11Buffer* buffer, const void* data) const;
-	ComPtr<ID3D11Buffer> CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG bind, const void* data, size_t dataSize) const;
-	void UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, size_t size = 0) const;
-	ComPtr<ID3D11ShaderResourceView> CreateShaderResource(DXGI_FORMAT format, int width, int height, const void* pData) const;
-	ComPtr<ID3D11ShaderResourceView> CreateBufferSRV(ID3D11Resource* res, UINT elementSize, UINT numElements) const;
+	ComPtr<ID3D11Buffer> CreateConstantBuffer(bool CPUWritable, const void *data, size_t dataSize) const;
+	ComPtr<ID3D11Buffer> CreateStructuredBuffer(UINT count, UINT structureSize, bool CPUWritable, bool GPUWritable, const void *data) const;
+	ComPtr<ID3D11Buffer> CreateVertexBuffer(UINT size, bool dynamic, bool streamout, const void *data) const;
+	ComPtr<ID3D11Buffer> CreateIndexBuffer(UINT size, bool dynamic, const void *data) const;
+	void UpdateConstantBuffer(ID3D11Buffer *buffer, const void *data) const;
+	ComPtr<ID3D11Buffer> CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG bind, const void *data, size_t dataSize) const;
+	void UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, size_t size) const;
+	ComPtr<ID3D11ShaderResourceView> CreateShaderResource(DXGI_FORMAT format, int width, int height, const void *pData) const;
+	ComPtr<ID3D11ShaderResourceView> CreateBufferSRV(ID3D11Resource *res, UINT elementSize, UINT numElements) const;
 	ComPtr<ID3D11InputLayout> CreateInputLayoutFromShader(ComPtr<ID3DBlob> shaderBytecode);
 
 	ComPtr<ID3D11PixelShader> CreatePixelShader(ComPtr<ID3DBlob> shaderBytecode);
 	ComPtr<ID3D11VertexShader> CreateVertexShader(ComPtr<ID3DBlob> shaderBytecode);
 
-	inline IDXGIFactory7* GetFactory() const { return m_factory.Get(); }
-	inline ID3D11Device5* GetDevice() const { return m_device.Get(); }
-	inline ID3D11DeviceContext4* GetContext() const { return m_context.Get(); }
+	inline IDXGIFactory7 *GetFactory() const { return m_factory.Get(); }
+	inline ID3D11Device5 *GetDevice() const { return m_device.Get(); }
+	inline ID3D11DeviceContext4 *GetContext() const { return m_context.Get(); }
+
 private:
 	Graphics();
 

@@ -23,7 +23,6 @@ struct PointLight
 struct input
 {
     float4 pos : SV_POSITION;
-    float3 fragPos : POSITION;
     float2 uv : TEXCOORD;
     float3 normal : NORMAL;
 };
@@ -79,7 +78,7 @@ float4 main(input in_data) : SV_TARGET
 {
     uint numLights, dump;
     
-    float3 viewDir = normalize(viewPos - in_data.fragPos);
+    float3 viewDir = normalize(viewPos - in_data.pos.xyz);
     
     float4 emission = emissionTex.Sample(samp, in_data.uv);
     
@@ -89,7 +88,7 @@ float4 main(input in_data) : SV_TARGET
     
     for (int i = 0; i < numLights; i++)
     {
-        result += CalcPointLight(pointLights[i], in_data.fragPos, in_data.normal, viewDir, in_data.uv);
+        result += CalcPointLight(pointLights[i], in_data.pos.xyz, in_data.normal, viewDir, in_data.uv);
     }
     
     return float4(result, 1.f) + emission;

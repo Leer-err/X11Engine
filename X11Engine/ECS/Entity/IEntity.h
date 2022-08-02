@@ -31,11 +31,9 @@ namespace ECS {
 			m_childs.push_back(entity);
 		}
 		inline void RemoveChild(EntityId entity) {
-			for (int i = 0; i < m_childs.size();i++) {
-				if (m_childs[i] == entity) {
-					m_childs.erase(m_childs.begin() + i);
-					return;
-				}
+			auto child = std::find(m_childs.begin(), m_childs.end(), entity);
+			if(child != m_childs.end()){
+				m_childs.erase(child);
 			}
 		}
 

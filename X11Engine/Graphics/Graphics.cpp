@@ -21,36 +21,38 @@ Graphics::Graphics()
 	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 	D3D_FEATURE_LEVEL featureLevels[] =
-	{
-		D3D_FEATURE_LEVEL_11_1
-	};
+		{
+			D3D_FEATURE_LEVEL_11_1};
 	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
-	if (SUCCEEDED(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory))) 
-		&& SUCCEEDED(factory.As(&m_factory))) {
+	if (SUCCEEDED(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory))) && SUCCEEDED(factory.As(&m_factory)))
+	{
 		Logger::get()->Debug(L"DXGI Factory created successfully");
 	}
-	else {
+	else
+	{
 		Logger::get()->Error(L"DXGI Factory creation failed");
 		Window::get()->Terminate();
 	}
 
-	if (SUCCEEDED(m_factory->EnumAdapters1(0, &adapter))
-		&& SUCCEEDED(adapter.As(&m_adapter))) {
+	if (SUCCEEDED(m_factory->EnumAdapters1(0, &adapter)) && SUCCEEDED(adapter.As(&m_adapter)))
+	{
 		Logger::get()->Debug(L"Adapter created successfully");
 	}
-	else {
+	else
+	{
 		Logger::get()->Error(L"Adapter creation failed");
 		Window::get()->Terminate();
 	}
 
 	if (SUCCEEDED(D3D11CreateDevice(m_adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, createDeviceFlags, &featureLevels[0], numFeatureLevels,
-		D3D11_SDK_VERSION, &device, &m_featureLevel, &context))
-		&& SUCCEEDED(device.As(&m_device))
-		&& SUCCEEDED(context.As(&m_context))) {
+									D3D11_SDK_VERSION, &device, &m_featureLevel, &context)) &&
+		SUCCEEDED(device.As(&m_device)) && SUCCEEDED(context.As(&m_context)))
+	{
 		Logger::get()->Debug(L"Device and context created successfully");
 	}
-	else {
+	else
+	{
 		Logger::get()->Error(L"Device and context creation failed");
 		Window::get()->Terminate();
 	}
@@ -63,7 +65,7 @@ Graphics::Graphics()
 
 	m_factory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER);
 
-	ID3D11Texture2D1* backBuffer = m_swapChain->GetBuffer(0);
+	ID3D11Texture2D1 *backBuffer = m_swapChain->GetBuffer(0);
 	m_device->CreateRenderTargetView1(backBuffer, nullptr, &m_rtv);
 
 	D3D11_VIEWPORT viewport = {};
@@ -79,23 +81,23 @@ Graphics::Graphics()
 	CD3D11_TEXTURE2D_DESC dsvDesc(DXGI_FORMAT_D24_UNORM_S8_UINT, 1920, 1080);
 	dsvDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
-	m_device->CreateTexture2D(&dsvDesc, NULL, &depthStencil);
+	m_device->CreateTexture2D(&dsvDesc, nullptr, &depthStencil);
 	m_device->CreateDepthStencilView(depthStencil.Get(), NULL, &m_depthStencilView);
 
 	m_context->OMSetDepthStencilState(nullptr, 0);
 
-	m_CBVSModel = CreateConstantBuffer(true, nullptr, (sizeof(CB_VS_PER_MODEL) >> 4) + 1 << 4);
-	m_CBVSFrame = CreateConstantBuffer(true, nullptr, (sizeof(CB_VS_PER_FRAME) >> 4) + 1 << 4);
-	m_CBVSWindow = CreateConstantBuffer(true, nullptr, (sizeof(CB_VS_PER_WINDOW) >> 4) + 1 << 4);
-	m_CBPSFrame = CreateConstantBuffer(true, nullptr, (sizeof(CB_PS_PER_FRAME) >> 4) + 1 << 4);
-	m_lightBuffer = CreateStructuredBuffer(MAX_POINT_LIGHTS, sizeof(Graphics::PointLight), true, false, nullptr);
+	m_CBVSModel = CreateConstantBuffer(true, nullptr, ((sizeof(CB_VS_PER_MODEL) >> 4) + 1) << 4);
+	m_CBVSFrame = CreateConstantBuffer(true, nullptr, ((sizeof(CB_VS_PER_FRAME) >> 4) + 1) << 4);
+	m_CBVSWindow = CreateConstantBuffer(true, nullptr, ((sizeof(CB_VS_PER_WINDOW) >> 4) + 1) << 4);
+	m_CBPSFrame = CreateConstantBuffer(true, nullptr, ((sizeof(CB_PS_PER_FRAME) >> 4) + 1) << 4);
+	m_lightBuffer = CreateStructuredBuffer(MAX_POINT_LIGHTS, sizeof(Graphics::PointLight), false, true, nullptr);
 	m_context->VSSetConstantBuffers(0, 1, m_CBVSWindow.GetAddressOf());
 	m_context->VSSetConstantBuffers(1, 1, m_CBVSFrame.GetAddressOf());
 	m_context->VSSetConstantBuffers(2, 1, m_CBVSModel.GetAddressOf());
 	m_context->PSSetConstantBuffers(0, 1, m_CBPSFrame.GetAddressOf());
 
-	m_vertexBuffer = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, nullptr, sizeof(vertex) * VERTEX_BUFFER_SIZE);
-	m_indexBuffer = CreateBuffer(D3D11_USAGE_DEFAULT, D3D11_BIND_INDEX_BUFFER, nullptr, sizeof(uint32_t) * INDEX_BUFFER_SIZE);
+	m_vertexBuffer = CreateVertexBuffer(sizeof(vertex) * VERTEX_BUFFER_SIZE, true, false, nullptr);
+	m_indexBuffer = CreateIndexBuffer(sizeof(uint32_t) * INDEX_BUFFER_SIZE, true, nullptr);
 	UINT stride = sizeof(vertex);
 	UINT offset = 0;
 	m_context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &stride, &offset);
@@ -116,8 +118,8 @@ Graphics::~Graphics()
 void Graphics::Clear()
 {
 	pointLights.clear();
-	static constexpr FLOAT color[4] = { 0.f,0.f,0.f,0.f };
-	m_context->OMSetRenderTargets(1, reinterpret_cast<ID3D11RenderTargetView**>(m_rtv.GetAddressOf()), m_depthStencilView.Get());
+	static constexpr FLOAT color[4] = {0.f, 0.f, 0.f, 0.f};
+	m_context->OMSetRenderTargets(1, reinterpret_cast<ID3D11RenderTargetView **>(m_rtv.GetAddressOf()), m_depthStencilView.Get());
 
 	m_context->ClearRenderTargetView(m_rtv.Get(), color);
 	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
@@ -128,11 +130,12 @@ void Graphics::Present()
 	m_swapChain->Present();
 }
 
-void Graphics::Draw(const Model* model)
+void Graphics::Draw(const Model *model)
 {
-	for (const auto& mesh : model->meshes) {
-		UpdateBuffer(m_vertexBuffer, mesh.vertices.data(), mesh.vertices.size() * sizeof(vertex));
-		UpdateBuffer(m_indexBuffer, mesh.indices.data(), mesh.indices.size() * sizeof(uint32_t));
+	for (const auto &mesh : model->meshes)
+	{
+		UpdateBuffer(m_vertexBuffer.Get(), mesh.vertices.data(), mesh.vertices.size() * sizeof(vertex));
+		UpdateBuffer(m_indexBuffer.Get(), mesh.indices.data(), mesh.indices.size() * sizeof(uint32_t));
 
 		m_render_mutex.lock();
 
@@ -158,19 +161,19 @@ void Graphics::SetProjectionMatrix()
 	CB_VS_PER_WINDOW.projection = PerspectiveProjectionMatrix((float)width / height, 60.f / 180.f * 3.14f, 1000.f, 0.01f).Transpose();
 }
 
-void Graphics::SetViewMatrix(const quaternion& viewRotation, const vector3& cameraPosition)
+void Graphics::SetViewMatrix(const quaternion &viewRotation, const vector3 &cameraPosition)
 {
 	CB_VS_PER_FRAME.view = LookToMatrix(cameraPosition, vector3(0.f, 0.f, 1.f).rotate(viewRotation), vector3(0.f, 1.f, 0.f).rotate(viewRotation)).Transpose();
 	CB_PS_PER_FRAME.viewPos = cameraPosition;
 }
 
-void Graphics::SetWorldMatrix(const matrix& world)
+void Graphics::SetWorldMatrix(const matrix &world)
 {
 	CB_VS_PER_MODEL.world = world.Transpose();
 	CB_VS_PER_MODEL.normalMatrix = world.Inverse();
 }
 
-void Graphics::SetDirLight(const DirLight& light)
+void Graphics::SetDirLight(const DirLight &light)
 {
 	CB_PS_PER_FRAME.dirLight.ambient = light.ambient;
 	CB_PS_PER_FRAME.dirLight.diffuse = light.diffuse;
@@ -178,7 +181,7 @@ void Graphics::SetDirLight(const DirLight& light)
 	CB_PS_PER_FRAME.dirLight.direction = light.direction;
 }
 
-void Graphics::SetPointLight(const ::PointLight& light, const vector3& position)
+void Graphics::SetPointLight(const ::PointLight &light, const vector3 &position)
 {
 	PointLight pointLight;
 	pointLight.position = position;
@@ -195,7 +198,7 @@ void Graphics::UpdatePerFrameBuffers()
 {
 	UpdateConstantBuffer(m_CBVSFrame.Get(), &CB_VS_PER_FRAME);
 	UpdateConstantBuffer(m_CBPSFrame.Get(), &CB_PS_PER_FRAME);
-	UpdateBuffer(m_lightBuffer, pointLights.data());
+	UpdateBuffer(m_lightBuffer, pointLights.data(), 0);
 	ComPtr<ID3D11ShaderResourceView> res = CreateBufferSRV(m_lightBuffer.Get(), sizeof(Graphics::PointLight), pointLights.size());
 	m_context->PSSetShaderResources(4, 1, res.GetAddressOf());
 }
@@ -210,19 +213,21 @@ void Graphics::UpdatePerWindowBuffers()
 	UpdateConstantBuffer(m_CBVSWindow.Get(), &CB_VS_PER_WINDOW);
 }
 
-ComPtr<ID3D11Buffer> Graphics::CreateConstantBuffer(bool CPUWritable, const void* data, size_t dataSize) const
+ComPtr<ID3D11Buffer> Graphics::CreateConstantBuffer(bool CPUWritable, const void *data, size_t dataSize) const
 {
-	ID3D11Buffer* buf;
+	ID3D11Buffer *buf;
 
 	D3D11_BUFFER_DESC desc = {};
 	desc.ByteWidth = dataSize;
 	desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
-	if (CPUWritable) {
+	if (CPUWritable)
+	{
 		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		desc.Usage = D3D11_USAGE_DYNAMIC;
 	}
-	else {
+	else
+	{
 		desc.CPUAccessFlags = NULL;
 		desc.Usage = D3D11_USAGE_IMMUTABLE;
 	}
@@ -230,14 +235,14 @@ ComPtr<ID3D11Buffer> Graphics::CreateConstantBuffer(bool CPUWritable, const void
 	D3D11_SUBRESOURCE_DATA res = {};
 	res.pSysMem = data;
 
-	D3D11_SUBRESOURCE_DATA* pInitialData = data == nullptr ? nullptr : &res;
+	D3D11_SUBRESOURCE_DATA *pInitialData = data == nullptr ? nullptr : &res;
 
 	m_device->CreateBuffer(&desc, pInitialData, &buf);
 
 	return buf;
 }
 
-ComPtr<ID3D11Buffer> Graphics::CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG bind, const void* data, size_t dataSize) const
+ComPtr<ID3D11Buffer> Graphics::CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG bind, const void *data, size_t dataSize) const
 {
 	ComPtr<ID3D11Buffer> buf;
 
@@ -250,16 +255,16 @@ ComPtr<ID3D11Buffer> Graphics::CreateBuffer(D3D11_USAGE usage, D3D11_BIND_FLAG b
 	D3D11_SUBRESOURCE_DATA res = {};
 	res.pSysMem = data;
 
-	D3D11_SUBRESOURCE_DATA* pInitialData = data == nullptr ? nullptr : &res;
+	D3D11_SUBRESOURCE_DATA *pInitialData = data == nullptr ? nullptr : &res;
 
 	m_device->CreateBuffer(&desc, pInitialData, &buf);
 
 	return buf;
 }
 
-ComPtr<ID3D11Buffer> Graphics::CreateStructuredBuffer(UINT count, UINT structureSize, bool CPUWritable, bool GPUWritable, const void* data) const
+ComPtr<ID3D11Buffer> Graphics::CreateStructuredBuffer(UINT count, UINT structureSize, bool CPUWritable, bool GPUWritable, const void *data) const
 {
-	ID3D11Buffer* buffer;
+	ID3D11Buffer *buffer;
 	D3D11_BUFFER_DESC desc = {};
 	desc.ByteWidth = count * structureSize;
 	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -269,22 +274,26 @@ ComPtr<ID3D11Buffer> Graphics::CreateStructuredBuffer(UINT count, UINT structure
 	D3D11_SUBRESOURCE_DATA subRes = {};
 	subRes.pSysMem = data;
 
-	D3D11_SUBRESOURCE_DATA* pInitialData = data == nullptr ? nullptr : &subRes;
+	D3D11_SUBRESOURCE_DATA *pInitialData = data == nullptr ? nullptr : &subRes;
 
-	if (!CPUWritable && !GPUWritable) {
+	if (!CPUWritable && !GPUWritable)
+	{
 		desc.Usage = D3D11_USAGE_IMMUTABLE;
 		desc.CPUAccessFlags = 0;
 	}
-	if (CPUWritable && !GPUWritable) {
-		desc.Usage = D3D11_USAGE_DEFAULT;
+	if (CPUWritable && !GPUWritable)
+	{
+		desc.Usage = D3D11_USAGE_DYNAMIC;
 		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	}
-	if (!CPUWritable && GPUWritable) {
+	if (!CPUWritable && GPUWritable)
+	{
 		desc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
 		desc.Usage = D3D11_USAGE_DEFAULT;
 		desc.CPUAccessFlags = 0;
 	}
-	if (CPUWritable && GPUWritable) {
+	if (CPUWritable && GPUWritable)
+	{
 		return nullptr;
 	}
 
@@ -293,7 +302,74 @@ ComPtr<ID3D11Buffer> Graphics::CreateStructuredBuffer(UINT count, UINT structure
 	return buffer;
 }
 
-void Graphics::UpdateConstantBuffer(ID3D11Buffer* buffer, const void* data) const
+ComPtr<ID3D11Buffer> Graphics::CreateVertexBuffer(UINT size, bool dynamic, bool streamout, const void *data) const
+{
+	ID3D11Buffer* buffer;
+	D3D11_BUFFER_DESC desc = {};
+	desc.ByteWidth = size;
+	desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+	if (streamout)
+	{
+		desc.BindFlags |= D3D11_BIND_STREAM_OUTPUT;
+	}
+
+	if (dynamic && !streamout)
+	{
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	}
+	else if (!dynamic && streamout)
+	{
+		desc.Usage = D3D11_USAGE_DEFAULT;
+	}
+	else if (!dynamic && !streamout)
+	{
+		desc.Usage = D3D11_USAGE_IMMUTABLE;
+	}
+	else
+	{
+		return nullptr;
+	}
+
+	D3D11_SUBRESOURCE_DATA subRes = {};
+	subRes.pSysMem = data;
+
+	D3D11_SUBRESOURCE_DATA *pInitialData = data == nullptr ? nullptr : &subRes;
+
+	m_device->CreateBuffer(&desc, pInitialData, &buffer);
+
+	return buffer;
+}
+
+ComPtr<ID3D11Buffer> Graphics::CreateIndexBuffer(UINT size, bool dynamic, const void *data) const
+{
+	ID3D11Buffer* buffer;
+	D3D11_BUFFER_DESC desc = {};
+	desc.ByteWidth = size;
+	desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+	if (dynamic)
+	{
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	}
+	else
+	{
+		desc.Usage = D3D11_USAGE_IMMUTABLE;
+	}
+
+	D3D11_SUBRESOURCE_DATA subRes = {};
+	subRes.pSysMem = data;
+
+	D3D11_SUBRESOURCE_DATA *pInitialData = data == nullptr ? nullptr : &subRes;
+
+	m_device->CreateBuffer(&desc, pInitialData, &buffer);
+
+	return buffer;
+}
+
+void Graphics::UpdateConstantBuffer(ID3D11Buffer *buffer, const void *data) const
 {
 	D3D11_MAPPED_SUBRESOURCE res;
 
@@ -309,7 +385,7 @@ void Graphics::UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data, s
 	m_context->UpdateSubresource(buf.Get(), 0, pbox, data, 0, 0);
 }
 
-ComPtr<ID3D11ShaderResourceView> Graphics::CreateShaderResource(DXGI_FORMAT format, int width, int height, const void* pData) const
+ComPtr<ID3D11ShaderResourceView> Graphics::CreateShaderResource(DXGI_FORMAT format, int width, int height, const void *pData) const
 {
 	ComPtr<ID3D11Texture2D> texture;
 	ComPtr<ID3D11ShaderResourceView> resource;
@@ -336,9 +412,9 @@ ComPtr<ID3D11ShaderResourceView> Graphics::CreateShaderResource(DXGI_FORMAT form
 	return resource;
 }
 
-ComPtr<ID3D11ShaderResourceView> Graphics::CreateBufferSRV(ID3D11Resource* res, UINT elementSize, UINT numElements) const
+ComPtr<ID3D11ShaderResourceView> Graphics::CreateBufferSRV(ID3D11Resource *res, UINT elementSize, UINT numElements) const
 {
-	ID3D11ShaderResourceView* srv;
+	ID3D11ShaderResourceView *srv;
 	D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
 	desc.Format = DXGI_FORMAT_UNKNOWN;
 	desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
@@ -352,9 +428,9 @@ ComPtr<ID3D11ShaderResourceView> Graphics::CreateBufferSRV(ID3D11Resource* res, 
 
 ComPtr<ID3D11InputLayout> Graphics::CreateInputLayoutFromShader(ComPtr<ID3DBlob> shaderBytecode)
 {
-	ID3D11InputLayout* inputLayout;
+	ID3D11InputLayout *inputLayout;
 
-	ID3D11ShaderReflection* refl;
+	ID3D11ShaderReflection *refl;
 	D3D11_SHADER_DESC shaderDesc;
 	vector<D3D11_INPUT_ELEMENT_DESC> inputElements;
 
@@ -362,7 +438,8 @@ ComPtr<ID3D11InputLayout> Graphics::CreateInputLayoutFromShader(ComPtr<ID3DBlob>
 
 	refl->GetDesc(&shaderDesc);
 
-	for (int i = 0; i < shaderDesc.InputParameters; i++) {
+	for (int i = 0; i < shaderDesc.InputParameters; i++)
+	{
 		D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
 		refl->GetInputParameterDesc(i, &paramDesc);
 
@@ -376,27 +453,39 @@ ComPtr<ID3D11InputLayout> Graphics::CreateInputLayoutFromShader(ComPtr<ID3DBlob>
 
 		if (paramDesc.Mask == 1)
 		{
-			if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32_UINT;
-			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32_SINT;
-			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32_FLOAT;
+			if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
+				elementDesc.Format = DXGI_FORMAT_R32_UINT;
+			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
+				elementDesc.Format = DXGI_FORMAT_R32_SINT;
+			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
+				elementDesc.Format = DXGI_FORMAT_R32_FLOAT;
 		}
 		else if (paramDesc.Mask <= 3)
 		{
-			if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32_UINT;
-			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32_SINT;
-			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+			if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
+				elementDesc.Format = DXGI_FORMAT_R32G32_UINT;
+			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
+				elementDesc.Format = DXGI_FORMAT_R32G32_SINT;
+			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
+				elementDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
 		}
 		else if (paramDesc.Mask <= 7)
 		{
-			if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_UINT;
-			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_SINT;
-			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+			if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
+				elementDesc.Format = DXGI_FORMAT_R32G32B32_UINT;
+			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
+				elementDesc.Format = DXGI_FORMAT_R32G32B32_SINT;
+			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
+				elementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
 		}
 		else if (paramDesc.Mask <= 15)
 		{
-			if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
-			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_SINT;
-			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
+				elementDesc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
+				elementDesc.Format = DXGI_FORMAT_R32G32B32A32_SINT;
+			else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
+				elementDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		}
 
 		inputElements.push_back(elementDesc);
