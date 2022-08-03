@@ -88,17 +88,17 @@ Material Loader::LoadMaterial(const aiMaterial* material)
 		mat.emission = LoadTextureFromFile(path.c_str());
 	}
 
-	const auto& vertexShader = CompileShaderFromFile(L"VertexShader.hlsl", "vs_5_0", shaderFlags);
+	ComPtr<ID3DBlob> vertexShader = CompileShaderFromFile(L"VertexShader.hlsl", "vs_5_0", shaderFlags);
 
-	mat.inputLayout = Graphics::get()->CreateInputLayoutFromShader(vertexShader);
+	mat.inputLayout = Graphics::get()->CreateInputLayoutFromShader(vertexShader.Get());
 	mat.pixelShader = Graphics::get()->CreatePixelShader(CompileShaderFromFile(L"PixelShader.hlsl", "ps_5_0", shaderFlags));
-	mat.vertexShader = Graphics::get()->CreateVertexShader(vertexShader);
+	mat.vertexShader = Graphics::get()->CreateVertexShader(vertexShader.Get());
 	return mat;
 }
 
-ComPtr<ID3DBlob> Loader::CompileShaderFromFile(const wchar_t* filename, const char* target, UINT flags)
+ID3DBlob* Loader::CompileShaderFromFile(const wchar_t* filename, const char* target, UINT flags)
 {
-	ComPtr<ID3DBlob> res;
+	ID3DBlob* res;
 	D3DCompileFromFile(filename, nullptr, nullptr, "main", target, flags, NULL, &res, nullptr);
 	return res;
 }

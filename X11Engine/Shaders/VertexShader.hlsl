@@ -18,6 +18,7 @@ cbuffer modelData : register(b2)
 struct output
 {
     float4 pos : SV_POSITION;
+    float3 fragPos : POSITION;
     float2 uv : TEXCOORD;
     float3 normal : NORMAL;
 };
@@ -35,6 +36,7 @@ output main(input in_data)
     float4 pos = float4(in_data.pos, 1.f);
     float4 normal = float4(in_data.normal, 1.f);
     a.pos = mul(pos, world);
+    a.fragPos = a.pos;
     a.pos = mul(a.pos, view);
     a.pos = mul(a.pos, projection);
     a.uv = in_data.uv;

@@ -30,7 +30,7 @@ public:
 	Model* LoadModelFromFile(const char* filename);
 	ComPtr<ID3D11ShaderResourceView> LoadTextureFromFile(const char* filename);
 	Material LoadMaterial(const aiMaterial* material);
-	ComPtr<ID3DBlob> CompileShaderFromFile(const wchar_t* filename, const char* target, UINT flags);
+	ID3DBlob* CompileShaderFromFile(const wchar_t* filename, const char* target, UINT flags);
 private:
 	Loader() : m_currentPath(std::filesystem::current_path().string()) {
 		CoInitialize(NULL);

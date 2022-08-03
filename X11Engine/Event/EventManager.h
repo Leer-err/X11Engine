@@ -7,7 +7,7 @@
 #include "EventDelegate.h"
 #include "Event.h"
 
-constexpr int EVENT_BUFFER_SIZE = 1024;
+constexpr int EVENT_BUFFER_SIZE = 8192;
 
 using std::vector;
 using std::unordered_map;
