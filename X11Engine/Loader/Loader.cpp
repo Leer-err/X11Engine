@@ -30,7 +30,8 @@ ComPtr<ID3D11ShaderResourceView> Loader::LoadTextureFromFile(const char* filenam
 	frameDecoder->GetPixelFormat(&format);
 	if (format == GUID_WICPixelFormat32bppBGRA) {
 		frameDecoder->CopyPixels(nullptr, width * 4, width * height * 4, reinterpret_cast<BYTE*>(buffer.get()));
-		ComPtr<ID3D11ShaderResourceView> res = Graphics::get()->CreateShaderResource(DXGI_FORMAT_B8G8R8A8_UNORM, width, height, buffer.get());
+		ID3D11Texture2D* tex = Graphics::get()->CreateTexture2D(DXGI_FORMAT_B8G8R8A8_UNORM, false, false, width, height, buffer.get());
+		ID3D11ShaderResourceView* res = Graphics::get()->CreateTexture2DSRV(tex, DXGI_FORMAT_B8G8R8A8_UNORM);
 		m_textureRegistry.emplace(filename, res);
 		return res;
 	}

@@ -102,8 +102,9 @@ public:
 	ID3D11Buffer *CreateIndexBuffer(UINT size, bool dynamic, const void *data) const;
 	void UpdateConstantBuffer(ID3D11Buffer *buffer, const void *data) const;
 	void UpdateBuffer(ID3D11Buffer *buf, const void *data, size_t size) const;
-	ID3D11ShaderResourceView *CreateShaderResource(DXGI_FORMAT format, int width, int height, const void *pData) const;
+	ID3D11Texture2D* CreateTexture2D(DXGI_FORMAT format, bool CPUWritable, bool GPUWritable, int width, int height, const void* data) const;
 	ID3D11ShaderResourceView *CreateBufferSRV(ID3D11Resource *res, UINT elementSize, UINT numElements) const;
+	ID3D11ShaderResourceView *CreateTexture2DSRV(ID3D11Resource *res, DXGI_FORMAT format) const;
 	ID3D11InputLayout *CreateInputLayoutFromShader(ID3DBlob *shaderBytecode);
 
 	ID3D11PixelShader *CreatePixelShader(ID3DBlob *shaderBytecode);

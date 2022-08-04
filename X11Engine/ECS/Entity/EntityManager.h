@@ -3,6 +3,9 @@
 #include "IEntity.h"
 #include "Memory.h"
 
+using std::forward;
+using std::unordered_map;
+
 namespace ECS {
 	class EntityManager
 	{
@@ -43,7 +46,7 @@ namespace ECS {
 			entity->m_id = id;
 			entity->m_componentManager = m_componentManager;
 
-			entity = new (ptr)T(id, args...);
+			entity = new (ptr)T(id, forward<Args>(args)...);
 
 			m_entities.emplace(id, entity);
 			return id;

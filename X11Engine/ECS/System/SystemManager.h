@@ -9,6 +9,7 @@
 using std::shared_ptr;
 using std::unordered_map;
 using std::vector;
+using std::forward;
 
 namespace ECS {
 	class SystemManager
@@ -30,7 +31,7 @@ namespace ECS {
 		{
 			void* ptr = m_allocator->allocate(sizeof(T), alignof(T));
 
-			ISystem* system = new (ptr)T(args...);
+			ISystem* system = new (ptr)T(forward<Args>(args)...);
 
 			if (m_workOrder.size() == 0) {
 				m_workOrder.push_back(system);

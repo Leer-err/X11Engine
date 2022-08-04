@@ -213,7 +213,7 @@ void Graphics::UpdatePerWindowBuffers()
 	UpdateConstantBuffer(m_CBVSWindow.Get(), &CB_VS_PER_WINDOW);
 }
 
-ID3D11Buffer* Graphics::CreateConstantBuffer(bool CPUWritable, const void *data, size_t dataSize) const
+ID3D11Buffer *Graphics::CreateConstantBuffer(bool CPUWritable, const void *data, size_t dataSize) const
 {
 	ID3D11Buffer *buf;
 
@@ -242,7 +242,7 @@ ID3D11Buffer* Graphics::CreateConstantBuffer(bool CPUWritable, const void *data,
 	return buf;
 }
 
-ID3D11Buffer* Graphics::CreateStructuredBuffer(UINT count, UINT structureSize, bool CPUWritable, bool GPUWritable, const void *data) const
+ID3D11Buffer *Graphics::CreateStructuredBuffer(UINT count, UINT structureSize, bool CPUWritable, bool GPUWritable, const void *data) const
 {
 	ID3D11Buffer *buffer;
 	D3D11_BUFFER_DESC desc = {};
@@ -280,9 +280,9 @@ ID3D11Buffer* Graphics::CreateStructuredBuffer(UINT count, UINT structureSize, b
 	return buffer;
 }
 
-ID3D11Buffer* Graphics::CreateVertexBuffer(UINT size, bool dynamic, bool streamout, const void *data) const
+ID3D11Buffer *Graphics::CreateVertexBuffer(UINT size, bool dynamic, bool streamout, const void *data) const
 {
-	ID3D11Buffer* buffer;
+	ID3D11Buffer *buffer;
 	D3D11_BUFFER_DESC desc = {};
 	desc.ByteWidth = size;
 	desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -316,9 +316,9 @@ ID3D11Buffer* Graphics::CreateVertexBuffer(UINT size, bool dynamic, bool streamo
 	return buffer;
 }
 
-ID3D11Buffer* Graphics::CreateIndexBuffer(UINT size, bool dynamic, const void *data) const
+ID3D11Buffer *Graphics::CreateIndexBuffer(UINT size, bool dynamic, const void *data) const
 {
-	ID3D11Buffer* buffer;
+	ID3D11Buffer *buffer;
 	D3D11_BUFFER_DESC desc = {};
 	desc.ByteWidth = size;
 	desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -352,7 +352,7 @@ void Graphics::UpdateConstantBuffer(ID3D11Buffer *buffer, const void *data) cons
 	m_context->Unmap(buffer, 0);
 }
 
-void Graphics::UpdateBuffer(ID3D11Buffer* buf, const void* data, size_t size) const
+void Graphics::UpdateBuffer(ID3D11Buffer *buf, const void *data, size_t size) const
 {
 	D3D11_MAPPED_SUBRESOURCE res;
 
@@ -361,10 +361,9 @@ void Graphics::UpdateBuffer(ID3D11Buffer* buf, const void* data, size_t size) co
 	m_context->Unmap(buf, 0);
 }
 
-ID3D11ShaderResourceView* Graphics::CreateShaderResource(DXGI_FORMAT format, int width, int height, const void *pData) const
+ID3D11Texture2D *Graphics::CreateTexture2D(DXGI_FORMAT format, bool CPUWritable, bool GPUWritable, int width, int height, const void *data) const
 {
-	ID3D11Texture2D* texture;
-	ID3D11ShaderResourceView* resource;
+	ID3D11Texture2D *texture;
 
 	D3D11_TEXTURE2D_DESC desc = {};
 	desc.Format = format;
@@ -373,22 +372,40 @@ ID3D11ShaderResourceView* Graphics::CreateShaderResource(DXGI_FORMAT format, int
 	desc.Width = width;
 	desc.Height = height;
 	desc.SampleDesc.Count = 1;
-	desc.Usage = D3D11_USAGE_DYNAMIC;
 	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-	D3D11_SUBRESOURCE_DATA res = {};
-	res.pSysMem = pData;
-	res.SysMemPitch = width * 4;
-	res.SysMemSlicePitch = width * height * 4;
+	if (!CPUWritable && !GPUWritable)
+	{
+		desc.Usage = D3D11_USAGE_IMMUTABLE;
+	}
+	if (CPUWritable && !GPUWritable)
+	{
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	}
+	if (!CPUWritable && GPUWritable)
+	{
+		desc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+	}
+	if (CPUWritable && GPUWritable)
+	{
+		return nullptr;
+	}
 
-	m_device->CreateTexture2D(&desc, &res, &texture);
-	m_device->CreateShaderResourceView(texture, nullptr, &resource);
+	D3D11_SUBRESOURCE_DATA subRes = {};
+	subRes.pSysMem = data;
+	subRes.SysMemPitch = width * 4;
+	subRes.SysMemSlicePitch = width * height * 4;
 
-	return resource;
+	D3D11_SUBRESOURCE_DATA *pInitialData = data == nullptr ? nullptr : &subRes;
+
+	m_device->CreateTexture2D(&desc, &subRes, &texture);
+
+	return texture;
 }
 
-ID3D11ShaderResourceView* Graphics::CreateBufferSRV(ID3D11Resource *res, UINT elementSize, UINT numElements) const
+ID3D11ShaderResourceView *Graphics::CreateBufferSRV(ID3D11Resource *res, UINT elementSize, UINT numElements) const
 {
 	ID3D11ShaderResourceView *srv;
 	D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
@@ -402,9 +419,22 @@ ID3D11ShaderResourceView* Graphics::CreateBufferSRV(ID3D11Resource *res, UINT el
 	return srv;
 }
 
-ID3D11InputLayout* Graphics::CreateInputLayoutFromShader(ID3DBlob* shaderBytecode)
+ID3D11ShaderResourceView *Graphics::CreateTexture2DSRV(ID3D11Resource *res, DXGI_FORMAT format) const
 {
-	ID3D11InputLayout* inputLayout;
+	ID3D11ShaderResourceView *srv;
+	D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
+	desc.Format = format;
+	desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	desc.Texture2D.MipLevels = 1;
+
+	m_device->CreateShaderResourceView(res, &desc, &srv);
+
+	return srv;
+}
+
+ID3D11InputLayout *Graphics::CreateInputLayoutFromShader(ID3DBlob *shaderBytecode)
+{
+	ID3D11InputLayout *inputLayout;
 
 	ID3D11ShaderReflection *refl;
 	D3D11_SHADER_DESC shaderDesc;
@@ -472,18 +502,18 @@ ID3D11InputLayout* Graphics::CreateInputLayoutFromShader(ID3DBlob* shaderBytecod
 	return inputLayout;
 }
 
-ID3D11PixelShader* Graphics::CreatePixelShader(ID3DBlob* shaderBytecode)
+ID3D11PixelShader *Graphics::CreatePixelShader(ID3DBlob *shaderBytecode)
 {
-	ID3D11PixelShader* shader;
+	ID3D11PixelShader *shader;
 
 	m_device->CreatePixelShader(shaderBytecode->GetBufferPointer(), shaderBytecode->GetBufferSize(), nullptr, &shader);
 
 	return shader;
 }
 
-ID3D11VertexShader* Graphics::CreateVertexShader(ID3DBlob* shaderBytecode)
+ID3D11VertexShader *Graphics::CreateVertexShader(ID3DBlob *shaderBytecode)
 {
-	ID3D11VertexShader* shader;
+	ID3D11VertexShader *shader;
 
 	m_device->CreateVertexShader(shaderBytecode->GetBufferPointer(), shaderBytecode->GetBufferSize(), nullptr, &shader);
 

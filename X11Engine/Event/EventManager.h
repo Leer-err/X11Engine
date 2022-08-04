@@ -12,6 +12,7 @@ constexpr int EVENT_BUFFER_SIZE = 8192;
 using std::vector;
 using std::unordered_map;
 using std::mutex;
+using std::forward;
 
 class EventManager
 {
@@ -27,7 +28,7 @@ public:
 
 		if (ptr != nullptr) {
 			m_mutex.lock();
-			m_eventQueue.push_back(new (ptr)T(args...));
+			m_eventQueue.push_back(new (ptr)T(forward<Args>(args)...));
 			m_mutex.unlock();
 		}
 		else {
