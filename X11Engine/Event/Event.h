@@ -32,3 +32,5 @@ struct MouseMove : public Event {
 	MouseMove(float x, float y) : x(x), y(y), Event(EventType::MouseMove) {}
 	float x, y;
 };
+
+constexpr int MAX_EVENT_SIZE = sizeof(MouseMove);

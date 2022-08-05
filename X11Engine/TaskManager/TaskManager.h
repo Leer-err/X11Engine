@@ -11,6 +11,7 @@ using std::mutex;
 using std::future;
 using std::promise;
 using std::async;
+using std::move;
 using std::thread;
 using std::pair;
 
@@ -22,11 +23,11 @@ public:
 	}
 
 	template<typename F, typename ...ARGS>
-	future<void> submit(const F& func, ARGS&&... args) {
+	future<void> submit(const F&& func, ARGS&&... args) {
 		std::lock_guard lock(m_mutex);
 		promise<void> completePromise;
 		future<void> isComplete = completePromise.get_future();
-		m_queue.emplace(async(std::launch::deferred, func, args...), std::move(completePromise));
+		m_queue.emplace(async(std::launch::deferred, func, forward<ARGS>(args)...), move(completePromise));
 		return isComplete;
 	}
 private:

@@ -10,8 +10,8 @@ struct Event;
 class EventDelegate {
 public:
 	template<typename F,typename... ARGS>
-	EventDelegate(F&& fun, ARGS&&... args) {
-		m_callback = bind(fun, forward<ARGS...>(args...), std::placeholders::_1);
+	EventDelegate(const F&& fun, ARGS&&... args) {
+		m_callback = bind(fun, forward<ARGS>(args)..., std::placeholders::_1);
 	}
 	inline void invoke(const Event* event) { m_callback(event); }
 private:

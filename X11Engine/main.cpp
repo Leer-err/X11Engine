@@ -54,12 +54,9 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 	ECS::SystemManager::get()->AddSystem<LookSystem>(cameraPos);
 	ECS::SystemManager::get()->AddSystem<RenderSystem>();
 
-	EventDelegate down = {&Keyboard::OnKeyDown, Keyboard::get()};
-	EventDelegate up = {&Keyboard::OnKeyUp, Keyboard::get()};
-	EventManager::get()->AddEventCallback(EventType::KeyDown, &down);
-	EventManager::get()->AddEventCallback(EventType::KeyUp, &up);
-	EventDelegate mouse = { &Mouse::OnMove, Mouse::get() };
-	EventManager::get()->AddEventCallback(EventType::MouseMove, &mouse);
+	EventManager::get()->AddEventCallback(EventType::KeyDown, &Keyboard::OnKeyDown, Keyboard::get());
+	EventManager::get()->AddEventCallback(EventType::KeyUp, &Keyboard::OnKeyUp, Keyboard::get());
+	EventManager::get()->AddEventCallback(EventType::MouseMove, &Mouse::OnMove, Mouse::get());
 
 	Graphics::get()->SetDirLight({ { 0.f, 0.f, 1.f }, { .05f, .05f, .05f }, { 1.f, 1.f, 1.f }, { 1.f, 1.f, 1.f } });
 
