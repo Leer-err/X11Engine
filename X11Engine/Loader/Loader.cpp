@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "Logger/Logger.h"
+
 using std::unique_ptr;
 
 ComPtr<ID3D11ShaderResourceView> Loader::LoadTextureFromFile(const char* filename)
@@ -100,7 +102,8 @@ Material Loader::LoadMaterial(const aiMaterial* material)
 ID3DBlob* Loader::CompileShaderFromFile(const wchar_t* filename, const char* target, UINT flags)
 {
 	ID3DBlob* res;
-	D3DCompileFromFile(filename, nullptr, nullptr, "main", target, flags, NULL, &res, nullptr);
+	LogErrorIfFailed(D3DCompileFromFile(filename, nullptr, nullptr, "main", target, flags, NULL, &res, nullptr),
+		L"Failed to compile %s", filename);
 	return res;
 }
 
