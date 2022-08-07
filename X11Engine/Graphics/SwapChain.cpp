@@ -18,14 +18,11 @@ SwapChain::SwapChain(UINT width, UINT height, HWND hWnd, IDXGIFactory7* factory,
 	desc.Height = height;
 	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
-	if (SUCCEEDED(factory->CreateSwapChainForHwnd(device, hWnd, &desc, nullptr, nullptr, &swapChain))
-		&& SUCCEEDED(swapChain.As(&m_swapChain))) {
-		Logger::get()->Debug(L"Swap chain created successfully");
-	}
-	else {
-		Logger::get()->Error(L"Swap chain creation failed");
-		Window::get()->Terminate();
-	}
+	HRESULT hr = factory->CreateSwapChainForHwnd(device, hWnd, &desc, nullptr, nullptr, &swapChain);
+	swapChain.As(&m_swapChain);
+
+	Logger::get()->Error(L"Swap chain creation failed");
+	Window::get()->Terminate();
 }
 
 SwapChain::~SwapChain()
@@ -36,10 +33,7 @@ SwapChain::~SwapChain()
 ID3D11Texture2D1* SwapChain::GetBuffer(UINT index)
 {
 	ID3D11Texture2D1* buffer;
-	if (FAILED(m_swapChain->GetBuffer(index, IID_PPV_ARGS(&buffer)))) {
-		Logger::get()->Error(L"GetBuffer call failed");
-		Window::get()->Terminate();
-	}
+	LogIfFailed(m_swapChain->GetBuffer(index, IID_PPV_ARGS(&buffer)), L"Failed to get swap chain back buffer");
 	return buffer;
 }
 

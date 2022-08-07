@@ -9,11 +9,21 @@ using std::forward;
 using std::wstring;
 
 template <typename... ARGS>
-void LogErrorIfFailed(HRESULT hr, const wchar_t *line, ARGS &&...args)
+inline void LogIfFailed(HRESULT hr, const wchar_t *line, ARGS &&...args)
 {
 	if (FAILED(hr))
 	{
 		Logger::get()->Error(L"%s with code %x", line, forward<ARGS>(args)..., hr);
+	}
+}
+
+template <typename... ARGS>
+inline void FatalErrorIfFailed(HRESULT hr, const wchar_t *line, ARGS &&...args)
+{
+	if (FAILED(hr))
+	{
+		Logger::get()->Error(L"%s with code %x", line, forward<ARGS>(args)..., hr);
+		Window::get()->Terminate();
 	}
 }
 

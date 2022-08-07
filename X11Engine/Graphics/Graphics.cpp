@@ -25,30 +25,29 @@ Graphics::Graphics()
 			D3D_FEATURE_LEVEL_11_1};
 	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
-	HRESULT hr = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory));
-	LogErrorIfFailed(hr, L"Failed to create DXGI factory");
-	factory.As(&m_factory);
+	FatalErrorIfFailed(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory)), L"Failed to create DXGI factory");
+	FatalErrorIfFailed(factory.As(&m_factory), L"Failed to create DXGI factory");
 
-	hr = m_factory->EnumAdapters1(0, &adapter);
-	LogErrorIfFailed(hr, L"Failed to create DXGI adapter");
-	adapter.As(&m_adapter);
+	FatalErrorIfFailed(m_factory->EnumAdapters1(0, &adapter), L"Failed to create DXGI adapter");
+	FatalErrorIfFailed(adapter.As(&m_adapter), L"Failed to create DXGI adapter");
 
-	hr = D3D11CreateDevice(m_adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, createDeviceFlags,
-						   &featureLevels[0], numFeatureLevels, D3D11_SDK_VERSION, &device, &m_featureLevel, &context);
-	LogErrorIfFailed(hr, L"Failed to create device");
-	device.As(&m_device);
-	context.As(&m_context);
+	FatalErrorIfFailed(D3D11CreateDevice(m_adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, createDeviceFlags,
+										 &featureLevels[0], numFeatureLevels, D3D11_SDK_VERSION, &device, &m_featureLevel, &context),
+					   L"Failed to create Direct3D device");
+	FatalErrorIfFailed(device.As(&m_device), L"Failed to create Direct3D device");
+	FatalErrorIfFailed(context.As(&m_context), L"Failed to create Direct3D device context");
 
 #ifdef _DEBUG
-	m_device->QueryInterface(m_debug.GetAddressOf());
+	LogIfFailed(m_device->QueryInterface(m_debug.GetAddressOf()), L"Failed to create debug device");
 #endif
 
 	m_swapChain = std::make_unique<SwapChain>(width, height, hWnd, m_factory.Get(), m_device.Get());
 
-	m_factory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER);
+	FatalErrorIfFailed(m_factory->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER), L"MakeWindowAssociation failed");
 
-	ID3D11Texture2D1 *backBuffer = m_swapChain->GetBuffer(0);
-	m_device->CreateRenderTargetView1(backBuffer, nullptr, &m_rtv);
+	ID3D11Texture2D *depth = CreateDepthStencil2D(DXGI_FORMAT_D24_UNORM_S8_UINT, false, width, height);
+	m_depthStencilView = CreateTexture2DDSV(depth, 0);
+	m_rtv = CreateTexture2DRTV(m_swapChain->GetBuffer(0), 0);
 
 	D3D11_VIEWPORT viewport = {};
 	viewport.Width = width;
@@ -58,13 +57,6 @@ Graphics::Graphics()
 	m_context->RSSetViewports(1, &viewport);
 
 	m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	ComPtr<ID3D11Texture2D> depthStencil;
-	CD3D11_TEXTURE2D_DESC dsvDesc(DXGI_FORMAT_D24_UNORM_S8_UINT, 1920, 1080);
-	dsvDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-
-	m_device->CreateTexture2D(&dsvDesc, nullptr, &depthStencil);
-	m_device->CreateDepthStencilView(depthStencil.Get(), NULL, &m_depthStencilView);
 
 	m_context->OMSetDepthStencilState(nullptr, 0);
 
@@ -101,7 +93,7 @@ void Graphics::Clear()
 {
 	pointLights.clear();
 	static constexpr FLOAT color[4] = {0.f, 0.f, 0.f, 0.f};
-	m_context->OMSetRenderTargets(1, reinterpret_cast<ID3D11RenderTargetView **>(m_rtv.GetAddressOf()), m_depthStencilView.Get());
+	m_context->OMSetRenderTargets(1, m_rtv.GetAddressOf(), m_depthStencilView.Get());
 
 	m_context->ClearRenderTargetView(m_rtv.Get(), color);
 	m_context->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
@@ -219,7 +211,7 @@ ID3D11Buffer *Graphics::CreateConstantBuffer(bool CPUWritable, const void *data,
 
 	D3D11_SUBRESOURCE_DATA *pInitialData = data == nullptr ? nullptr : &res;
 
-	LogErrorIfFailed(m_device->CreateBuffer(&desc, pInitialData, &buf), L"Failed to create constant buffer");
+	LogIfFailed(m_device->CreateBuffer(&desc, pInitialData, &buf), L"Failed to create constant buffer");
 
 	return buf;
 }
@@ -257,7 +249,7 @@ ID3D11Buffer *Graphics::CreateStructuredBuffer(UINT count, UINT structureSize, b
 		return nullptr;
 	}
 
-	LogErrorIfFailed(m_device->CreateBuffer(&desc, pInitialData, &buffer), L"Failed to create structured buffer");
+	LogIfFailed(m_device->CreateBuffer(&desc, pInitialData, &buffer), L"Failed to create structured buffer");
 
 	return buffer;
 }
@@ -293,7 +285,7 @@ ID3D11Buffer *Graphics::CreateVertexBuffer(UINT size, bool dynamic, bool streamo
 
 	D3D11_SUBRESOURCE_DATA *pInitialData = data == nullptr ? nullptr : &subRes;
 
-	LogErrorIfFailed(m_device->CreateBuffer(&desc, pInitialData, &buffer), L"Failed to create vertex buffer");
+	LogIfFailed(m_device->CreateBuffer(&desc, pInitialData, &buffer), L"Failed to create vertex buffer");
 
 	return buffer;
 }
@@ -320,12 +312,12 @@ ID3D11Buffer *Graphics::CreateIndexBuffer(UINT size, bool dynamic, const void *d
 
 	D3D11_SUBRESOURCE_DATA *pInitialData = data == nullptr ? nullptr : &subRes;
 
-	LogErrorIfFailed(m_device->CreateBuffer(&desc, pInitialData, &buffer), L"Failed to create index buffer");
+	LogIfFailed(m_device->CreateBuffer(&desc, pInitialData, &buffer), L"Failed to create index buffer");
 
 	return buffer;
 }
 
-void Graphics::UpdateConstantBuffer(ID3D11Buffer *buffer, const void *data) const
+bool Graphics::UpdateConstantBuffer(ID3D11Buffer *buffer, const void *data) const
 {
 	D3D11_MAPPED_SUBRESOURCE res;
 
@@ -334,14 +326,16 @@ void Graphics::UpdateConstantBuffer(ID3D11Buffer *buffer, const void *data) cons
 	{
 		memcpy(res.pData, data, res.RowPitch);
 		m_context->Unmap(buffer, 0);
+		return true;
 	}
 	else
 	{
-		LogErrorIfFailed(hr, L"Failed to map constant buffer %x", buffer);
+		LogIfFailed(hr, L"Failed to map constant buffer %x", buffer);
+		return false;
 	}
 }
 
-void Graphics::UpdateBuffer(ID3D11Buffer *buf, const void *data, size_t size) const
+bool Graphics::UpdateBuffer(ID3D11Buffer *buf, const void *data, size_t size) const
 {
 	D3D11_MAPPED_SUBRESOURCE res;
 
@@ -350,10 +344,12 @@ void Graphics::UpdateBuffer(ID3D11Buffer *buf, const void *data, size_t size) co
 	{
 		memcpy(res.pData, data, size);
 		m_context->Unmap(buf, 0);
+		return true;
 	}
 	else
 	{
-		LogErrorIfFailed(hr, L"Failed to map buffer %x", buf);
+		LogIfFailed(hr, L"Failed to map buffer %x", buf);
+		return false;
 	}
 }
 
@@ -396,9 +392,59 @@ ID3D11Texture2D *Graphics::CreateTexture2D(DXGI_FORMAT format, bool CPUWritable,
 
 	D3D11_SUBRESOURCE_DATA *pInitialData = data == nullptr ? nullptr : &subRes;
 
-	LogErrorIfFailed(m_device->CreateTexture2D(&desc, &subRes, &texture), L"Failed to create 2D texture");
+	LogIfFailed(m_device->CreateTexture2D(&desc, &subRes, &texture), L"Failed to create 2D texture");
 
 	return texture;
+}
+
+ID3D11Texture2D *Graphics::CreateDepthStencil2D(DXGI_FORMAT format, bool GPUReadable, int width, int height) const
+{
+	ID3D11Texture2D *depth;
+
+	D3D11_TEXTURE2D_DESC desc = {};
+	desc.Format = format;
+	desc.ArraySize = 1;
+	desc.MipLevels = 1;
+	desc.Width = width;
+	desc.Height = height;
+	desc.SampleDesc.Count = 1;
+	desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+	if(GPUReadable){
+		desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
+	}
+
+	FatalErrorIfFailed(m_device->CreateTexture2D(&desc, nullptr, &depth), L"Failed to create 2D depth texture");
+
+	return depth;
+}
+
+ID3D11DepthStencilView *Graphics::CreateTexture2DDSV(ID3D11Resource* res, UINT mip) const
+{
+	ID3D11DepthStencilView *dsv;
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC desc = {};
+	desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	desc.Format = DXGI_FORMAT_UNKNOWN;
+	desc.Texture2D.MipSlice = mip;
+
+	FatalErrorIfFailed(m_device->CreateDepthStencilView(res, &desc, &dsv), L"Failed to create 2D DSV for %x", res);
+
+	return dsv;
+}
+
+ID3D11RenderTargetView *Graphics::CreateTexture2DRTV(ID3D11Resource *res, UINT mip) const
+{
+	ID3D11RenderTargetView *rtv;
+
+	D3D11_RENDER_TARGET_VIEW_DESC desc = {};
+	desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	desc.Format = DXGI_FORMAT_UNKNOWN;
+	desc.Texture2D.MipSlice = mip;
+
+	FatalErrorIfFailed(m_device->CreateRenderTargetView(res, &desc, &rtv), L"Failed to create 2D RTV for %x", res);
+
+	return rtv;
 }
 
 ID3D11ShaderResourceView *Graphics::CreateBufferSRV(ID3D11Resource *res, UINT elementSize, UINT numElements) const
@@ -410,7 +456,7 @@ ID3D11ShaderResourceView *Graphics::CreateBufferSRV(ID3D11Resource *res, UINT el
 	desc.Buffer.ElementOffset = 0;
 	desc.Buffer.ElementWidth = numElements;
 
-	LogErrorIfFailed(m_device->CreateShaderResourceView(res, &desc, &srv), L"Failed to create buffer %x SRV", res);
+	LogIfFailed(m_device->CreateShaderResourceView(res, &desc, &srv), L"Failed to create buffer %x SRV", res);
 
 	return srv;
 }
@@ -423,7 +469,7 @@ ID3D11ShaderResourceView *Graphics::CreateTexture2DSRV(ID3D11Resource *res, DXGI
 	desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	desc.Texture2D.MipLevels = 1;
 
-	LogErrorIfFailed(m_device->CreateShaderResourceView(res, &desc, &srv), L"Failed to create 2D texture %x SRV", res);
+	LogIfFailed(m_device->CreateShaderResourceView(res, &desc, &srv), L"Failed to create 2D texture %x SRV", res);
 
 	return srv;
 }
@@ -493,9 +539,9 @@ ID3D11InputLayout *Graphics::CreateInputLayoutFromShader(ID3DBlob *shaderBytecod
 		inputElements.push_back(elementDesc);
 	}
 
-	LogErrorIfFailed(m_device->CreateInputLayout(inputElements.data(), inputElements.size(),
-		shaderBytecode->GetBufferPointer(), shaderBytecode->GetBufferSize(), &inputLayout),
-		L"Failed to create input layout for shader");
+	LogIfFailed(m_device->CreateInputLayout(inputElements.data(), inputElements.size(),
+											shaderBytecode->GetBufferPointer(), shaderBytecode->GetBufferSize(), &inputLayout),
+				L"Failed to create input layout for shader");
 
 	return inputLayout;
 }
@@ -504,8 +550,8 @@ ID3D11PixelShader *Graphics::CreatePixelShader(ID3DBlob *shaderBytecode)
 {
 	ID3D11PixelShader *shader;
 
-	LogErrorIfFailed(m_device->CreatePixelShader(shaderBytecode->GetBufferPointer(), shaderBytecode->GetBufferSize(), nullptr, &shader),
-		L"Failed to create pixel shader");
+	LogIfFailed(m_device->CreatePixelShader(shaderBytecode->GetBufferPointer(), shaderBytecode->GetBufferSize(), nullptr, &shader),
+				L"Failed to create pixel shader");
 
 	return shader;
 }
@@ -514,8 +560,8 @@ ID3D11VertexShader *Graphics::CreateVertexShader(ID3DBlob *shaderBytecode)
 {
 	ID3D11VertexShader *shader;
 
-	LogErrorIfFailed(m_device->CreateVertexShader(shaderBytecode->GetBufferPointer(), shaderBytecode->GetBufferSize(), nullptr, &shader),
-		L"Failed to create vertex shader");
+	LogIfFailed(m_device->CreateVertexShader(shaderBytecode->GetBufferPointer(), shaderBytecode->GetBufferSize(), nullptr, &shader),
+				L"Failed to create vertex shader");
 
 	return shader;
 }
