@@ -1,13 +1,22 @@
-#include <vector>
-#include "Vertex.h"
+#pragma once
+#include <stdint.h>
+#include <wrl/client.h>
 
+#include <vector>
+
+#include "Types/Vertex.h"
+
+using Microsoft::WRL::ComPtr;
 using std::vector;
 
-struct Mesh {
-	Mesh(const vector<vertex>& vertices, const vector<uint32_t>& indices, int materialIndex) :
-		vertices(vertices), indices(indices), materialIndex(materialIndex) {}
+struct ID3D11Buffer;
 
-	vector<vertex> vertices;
-	vector<uint32_t> indices;
-	int materialIndex;
+struct Mesh {
+    Mesh(ComPtr<ID3D11Buffer> vertices, ComPtr<ID3D11Buffer> indices,
+         uint32_t materialIndex)
+        : vertices(vertices), indices(indices), materialIndex(materialIndex) {}
+
+    ComPtr<ID3D11Buffer> vertices;
+    ComPtr<ID3D11Buffer> indices;
+    uint32_t materialIndex;
 };

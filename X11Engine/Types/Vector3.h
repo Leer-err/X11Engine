@@ -4,8 +4,8 @@
 
 struct vector3 {
 	inline vector3() { memset(this, 0, sizeof(vector3)); }
-	inline __vectorcall vector3(const DirectX::XMVECTOR& vec) { DirectX::XMStoreFloat3(&this->vec, vec); }
-	inline __vectorcall vector3(const float x, const float y, const float z) : x(x), y(y), z(z) {}
+	inline vector3(const DirectX::XMVECTOR& vec) { DirectX::XMStoreFloat3(&this->vec, vec); }
+	inline vector3(const float x, const float y, const float z) : x(x), y(y), z(z) {}
 
 	inline float length() const { 
 		return DirectX::XMVector3Length(*this).m128_f32[0];

@@ -26,7 +26,7 @@ public:
 		case WM_KEYUP:
 			EventManager::get()->RaiseEvent<KeyUp>(wParam);
 			break;
-		case WM_MOUSEMOVE: 
+		case WM_MOUSEMOVE:
 			{
 			POINT center;
 			center.x = Window::get()->m_width / 2;
