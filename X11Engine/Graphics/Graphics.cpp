@@ -124,15 +124,14 @@ void Graphics::Clear() {
 void Graphics::Present() { m_swapChain->Present(); }
 
 void Graphics::Draw(const Model* model) {
-    int* a;
     for (const auto& mesh : model->meshes) {
         UINT stride = sizeof(vertex);
         UINT offset = 0;
 
         m_renderMutex.lock();
 
-        m_context->IASetIndexBuffer(mesh.indices.Get(), DXGI_FORMAT_R32_UINT,
-                                    0);
+        m_context->IASetIndexBuffer(mesh.indices.buffer.Get(),
+                                    DXGI_FORMAT_R32_UINT, 0);
         m_context->IASetVertexBuffers(0, 1, mesh.vertices.GetAddressOf(),
                                       &stride, &offset);
 
@@ -171,10 +170,7 @@ void Graphics::Draw(const Model* model) {
             0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, shaderResources);
         m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
 
-        D3D11_BUFFER_DESC bufferDesc;
-        mesh.indices->GetDesc(&bufferDesc);
-
-        m_context->DrawIndexed(bufferDesc.ByteWidth / sizeof(uint32_t), 0, 0);
+        m_context->DrawIndexed(mesh.indices.indexCount, 0, 0);
         m_renderMutex.unlock();
     }
 }
