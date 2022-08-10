@@ -45,14 +45,13 @@ cbuffer frame : register(b0)
 float3 CalcDirLight(DirLight light, float3 normal, float3 viewDir, float2 texCoord)
 {
     float3 lightDir = -light.direction;
-    float3 halfwayDir = normalize(lightDir + viewDir);
+    float3 halfway = normalize(lightDir + viewDir);
     
-    float diff = max(dot(normal, lightDir), 0.f);
-    float spec = pow(max(dot(halfwayDir, viewDir), 0.f), 32);
+    float4 coeficents = lit(dot(normal,lightDir), dot(normal, halfway), 32);
 
     float3 ambient = light.ambient * diffuseTex.Sample(samp, texCoord).xyz;
-    float3 diffuse = light.diffuse * diff * diffuseTex.Sample(samp, texCoord).xyz;
-    float3 specular = light.specular * spec * specularTex.Sample(samp, texCoord).xyz;
+    float3 diffuse = light.diffuse * coeficents.y * diffuseTex.Sample(samp, texCoord).xyz;
+    float3 specular = light.specular * coeficents.z * specularTex.Sample(samp, texCoord).xyz;
     
     return ambient + diffuse + specular;
 }
@@ -60,22 +59,21 @@ float3 CalcDirLight(DirLight light, float3 normal, float3 viewDir, float2 texCoo
 float3 CalcPointLight(PointLight light, float3 pos, float3 normal, float3 viewDir, float2 texCoord)
 {
     float3 lightDir = normalize(light.position - pos);
-    float3 halfwayDir = normalize(lightDir + viewDir);
-    
-    float diff = max(dot(normal, lightDir), 0.f);
-    float spec = pow(max(dot(halfwayDir, viewDir), 0.f), 32);
-    
-    float distance = length(light.position - pos);
-    float attentuation = 1.f / (light.constant + light.lin * distance + light.quadratic * pow(distance, 2));
+    float3 halfway = normalize(lightDir + viewDir);
+
+    float4 coeficents = lit(dot(normal,lightDir), dot(normal, halfway), 32);
+
+    float distance = distance(light.position, pos);
+    float attentuation = rcp(light.constant + light.lin * distance + light.quadratic * pow(distance, 2));
 
     float3 ambient = light.ambient * diffuseTex.Sample(samp, texCoord).xyz;
-    float3 diffuse = light.diffuse * diff * diffuseTex.Sample(samp, texCoord).xyz;
-    float3 specular = light.specular * spec * specularTex.Sample(samp, texCoord).xyz;
+    float3 diffuse = light.diffuse * coeficents.y * diffuseTex.Sample(samp, texCoord).xyz;
+    float3 specular = light.specular * coeficents.z * specularTex.Sample(samp, texCoord).xyz;
     
     return (ambient + diffuse + specular) * attentuation;
 }
 
-float4 main(input in_data) : SV_TARGET
+float4 main(in input in_data) : SV_TARGET
 {
     uint numLights, dump;
     
@@ -92,5 +90,5 @@ float4 main(input in_data) : SV_TARGET
         result += CalcPointLight(pointLights[i], in_data.fragPos, in_data.normal, viewDir, in_data.uv);
     }
     
-    return float4(result, 1.f) + emission;
+    return saturate(float4(result, 1.f) + emission);
 }

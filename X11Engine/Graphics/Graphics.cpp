@@ -88,16 +88,6 @@ Graphics::Graphics() {
     m_context->VSSetConstantBuffers(2, 1, m_CBVSModel.GetAddressOf());
     m_context->PSSetConstantBuffers(0, 1, m_CBPSFrame.GetAddressOf());
 
-    m_vertexBuffer = CreateVertexBuffer(sizeof(vertex) * VERTEX_BUFFER_SIZE,
-                                        true, false, nullptr);
-    m_indexBuffer =
-        CreateIndexBuffer(sizeof(uint32_t) * INDEX_BUFFER_SIZE, true, nullptr);
-    UINT stride = sizeof(vertex);
-    UINT offset = 0;
-    m_context->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &stride,
-                                  &offset);
-    m_context->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
     SetProjectionMatrix();
     UpdatePerWindowBuffers();
 }
@@ -333,8 +323,8 @@ ComPtr<ID3D11Buffer> Graphics::CreateVertexBuffer(UINT size, bool dynamic,
     return buffer;
 }
 
-ComPtr<ID3D11Buffer> Graphics::CreateIndexBuffer(UINT size, bool dynamic,
-                                                 const void* data) const {
+IndexBuffer Graphics::CreateIndexBuffer(UINT size, bool dynamic,
+                                        const void* data) const {
     ComPtr<ID3D11Buffer> buffer;
     D3D11_BUFFER_DESC desc = {};
     desc.ByteWidth = size;
@@ -356,7 +346,7 @@ ComPtr<ID3D11Buffer> Graphics::CreateIndexBuffer(UINT size, bool dynamic,
         m_device->CreateBuffer(&desc, pInitialData, buffer.GetAddressOf()),
         L"Failed to create index buffer");
 
-    return buffer;
+    return {buffer, size};
 }
 
 bool Graphics::UpdateConstantBuffer(ComPtr<ID3D11Buffer> buffer,

@@ -147,7 +147,7 @@ Mesh Loader::LoadMesh(const aiMesh* mesh) {
 
     ComPtr<ID3D11Buffer> vbuf = Graphics::get()->CreateVertexBuffer(
         vert.size() * sizeof(vertex), false, false, vert.data());
-    ComPtr<ID3D11Buffer> ibuf = Graphics::get()->CreateIndexBuffer(
+    IndexBuffer ibuf = Graphics::get()->CreateIndexBuffer(
         ind.size() * sizeof(uint32_t), false, ind.data());
 
     return {vbuf, ibuf, mesh->mMaterialIndex};
@@ -155,11 +155,15 @@ Mesh Loader::LoadMesh(const aiMesh* mesh) {
 
 ComPtr<ID3DBlob> Loader::CompileShaderFromFile(const wchar_t* filename,
                                                const char* target, UINT flags) {
-    ComPtr<ID3DBlob> res;
-    LogIfFailed(D3DCompileFromFile(filename, nullptr, nullptr, "main", target,
-                                   flags, NULL, &res, nullptr),
-                L"Failed to compile %s", filename);
-    return res;
+    ComPtr<ID3DBlob> shader, error;
+    if (FAILED(D3DCompileFromFile(filename, nullptr, nullptr, "main", target,
+                                  flags, NULL, shader.GetAddressOf(),
+                                  error.GetAddressOf()))) {
+        Logger::get()->Error(L"Failed to compile %s : %s", filename,
+                             error->GetBufferPointer());
+        return nullptr;
+    }
+    return shader;
 }
 
 Model* Loader::LoadModelFromFile(const char* filename) {

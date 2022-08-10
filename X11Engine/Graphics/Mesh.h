@@ -19,12 +19,9 @@ struct IndexBuffer {
 };
 
 struct Mesh {
-    Mesh(const ComPtr<ID3D11Buffer>& vertices,
-         const ComPtr<ID3D11Buffer>& indices, uint32_t indexCount,
+    Mesh(const ComPtr<ID3D11Buffer>& vertices, const IndexBuffer& indices,
          uint32_t materialIndex)
-        : vertices(vertices),
-          indices(indices, indexCount),
-          materialIndex(materialIndex) {}
+        : vertices(vertices), indices(indices), materialIndex(materialIndex) {}
 
     ComPtr<ID3D11Buffer> vertices;
     IndexBuffer indices;

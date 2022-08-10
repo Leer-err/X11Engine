@@ -1,17 +1,17 @@
 cbuffer windowData : register(b0)
 {
-    matrix projection;
+    float4x4 projection;
 }
 
 cbuffer frameData : register(b1)
 {
-    matrix view;
+    float4x4 view;
 };
 
 cbuffer modelData : register(b2)
 {
-    matrix world;
-    matrix normalMatrix;
+    float4x4 world;
+    float4x4 normalMatrix;
 };
 
 
@@ -30,7 +30,7 @@ struct input
     float3 normal : NORMAL;
 };
 
-output main(input in_data)
+output main(in input in_data)
 {
     output a;
     float4 pos = float4(in_data.pos, 1.f);
