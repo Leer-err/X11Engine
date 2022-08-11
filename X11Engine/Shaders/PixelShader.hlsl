@@ -63,8 +63,8 @@ float3 CalcPointLight(PointLight light, float3 pos, float3 normal, float3 viewDi
 
     float4 coeficents = lit(dot(normal,lightDir), dot(normal, halfway), 32);
 
-    float distance = distance(light.position, pos);
-    float attentuation = rcp(light.constant + light.lin * distance + light.quadratic * pow(distance, 2));
+    float dist = distance(light.position, pos);
+    float attentuation = rcp(light.constant + light.lin * dist + light.quadratic * pow(dist, 2));
 
     float3 ambient = light.ambient * diffuseTex.Sample(samp, texCoord).xyz;
     float3 diffuse = light.diffuse * coeficents.y * diffuseTex.Sample(samp, texCoord).xyz;

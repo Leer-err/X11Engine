@@ -58,9 +58,8 @@ ComPtr<ID3D11Texture2D> Loader::LoadTextureFromFile(const char* filename) {
         WICToDXGI(format), false, false, width, height, buffer.get());
     if (texture != nullptr) {
         m_textureRegistry.emplace(filename, texture);
-        return texture;
     }
-    return nullptr;
+    return texture;
 }
 
 Material Loader::LoadMaterial(const aiMaterial* material) {
@@ -69,11 +68,11 @@ Material Loader::LoadMaterial(const aiMaterial* material) {
         aiString relPath;
         if (material->GetTexture(aiTextureType_BASE_COLOR, 0, &relPath) ==
             AI_SUCCESS) {
-            string path = m_currentPath + "\\aseets\\" + relPath.data;
+            string path = m_currentPath + "\\assets\\" + relPath.data;
             mat.baseColor = LoadTextureFromFile(path.c_str());
         }
     } else {
-        string path = m_currentPath + "\\aseets\\TexturePlaceholder.png";
+        string path = m_currentPath + "\\assets\\TexturePlaceholder.png";
         mat.baseColor = LoadTextureFromFile(path.c_str());
     }
 
@@ -81,11 +80,11 @@ Material Loader::LoadMaterial(const aiMaterial* material) {
         aiString relPath;
         if (material->GetTexture(aiTextureType_DIFFUSE, 0, &relPath) ==
             AI_SUCCESS) {
-            string path = m_currentPath + "\\aseets\\" + relPath.data;
+            string path = m_currentPath + "\\assets\\" + relPath.data;
             mat.diffuse = LoadTextureFromFile(path.c_str());
         }
     } else {
-        string path = m_currentPath + "\\aseets\\WhitePlaceholder.png";
+        string path = m_currentPath + "\\assets\\WhitePlaceholder.png";
         mat.diffuse = LoadTextureFromFile(path.c_str());
     }
 
@@ -93,11 +92,11 @@ Material Loader::LoadMaterial(const aiMaterial* material) {
         aiString relPath;
         if (material->GetTexture(aiTextureType_SPECULAR, 0, &relPath) ==
             AI_SUCCESS) {
-            string path = m_currentPath + "\\aseets\\" + relPath.data;
+            string path = m_currentPath + "\\assets\\" + relPath.data;
             mat.specular = LoadTextureFromFile(path.c_str());
         }
     } else {
-        string path = m_currentPath + "\\aseets\\WhitePlaceholder.png";
+        string path = m_currentPath + "\\assets\\WhitePlaceholder.png";
         mat.specular = LoadTextureFromFile(path.c_str());
     }
 
@@ -105,22 +104,26 @@ Material Loader::LoadMaterial(const aiMaterial* material) {
         aiString relPath;
         if (material->GetTexture(aiTextureType_EMISSIVE, 0, &relPath) ==
             AI_SUCCESS) {
-            string path = m_currentPath + "\\aseets\\" + relPath.data;
+            string path = m_currentPath + "\\assets\\" + relPath.data;
             mat.emission = LoadTextureFromFile(path.c_str());
         }
     } else {
-        string path = m_currentPath + "\\aseets\\BlackPlaceholder.png";
+        string path = m_currentPath + "\\assets\\BlackPlaceholder.png";
         mat.emission = LoadTextureFromFile(path.c_str());
     }
 
-    ComPtr<ID3DBlob> vertexShader =
-        CompileShaderFromFile(L"VertexShader.hlsl", "vs_5_0", shaderFlags);
+    ComPtr<ID3DBlob> vertexShader = CompileShaderFromFile(
+        L"Shaders\\VertexShader.hlsl", "vs_5_0", shaderFlags);
+    ComPtr<ID3DBlob> pixelShader = CompileShaderFromFile(
+        L"Shaders\\PixelShader.hlsl", "ps_5_0", shaderFlags);
 
-    mat.inputLayout =
-        Graphics::get()->CreateInputLayoutFromShader(vertexShader.Get());
-    mat.pixelShader = Graphics::get()->CreatePixelShader(
-        CompileShaderFromFile(L"PixelShader.hlsl", "ps_5_0", shaderFlags));
-    mat.vertexShader = Graphics::get()->CreateVertexShader(vertexShader.Get());
+    if (vertexShader.Get() != nullptr && pixelShader.Get() != nullptr) {
+        mat.inputLayout =
+            Graphics::get()->CreateInputLayoutFromShader(vertexShader.Get());
+        mat.pixelShader = Graphics::get()->CreatePixelShader(pixelShader.Get());
+        mat.vertexShader =
+            Graphics::get()->CreateVertexShader(vertexShader.Get());
+    }
     return mat;
 }
 

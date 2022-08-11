@@ -22,12 +22,9 @@ set(ASSIMP_DLL ${assimp_BINARY_DIR}/bin/assimp-vc143-mtd.dll)
 endif()
 
 install(FILES ${ASSIMP_DLL} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-message(${CMAKE_CURRENT_BINARY_DIR})
 
-file(GLOB ASSETS "assets/*.*")
-file(COPY ${ASSETS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/aseets)
-file(GLOB SHADERS "Shaders/*.*")
-file(COPY ${SHADERS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY assets DESTINATION /)
+file(COPY Shaders DESTINATION /)
 
 add_executable(Engine WIN32 ${SOURCES} ${HEADERS})
 

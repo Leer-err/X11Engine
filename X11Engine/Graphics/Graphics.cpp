@@ -60,7 +60,7 @@ Graphics::Graphics() {
     ComPtr<ID3D11Texture2D> depth = CreateDepthStencil2D(
         DXGI_FORMAT_D24_UNORM_S8_UINT, false, width, height);
     m_depthStencilView = CreateTexture2DDSV(depth, 0);
-    m_rtv = CreateTexture2DRTV(m_swapChain->GetBuffer(0), 0);
+    m_rtv = CreateTexture2DRTV({m_swapChain->GetBuffer(0)}, 0);
 
     D3D11_VIEWPORT viewport = {};
     viewport.Width = static_cast<FLOAT>(width);
@@ -118,6 +118,20 @@ void Graphics::Draw(const Model* model) {
         UINT stride = sizeof(vertex);
         UINT offset = 0;
 
+        ComPtr<ID3D11ShaderResourceView>
+            resources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+        resources[0] = CreateTexture2DSRV(
+            model->materials[mesh.materialIndex].baseColor.Get());
+        resources[1] = CreateTexture2DSRV(
+            model->materials[mesh.materialIndex].diffuse.Get());
+        resources[2] = CreateTexture2DSRV(
+            model->materials[mesh.materialIndex].specular.Get());
+        resources[3] = CreateTexture2DSRV(
+            model->materials[mesh.materialIndex].emission.Get());
+        resources[4] =
+            CreateBufferSRV(m_lightBuffer.Get(), sizeof(Graphics::PointLight),
+                            pointLights.size());
+
         m_renderMutex.lock();
 
         m_context->IASetIndexBuffer(mesh.indices.buffer.Get(),
@@ -135,26 +149,9 @@ void Graphics::Draw(const Model* model) {
 
         ID3D11ShaderResourceView*
             shaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
-        shaderResources[0] =
-            CreateTexture2DSRV(
-                model->materials[mesh.materialIndex].baseColor.Get())
-                .Get();
-        shaderResources[1] =
-            CreateTexture2DSRV(
-                model->materials[mesh.materialIndex].diffuse.Get())
-                .Get();
-        shaderResources[2] =
-            CreateTexture2DSRV(
-                model->materials[mesh.materialIndex].specular.Get())
-                .Get();
-        shaderResources[3] =
-            CreateTexture2DSRV(
-                model->materials[mesh.materialIndex].emission.Get())
-                .Get();
-        shaderResources[4] =
-            CreateBufferSRV(m_lightBuffer.Get(), sizeof(Graphics::PointLight),
-                            pointLights.size())
-                .Get();
+        for (int i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++) {
+            shaderResources[i] = resources[i].Get();
+        }
 
         m_context->PSSetShaderResources(
             0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, shaderResources);
@@ -210,18 +207,18 @@ void Graphics::SetPointLight(const ::PointLight& light,
 }
 
 void Graphics::UpdatePerFrameBuffers() {
-    UpdateConstantBuffer(m_CBVSFrame.Get(), &CB_VS_PER_FRAME);
-    UpdateConstantBuffer(m_CBPSFrame.Get(), &CB_PS_PER_FRAME);
-    UpdateBuffer(m_lightBuffer.Get(), pointLights.data(),
+    UpdateConstantBuffer(m_CBVSFrame, &CB_VS_PER_FRAME);
+    UpdateConstantBuffer(m_CBPSFrame, &CB_PS_PER_FRAME);
+    UpdateBuffer(m_lightBuffer, pointLights.data(),
                  sizeof(Graphics::PointLight) * pointLights.size());
 }
 
 void Graphics::UpdatePerModelBuffers() {
-    UpdateConstantBuffer(m_CBVSModel.Get(), &CB_VS_PER_MODEL);
+    UpdateConstantBuffer(m_CBVSModel, &CB_VS_PER_MODEL);
 }
 
 void Graphics::UpdatePerWindowBuffers() {
-    UpdateConstantBuffer(m_CBVSWindow.Get(), &CB_VS_PER_WINDOW);
+    UpdateConstantBuffer(m_CBVSWindow, &CB_VS_PER_WINDOW);
 }
 
 ComPtr<ID3D11Buffer> Graphics::CreateConstantBuffer(bool CPUWritable,
@@ -271,16 +268,13 @@ ComPtr<ID3D11Buffer> Graphics::CreateStructuredBuffer(UINT count,
 
     if (!CPUWritable && !GPUWritable) {
         desc.Usage = D3D11_USAGE_IMMUTABLE;
-    }
-    if (CPUWritable && !GPUWritable) {
+    } else if (CPUWritable && !GPUWritable) {
         desc.Usage = D3D11_USAGE_DYNAMIC;
         desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    }
-    if (!CPUWritable && GPUWritable) {
+    } else if (!CPUWritable && GPUWritable) {
         desc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
         desc.Usage = D3D11_USAGE_DEFAULT;
-    }
-    if (CPUWritable && GPUWritable) {
+    } else {
         return nullptr;
     }
 
@@ -346,10 +340,10 @@ IndexBuffer Graphics::CreateIndexBuffer(UINT size, bool dynamic,
         m_device->CreateBuffer(&desc, pInitialData, buffer.GetAddressOf()),
         L"Failed to create index buffer");
 
-    return {buffer, size};
+    return {buffer, size / sizeof(uint32_t)};
 }
 
-bool Graphics::UpdateConstantBuffer(ComPtr<ID3D11Buffer> buffer,
+bool Graphics::UpdateConstantBuffer(const ComPtr<ID3D11Buffer>& buffer,
                                     const void* data) const {
     D3D11_MAPPED_SUBRESOURCE res;
 
@@ -365,7 +359,7 @@ bool Graphics::UpdateConstantBuffer(ComPtr<ID3D11Buffer> buffer,
     }
 }
 
-bool Graphics::UpdateBuffer(ComPtr<ID3D11Buffer> buf, const void* data,
+bool Graphics::UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data,
                             size_t size) const {
     D3D11_MAPPED_SUBRESOURCE res;
 
@@ -399,16 +393,13 @@ ComPtr<ID3D11Texture2D> Graphics::CreateTexture2D(DXGI_FORMAT format,
 
     if (!CPUWritable && !GPUWritable) {
         desc.Usage = D3D11_USAGE_IMMUTABLE;
-    }
-    if (CPUWritable && !GPUWritable) {
+    } else if (CPUWritable && !GPUWritable) {
         desc.Usage = D3D11_USAGE_DYNAMIC;
         desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    }
-    if (!CPUWritable && GPUWritable) {
+    } else if (!CPUWritable && GPUWritable) {
         desc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
         desc.Usage = D3D11_USAGE_DEFAULT;
-    }
-    if (CPUWritable && GPUWritable) {
+    } else {
         return nullptr;
     }
 
@@ -429,7 +420,7 @@ ComPtr<ID3D11Texture2D> Graphics::CreateDepthStencil2D(DXGI_FORMAT format,
                                                        bool GPUReadable,
                                                        int width,
                                                        int height) const {
-    ID3D11Texture2D* depth;
+    ComPtr<ID3D11Texture2D> depth;
 
     D3D11_TEXTURE2D_DESC desc = {};
     desc.Format = format;
@@ -444,81 +435,88 @@ ComPtr<ID3D11Texture2D> Graphics::CreateDepthStencil2D(DXGI_FORMAT format,
         desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
     }
 
-    FatalErrorIfFailed(m_device->CreateTexture2D(&desc, nullptr, &depth),
-                       L"Failed to create 2D depth texture");
+    FatalErrorIfFailed(
+        m_device->CreateTexture2D(&desc, nullptr, depth.GetAddressOf()),
+        L"Failed to create 2D depth texture");
 
     return depth;
 }
 
 ComPtr<ID3D11DepthStencilView> Graphics::CreateTexture2DDSV(
-    ComPtr<ID3D11Resource> res, UINT mip) const {
-    ID3D11DepthStencilView* dsv;
+    const ComPtr<ID3D11Resource>& res, UINT mip) const {
+    ComPtr<ID3D11DepthStencilView> dsv;
 
     D3D11_DEPTH_STENCIL_VIEW_DESC desc = {};
     desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     desc.Format = DXGI_FORMAT_UNKNOWN;
     desc.Texture2D.MipSlice = mip;
 
-    FatalErrorIfFailed(m_device->CreateDepthStencilView(res.Get(), &desc, &dsv),
-                       L"Failed to create 2D DSV for %x", res.Get());
+    FatalErrorIfFailed(
+        m_device->CreateDepthStencilView(res.Get(), &desc, dsv.GetAddressOf()),
+        L"Failed to create 2D DSV for %x", res.Get());
 
     return dsv;
 }
 
 ComPtr<ID3D11RenderTargetView> Graphics::CreateTexture2DRTV(
-    ComPtr<ID3D11Resource> res, UINT mip) const {
-    ID3D11RenderTargetView* rtv;
+    const ComPtr<ID3D11Resource>& res, UINT mip) const {
+    ComPtr<ID3D11RenderTargetView> rtv;
 
     D3D11_RENDER_TARGET_VIEW_DESC desc = {};
     desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
     desc.Format = DXGI_FORMAT_UNKNOWN;
     desc.Texture2D.MipSlice = mip;
 
-    FatalErrorIfFailed(m_device->CreateRenderTargetView(res.Get(), &desc, &rtv),
-                       L"Failed to create 2D RTV for %x", res.Get());
+    FatalErrorIfFailed(
+        m_device->CreateRenderTargetView(res.Get(), &desc, rtv.GetAddressOf()),
+        L"Failed to create 2D RTV for %x", res.Get());
 
     return rtv;
 }
 
 ComPtr<ID3D11ShaderResourceView> Graphics::CreateBufferSRV(
-    ComPtr<ID3D11Resource> res, UINT elementSize, UINT numElements) const {
-    ID3D11ShaderResourceView* srv;
+    const ComPtr<ID3D11Resource>& res, UINT elementSize,
+    UINT numElements) const {
+    ComPtr<ID3D11ShaderResourceView> srv;
     D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
     desc.Format = DXGI_FORMAT_UNKNOWN;
     desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
     desc.Buffer.ElementOffset = 0;
     desc.Buffer.ElementWidth = numElements;
 
-    LogIfFailed(m_device->CreateShaderResourceView(res.Get(), &desc, &srv),
+    LogIfFailed(m_device->CreateShaderResourceView(res.Get(), &desc,
+                                                   srv.GetAddressOf()),
                 L"Failed to create buffer %x SRV", res.Get());
 
     return srv;
 }
 
 ComPtr<ID3D11ShaderResourceView> Graphics::CreateTexture2DSRV(
-    ComPtr<ID3D11Resource> res, DXGI_FORMAT format) const {
-    ID3D11ShaderResourceView* srv;
+    const ComPtr<ID3D11Resource>& res, DXGI_FORMAT format) const {
+    ComPtr<ID3D11ShaderResourceView> srv;
     D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
     desc.Format = format;
     desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     desc.Texture2D.MipLevels = 1;
 
-    LogIfFailed(m_device->CreateShaderResourceView(res.Get(), &desc, &srv),
+    LogIfFailed(m_device->CreateShaderResourceView(res.Get(), &desc,
+                                                   srv.GetAddressOf()),
                 L"Failed to create 2D texture %x SRV", res.Get());
 
     return srv;
 }
 
 ComPtr<ID3D11InputLayout> Graphics::CreateInputLayoutFromShader(
-    ComPtr<ID3DBlob> shaderBytecode) {
+    const ComPtr<ID3DBlob>& shaderBytecode) const {
     ComPtr<ID3D11InputLayout> inputLayout;
 
-    ID3D11ShaderReflection* refl;
+    ComPtr<ID3D11ShaderReflection> refl;
     D3D11_SHADER_DESC shaderDesc;
     vector<D3D11_INPUT_ELEMENT_DESC> inputElements;
 
     D3DReflect(shaderBytecode->GetBufferPointer(),
-               shaderBytecode->GetBufferSize(), IID_PPV_ARGS(&refl));
+               shaderBytecode->GetBufferSize(),
+               IID_PPV_ARGS(refl.GetAddressOf()));
 
     refl->GetDesc(&shaderDesc);
 
@@ -534,28 +532,28 @@ ComPtr<ID3D11InputLayout> Graphics::CreateInputLayoutFromShader(
         elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
         elementDesc.InstanceDataStepRate = 0;
 
-        if (paramDesc.Mask == 1) {
+        if (paramDesc.Mask == 0x1) {
             if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
                 elementDesc.Format = DXGI_FORMAT_R32_UINT;
             else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
                 elementDesc.Format = DXGI_FORMAT_R32_SINT;
             else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
                 elementDesc.Format = DXGI_FORMAT_R32_FLOAT;
-        } else if (paramDesc.Mask <= 3) {
+        } else if (paramDesc.Mask <= 0x3) {
             if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
                 elementDesc.Format = DXGI_FORMAT_R32G32_UINT;
             else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
                 elementDesc.Format = DXGI_FORMAT_R32G32_SINT;
             else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
                 elementDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
-        } else if (paramDesc.Mask <= 7) {
+        } else if (paramDesc.Mask <= 0x7) {
             if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
                 elementDesc.Format = DXGI_FORMAT_R32G32B32_UINT;
             else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
                 elementDesc.Format = DXGI_FORMAT_R32G32B32_SINT;
             else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32)
                 elementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-        } else if (paramDesc.Mask <= 15) {
+        } else if (paramDesc.Mask <= 0xf) {
             if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32)
                 elementDesc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
             else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32)
@@ -578,7 +576,7 @@ ComPtr<ID3D11InputLayout> Graphics::CreateInputLayoutFromShader(
 }
 
 ComPtr<ID3D11PixelShader> Graphics::CreatePixelShader(
-    ComPtr<ID3DBlob> shaderBytecode) {
+    const ComPtr<ID3DBlob>& shaderBytecode) const {
     ComPtr<ID3D11PixelShader> shader;
 
     LogIfFailed(m_device->CreatePixelShader(shaderBytecode->GetBufferPointer(),
@@ -590,7 +588,7 @@ ComPtr<ID3D11PixelShader> Graphics::CreatePixelShader(
 }
 
 ComPtr<ID3D11VertexShader> Graphics::CreateVertexShader(
-    ComPtr<ID3DBlob> shaderBytecode) {
+    const ComPtr<ID3DBlob>& shaderBytecode) const {
     ComPtr<ID3D11VertexShader> shader;
 
     LogIfFailed(m_device->CreateVertexShader(shaderBytecode->GetBufferPointer(),

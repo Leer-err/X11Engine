@@ -8,10 +8,9 @@
 #include <mutex>
 #include <vector>
 
-#include "Components/CameraComponent.h"
-#include "Helper.h"
 #include "Light.h"
 #include "Model.h"
+#include "Types/Matrix.h"
 
 using Microsoft::WRL::ComPtr;
 using std::make_unique;
@@ -102,27 +101,27 @@ class Graphics {
                                             const void* data) const;
     IndexBuffer CreateIndexBuffer(UINT size, bool dynamic,
                                   const void* data) const;
-    bool UpdateConstantBuffer(ComPtr<ID3D11Buffer> buffer,
+    bool UpdateConstantBuffer(const ComPtr<ID3D11Buffer>& buffer,
                               const void* data) const;
-    bool UpdateBuffer(ComPtr<ID3D11Buffer> buf, const void* data,
+    bool UpdateBuffer(const ComPtr<ID3D11Buffer>& buf, const void* data,
                       size_t size) const;
     ComPtr<ID3D11Texture2D> CreateTexture2D(DXGI_FORMAT format,
                                             bool CPUWritable, bool GPUWritable,
                                             int width, int height,
                                             const void* data) const;
-    ComPtr<ID3D11ShaderResourceView> CreateBufferSRV(ComPtr<ID3D11Resource> res,
-                                                     UINT elementSize,
-                                                     UINT numElements) const;
+    ComPtr<ID3D11ShaderResourceView> CreateBufferSRV(
+        const ComPtr<ID3D11Resource>& res, UINT elementSize,
+        UINT numElements) const;
     ComPtr<ID3D11ShaderResourceView> CreateTexture2DSRV(
-        ComPtr<ID3D11Resource> res,
+        const ComPtr<ID3D11Resource>& res,
         DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN) const;
     ComPtr<ID3D11InputLayout> CreateInputLayoutFromShader(
-        ComPtr<ID3DBlob> shaderBytecode);
+        const ComPtr<ID3DBlob>& shaderBytecode) const;
 
     ComPtr<ID3D11PixelShader> CreatePixelShader(
-        ComPtr<ID3DBlob> shaderBytecode);
+        const ComPtr<ID3DBlob>& shaderBytecode) const;
     ComPtr<ID3D11VertexShader> CreateVertexShader(
-        ComPtr<ID3DBlob> shaderBytecode);
+        const ComPtr<ID3DBlob>& shaderBytecode) const;
 
     inline IDXGIFactory7* GetFactory() const { return m_factory.Get(); }
     inline ID3D11Device5* GetDevice() const { return m_device.Get(); }
@@ -133,12 +132,12 @@ class Graphics {
     ~Graphics();
 
     ComPtr<ID3D11RenderTargetView> CreateTexture2DRTV(
-        ComPtr<ID3D11Resource> res, UINT mip) const;
+        const ComPtr<ID3D11Resource>& res, UINT mip) const;
     ComPtr<ID3D11Texture2D> CreateDepthStencil2D(DXGI_FORMAT format,
                                                  bool GPUReadable, int width,
                                                  int height) const;
     ComPtr<ID3D11DepthStencilView> CreateTexture2DDSV(
-        ComPtr<ID3D11Resource> res, UINT mip) const;
+        const ComPtr<ID3D11Resource>& res, UINT mip) const;
 
     ComPtr<IDXGIFactory7> m_factory;
     ComPtr<ID3D11Device5> m_device;
