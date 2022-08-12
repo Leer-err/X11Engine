@@ -20,7 +20,6 @@
 #include "TaskManager/TaskManager.h"
 #include "Window.h"
 
-
 using std::thread;
 
 void Update() {
@@ -35,6 +34,7 @@ void Update() {
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
             int nCmdShow) {
     Window::get();
+
     Model* m =
         Loader::get()->LoadModelFromFile("\\assets\\Minecraft_Axolotl.fbx");
 
