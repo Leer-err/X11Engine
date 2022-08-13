@@ -118,19 +118,25 @@ void Graphics::Draw(const Model* model) {
         UINT stride = sizeof(vertex);
         UINT offset = 0;
 
+        const auto& mat = model->materials[mesh.materialIndex];
+
         ComPtr<ID3D11ShaderResourceView>
             resources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
-        resources[0] = CreateTexture2DSRV(
-            model->materials[mesh.materialIndex].baseColor.Get());
-        resources[1] = CreateTexture2DSRV(
-            model->materials[mesh.materialIndex].diffuse.Get());
-        resources[2] = CreateTexture2DSRV(
-            model->materials[mesh.materialIndex].specular.Get());
-        resources[3] = CreateTexture2DSRV(
-            model->materials[mesh.materialIndex].emission.Get());
-        resources[4] =
+        resources[mat.pixelShader.baseColorIndex] = CreateTexture2DSRV(
+            mat.pixelShader.textures[mat.pixelShader.baseColorIndex].Get());
+        resources[mat.pixelShader.specularIndex] = CreateTexture2DSRV(
+            mat.pixelShader.textures[mat.pixelShader.specularIndex].Get());
+        resources[mat.pixelShader.emissionIndex] = CreateTexture2DSRV(
+            mat.pixelShader.textures[mat.pixelShader.emissionIndex].Get());
+        resources[mat.pixelShader.lightsIndex] =
             CreateBufferSRV(m_lightBuffer.Get(), sizeof(Graphics::PointLight),
                             pointLights.size());
+
+        ID3D11ShaderResourceView*
+            shaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+        for (int i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++) {
+            shaderResources[i] = resources[i].Get();
+        }
 
         m_renderMutex.lock();
 
@@ -139,19 +145,9 @@ void Graphics::Draw(const Model* model) {
         m_context->IASetVertexBuffers(0, 1, mesh.vertices.GetAddressOf(),
                                       &stride, &offset);
 
-        m_context->PSSetShader(
-            model->materials[mesh.materialIndex].pixelShader.Get(), nullptr, 0);
-        m_context->VSSetShader(
-            model->materials[mesh.materialIndex].vertexShader.Get(), nullptr,
-            0);
-        m_context->IASetInputLayout(
-            model->materials[mesh.materialIndex].inputLayout.Get());
-
-        ID3D11ShaderResourceView*
-            shaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
-        for (int i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++) {
-            shaderResources[i] = resources[i].Get();
-        }
+        m_context->PSSetShader(mat.pixelShader.shader.Get(), nullptr, 0);
+        m_context->VSSetShader(mat.vertexShader.shader.Get(), nullptr, 0);
+        m_context->IASetInputLayout(mat.vertexShader.inputLayout.Get());
 
         m_context->PSSetShaderResources(
             0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, shaderResources);
@@ -570,31 +566,74 @@ ComPtr<ID3D11InputLayout> Graphics::CreateInputLayoutFromShader(
                                     shaderBytecode->GetBufferPointer(),
                                     shaderBytecode->GetBufferSize(),
                                     inputLayout.GetAddressOf()),
-        L"Failed to create input layout for shader");
+        L"Failed to create input layout");
 
     return inputLayout;
 }
 
-ComPtr<ID3D11PixelShader> Graphics::CreatePixelShader(
+PixelShader Graphics::CreatePixelShader(
     const ComPtr<ID3DBlob>& shaderBytecode) const {
-    ComPtr<ID3D11PixelShader> shader;
+    PixelShader shader = {};
+    ComPtr<ID3D11ShaderReflection> shaderReflection;
+    D3D11_SHADER_DESC shaderDesc;
 
-    LogIfFailed(m_device->CreatePixelShader(shaderBytecode->GetBufferPointer(),
-                                            shaderBytecode->GetBufferSize(),
-                                            nullptr, shader.GetAddressOf()),
-                L"Failed to create pixel shader");
+    HRESULT hr = m_device->CreatePixelShader(
+        shaderBytecode->GetBufferPointer(), shaderBytecode->GetBufferSize(),
+        nullptr, shader.shader.GetAddressOf());
+
+    if (FAILED(hr)) {
+        Logger::get()->Error(L"Failed to create pixel shader with %x", hr);
+        return shader;
+    }
+
+    hr = D3DReflect(shaderBytecode->GetBufferPointer(),
+                    shaderBytecode->GetBufferSize(),
+                    IID_PPV_ARGS(shaderReflection.GetAddressOf()));
+
+    if (FAILED(hr)) {
+        Logger::get()->Error(
+            L"Failed to create pixel shader reflection with %x", hr);
+        shader.shader.Reset();
+        return shader;
+    }
+
+    shaderReflection->GetDesc(&shaderDesc);
+    for (int i = 0; i < shaderDesc.BoundResources; i++) {
+        D3D11_SHADER_INPUT_BIND_DESC bindDesc;
+        shaderReflection->GetResourceBindingDesc(i, &bindDesc);
+
+        if (NULL == strcmp(bindDesc.Name, "baseColor")) {
+            shader.baseColorIndex = bindDesc.BindPoint;
+        }
+        if (NULL == strcmp(bindDesc.Name, "specularTex")) {
+            shader.specularIndex = bindDesc.BindPoint;
+        }
+        if (NULL == strcmp(bindDesc.Name, "emissionTex")) {
+            shader.emissionIndex = bindDesc.BindPoint;
+        }
+        if (NULL == strcmp(bindDesc.Name, "pointLights")) {
+            shader.lightsIndex = bindDesc.BindPoint;
+        }
+    }
 
     return shader;
 }
 
-ComPtr<ID3D11VertexShader> Graphics::CreateVertexShader(
+VertexShader Graphics::CreateVertexShader(
     const ComPtr<ID3DBlob>& shaderBytecode) const {
-    ComPtr<ID3D11VertexShader> shader;
+    VertexShader shader;
 
-    LogIfFailed(m_device->CreateVertexShader(shaderBytecode->GetBufferPointer(),
-                                             shaderBytecode->GetBufferSize(),
-                                             nullptr, shader.GetAddressOf()),
-                L"Failed to create vertex shader");
+    LogIfFailed(
+        m_device->CreateVertexShader(shaderBytecode->GetBufferPointer(),
+                                     shaderBytecode->GetBufferSize(), nullptr,
+                                     shader.shader.GetAddressOf()),
+        L"Failed to create vertex shader");
+
+    shader.inputLayout = CreateInputLayoutFromShader(shaderBytecode);
+
+    if (shader.inputLayout.Get() == nullptr) {
+        shader.shader.Reset();
+    }
 
     return shader;
 }

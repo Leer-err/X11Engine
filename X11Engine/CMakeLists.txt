@@ -38,6 +38,9 @@ target_include_directories(Engine PRIVATE
 	Memory
 )
 
+add_compile_definitions(NOMINMAX)
+add_compile_definitions(WIN32_LEAN_AND_MEAN)
+
 target_link_libraries(Engine "d3d11" "dxgi" "d3dcompiler" assimp p7)
 
 set_target_properties(Engine PROPERTIES

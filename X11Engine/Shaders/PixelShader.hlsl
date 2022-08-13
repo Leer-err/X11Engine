@@ -29,12 +29,11 @@ struct input
 };
 
 Texture2D baseColor : register(t0);
-Texture2D diffuseTex : register(t1);
-Texture2D specularTex : register(t2);
-Texture2D emissionTex : register(t3);
+Texture2D specularTex : register(t1);
+Texture2D emissionTex : register(t2);
 SamplerState samp : register(s0);
 
-StructuredBuffer<PointLight> pointLights : register(t4);
+StructuredBuffer<PointLight> pointLights : register(t3);
 
 cbuffer frame : register(b0)
 {
@@ -49,8 +48,8 @@ float3 CalcDirLight(DirLight light, float3 normal, float3 viewDir, float2 texCoo
     
     float4 coeficents = lit(dot(normal,lightDir), dot(normal, halfway), 32);
 
-    float3 ambient = light.ambient * diffuseTex.Sample(samp, texCoord).xyz;
-    float3 diffuse = light.diffuse * coeficents.y * diffuseTex.Sample(samp, texCoord).xyz;
+    float3 ambient = light.ambient * baseColor.Sample(samp, texCoord).xyz;
+    float3 diffuse = light.diffuse * coeficents.y * baseColor.Sample(samp, texCoord).xyz;
     float3 specular = light.specular * coeficents.z * specularTex.Sample(samp, texCoord).xyz;
     
     return ambient + diffuse + specular;
@@ -66,8 +65,8 @@ float3 CalcPointLight(PointLight light, float3 pos, float3 normal, float3 viewDi
     float dist = distance(light.position, pos);
     float attentuation = rcp(light.constant + light.lin * dist + light.quadratic * pow(dist, 2));
 
-    float3 ambient = light.ambient * diffuseTex.Sample(samp, texCoord).xyz;
-    float3 diffuse = light.diffuse * coeficents.y * diffuseTex.Sample(samp, texCoord).xyz;
+    float3 ambient = light.ambient * baseColor.Sample(samp, texCoord).xyz;
+    float3 diffuse = light.diffuse * coeficents.y * baseColor.Sample(samp, texCoord).xyz;
     float3 specular = light.specular * coeficents.z * specularTex.Sample(samp, texCoord).xyz;
     
     return (ambient + diffuse + specular) * attentuation;

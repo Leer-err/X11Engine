@@ -118,9 +118,8 @@ class Graphics {
     ComPtr<ID3D11InputLayout> CreateInputLayoutFromShader(
         const ComPtr<ID3DBlob>& shaderBytecode) const;
 
-    ComPtr<ID3D11PixelShader> CreatePixelShader(
-        const ComPtr<ID3DBlob>& shaderBytecode) const;
-    ComPtr<ID3D11VertexShader> CreateVertexShader(
+    PixelShader CreatePixelShader(const ComPtr<ID3DBlob>& shaderBytecode) const;
+    VertexShader CreateVertexShader(
         const ComPtr<ID3DBlob>& shaderBytecode) const;
 
     inline IDXGIFactory7* GetFactory() const { return m_factory.Get(); }
