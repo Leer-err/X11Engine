@@ -4,6 +4,7 @@
 #include <dxgi1_6.h>
 #include <wrl/client.h>
 
+#include <array>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -13,6 +14,7 @@
 #include "Types/Matrix.h"
 
 using Microsoft::WRL::ComPtr;
+using std::array;
 using std::make_unique;
 using std::mutex;
 using std::unique_ptr;
@@ -78,6 +80,14 @@ class Graphics {
     void Present();
     void Draw(const Model* model);
 
+    void DrawSkybox() const;
+    void SetSkyboxShaders(PixelShader ps, VertexShader vs) {
+        m_skyboxPS = ps;
+        m_skyboxVS = vs;
+    }
+    void SetSkybox(ComPtr<ID3D11Texture2D> skybox) { m_skybox = skybox; }
+    void SetSkyboxMesh();
+
     void SetProjectionMatrix();
     void SetViewMatrix(const quaternion& viewDirection,
                        const vector3& cameraPosition);
@@ -109,6 +119,9 @@ class Graphics {
                                             bool CPUWritable, bool GPUWritable,
                                             int width, int height,
                                             const void* data) const;
+    ComPtr<ID3D11Texture2D> CreateSkyboxTexture(
+        DXGI_FORMAT format, bool CPUWritable, bool GPUWritable, int width,
+        int height, array<const void*, 6> data) const;
     ComPtr<ID3D11ShaderResourceView> CreateBufferSRV(
         const ComPtr<ID3D11Resource>& res, UINT elementSize,
         UINT numElements) const;
@@ -160,6 +173,12 @@ class Graphics {
     ComPtr<ID3D11Buffer> m_CBVSWindow;
     ComPtr<ID3D11Buffer> m_CBPSFrame;
     ComPtr<ID3D11Buffer> m_lightBuffer;
+
+    ComPtr<ID3D11Texture2D> m_skybox;
+    PixelShader m_skyboxPS;
+    VertexShader m_skyboxVS;
+    ComPtr<ID3D11Buffer> m_skyboxVertices;
+    IndexBuffer m_skyboxIndices;
 
     D3D_FEATURE_LEVEL m_featureLevel;
 

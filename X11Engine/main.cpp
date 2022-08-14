@@ -35,6 +35,18 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
             int nCmdShow) {
     Window::get();
 
+    ComPtr<ID3D11Texture2D> t =
+        Loader::get()->LoadSkyboxFromFile("misty_pines_Skybox.dds");
+    Graphics::get()->SetSkybox(t);
+    VertexShader vs = Graphics::get()->CreateVertexShader(
+        Loader::get()->CompileShaderFromFile(L"Shaders\\SkyboxVShader.hlsl",
+                                             "vs_5_0", shaderFlags));
+    PixelShader ps =
+        Graphics::get()->CreatePixelShader(Loader::get()->CompileShaderFromFile(
+            L"Shaders\\SkyboxPShader.hlsl", "ps_5_0", shaderFlags));
+    Graphics::get()->SetSkyboxShaders(ps, vs);
+    Graphics::get()->SetSkyboxMesh();
+
     Model* m =
         Loader::get()->LoadModelFromFile("\\assets\\Minecraft_Axolotl.fbx");
 

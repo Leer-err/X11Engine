@@ -3,6 +3,7 @@
 #include <assimp/scene.h>
 #include <wincodec.h>
 
+#include <array>
 #include <assimp/Importer.hpp>
 #include <filesystem>
 #include <iostream>
@@ -11,6 +12,7 @@
 #include "Graphics/Graphics.h"
 #include "Graphics/Model.h"
 
+using std::array;
 using std::string;
 using std::unordered_map;
 
@@ -22,6 +24,14 @@ constexpr UINT shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #endif
 
 class Loader {
+    struct TextureData {
+        unique_ptr<char[]> data;
+        UINT width;
+        UINT height;
+        UINT formatStride;
+        DXGI_FORMAT format;
+    };
+
    public:
     inline static Loader* get() {
         static Loader instance;
@@ -30,12 +40,14 @@ class Loader {
 
     Model* LoadModelFromFile(const char* filename);
     ComPtr<ID3D11Texture2D> LoadTextureFromFile(const char* filename);
+    ComPtr<ID3D11Texture2D> LoadSkyboxFromFile(const char* filename);
     ComPtr<ID3DBlob> CompileShaderFromFile(const wchar_t* filename,
                                            const char* target, UINT flags);
 
    private:
     Material LoadMaterial(const aiMaterial* material);
     Mesh LoadMesh(const aiMesh* mesh);
+    // TextureData LoadTextureData(const char* path);
 
     Loader() : m_currentPath(std::filesystem::current_path().string()) {
         CoInitialize(NULL);

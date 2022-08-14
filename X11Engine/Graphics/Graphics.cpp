@@ -71,7 +71,17 @@ Graphics::Graphics() {
 
     m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    m_context->OMSetDepthStencilState(nullptr, 0);
+    ComPtr<ID3D11DepthStencilState> depthState;
+
+    D3D11_DEPTH_STENCIL_DESC depthDesc = {};
+    depthDesc.DepthEnable = true;
+    depthDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+    depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+    depthDesc.StencilEnable = false;
+
+    m_device->CreateDepthStencilState(&depthDesc, depthState.GetAddressOf());
+
+    m_context->OMSetDepthStencilState(depthState.Get(), 0);
 
     m_CBVSModel = CreateConstantBuffer(
         true, nullptr, ((sizeof(CB_VS_PER_MODEL) >> 4) + 1) << 4);
@@ -122,12 +132,18 @@ void Graphics::Draw(const Model* model) {
 
         ComPtr<ID3D11ShaderResourceView>
             resources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
-        resources[mat.pixelShader.baseColorIndex] = CreateTexture2DSRV(
-            mat.pixelShader.textures[mat.pixelShader.baseColorIndex].Get());
-        resources[mat.pixelShader.specularIndex] = CreateTexture2DSRV(
-            mat.pixelShader.textures[mat.pixelShader.specularIndex].Get());
-        resources[mat.pixelShader.emissionIndex] = CreateTexture2DSRV(
-            mat.pixelShader.textures[mat.pixelShader.emissionIndex].Get());
+        resources[mat.pixelShader.baseColorIndex] =
+            CreateTexture2DSRV(mat.resources[PIXEL_SHADER_STAGE]
+                                   .textures[mat.pixelShader.baseColorIndex]
+                                   .Get());
+        resources[mat.pixelShader.specularIndex] =
+            CreateTexture2DSRV(mat.resources[PIXEL_SHADER_STAGE]
+                                   .textures[mat.pixelShader.specularIndex]
+                                   .Get());
+        resources[mat.pixelShader.emissionIndex] =
+            CreateTexture2DSRV(mat.resources[PIXEL_SHADER_STAGE]
+                                   .textures[mat.pixelShader.emissionIndex]
+                                   .Get());
         resources[mat.pixelShader.lightsIndex] =
             CreateBufferSRV(m_lightBuffer.Get(), sizeof(Graphics::PointLight),
                             pointLights.size());
@@ -412,6 +428,46 @@ ComPtr<ID3D11Texture2D> Graphics::CreateTexture2D(DXGI_FORMAT format,
     return texture;
 }
 
+ComPtr<ID3D11Texture2D> Graphics::CreateSkyboxTexture(
+    DXGI_FORMAT format, bool CPUWritable, bool GPUWritable, int width,
+    int height, array<const void*, 6> data) const {
+    ComPtr<ID3D11Texture2D> texture;
+
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Format = format;
+    desc.ArraySize = 6;
+    desc.MipLevels = 1;
+    desc.Width = width;
+    desc.Height = height;
+    desc.SampleDesc.Count = 1;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+    if (!CPUWritable && !GPUWritable) {
+        desc.Usage = D3D11_USAGE_IMMUTABLE;
+    } else if (CPUWritable && !GPUWritable) {
+        desc.Usage = D3D11_USAGE_DYNAMIC;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    } else if (!CPUWritable && GPUWritable) {
+        desc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
+        desc.Usage = D3D11_USAGE_DEFAULT;
+    } else {
+        return nullptr;
+    }
+
+    D3D11_SUBRESOURCE_DATA subRes[6] = {};
+    for (int i = 0; i < 6; i++) {
+        subRes[i].pSysMem = data[i];
+        subRes[i].SysMemPitch = width * 4;
+        subRes[i].SysMemSlicePitch = width * height * 4;
+    }
+
+    LogIfFailed(m_device->CreateTexture2D(&desc, subRes, &texture),
+                L"Failed to create 2D texture");
+
+    return texture;
+}
+
 ComPtr<ID3D11Texture2D> Graphics::CreateDepthStencil2D(DXGI_FORMAT format,
                                                        bool GPUReadable,
                                                        int width,
@@ -636,4 +692,39 @@ VertexShader Graphics::CreateVertexShader(
     }
 
     return shader;
+}
+
+void Graphics::DrawSkybox() const {
+    ComPtr<ID3D11ShaderResourceView> skybox;
+
+    UINT stride = sizeof(vector3);
+    UINT offset = 0;
+
+    m_context->PSSetShader(m_skyboxPS.shader.Get(), nullptr, 0);
+    m_context->VSSetShader(m_skyboxVS.shader.Get(), nullptr, 0);
+    m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
+    m_device->CreateShaderResourceView(m_skybox.Get(), nullptr,
+                                       skybox.GetAddressOf());
+    m_context->PSSetShaderResources(0, 1, skybox.GetAddressOf());
+    m_context->IASetIndexBuffer(m_skyboxIndices.buffer.Get(),
+                                DXGI_FORMAT_R32_UINT, 0);
+    m_context->IASetVertexBuffers(0, 1, m_skyboxVertices.GetAddressOf(),
+                                  &stride, &offset);
+    m_context->IASetInputLayout(m_skyboxVS.inputLayout.Get());
+    m_context->DrawIndexed(m_skyboxIndices.indexCount, 0, 0);
+}
+
+void Graphics::SetSkyboxMesh() {
+    vector3 vertices[] = {
+        {-0.5f, -0.5f, -0.5f}, {-0.5f, 0.5f, -0.5f}, {0.5f, 0.5f, -0.5f},
+        {0.5f, -0.5f, -0.5f},  {-0.5f, -0.5f, 0.5f}, {-0.5f, 0.5f, 0.5f},
+        {0.5f, 0.5f, 0.5f},    {0.5f, -0.5f, 0.5f},
+    };
+
+    uint32_t indices[] = {0, 2, 1, 0, 3, 2, 3, 6, 2, 3, 7, 6, 7, 5, 6, 7, 4, 5,
+                          4, 1, 5, 4, 0, 1, 1, 2, 6, 1, 6, 5, 0, 7, 3, 0, 4, 7};
+
+    m_skyboxVertices =
+        CreateVertexBuffer(sizeof(vector3) * 8, false, false, vertices);
+    m_skyboxIndices = CreateIndexBuffer(sizeof(uint32_t) * 36, false, indices);
 }

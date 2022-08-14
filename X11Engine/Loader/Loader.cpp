@@ -1,61 +1,58 @@
 #include "Loader.h"
 
+#include <DDSTextureLoader.h>
+#include <WICTextureLoader.h>
+#include <d3dcompiler.h>
+
 #include <memory>
 
 #include "Logger/Logger.h"
+#include "Window.h"
 
 using std::unique_ptr;
 
-DXGI_FORMAT WICToDXGI(WICPixelFormatGUID format) {
-    if (format == GUID_WICPixelFormat128bppRGBAFloat) {
-        return DXGI_FORMAT_R32G32B32A32_FLOAT;
-    }
-    if (format == GUID_WICPixelFormat64bppRGBAHalf) {
-        return DXGI_FORMAT_R16G16B16A16_FLOAT;
-    }
-    if (format == GUID_WICPixelFormat64bppRGBA) {
-        return DXGI_FORMAT_R16G16B16A16_UNORM;
-    }
-    if (format == GUID_WICPixelFormat32bppRGBA) {
-        return DXGI_FORMAT_R8G8B8A8_UNORM;
-    }
-    if (format == GUID_WICPixelFormat32bppBGRA) {
-        return DXGI_FORMAT_B8G8R8A8_UNORM;
-    }
-    if (format == GUID_WICPixelFormat32bppBGR) {
-        return DXGI_FORMAT_B8G8R8X8_UNORM;
-    }
-    return DXGI_FORMAT_UNKNOWN;
-}
-
 ComPtr<ID3D11Texture2D> Loader::LoadTextureFromFile(const char* filename) {
-    ComPtr<IWICBitmapDecoder> decoder;
-    ComPtr<IWICBitmapFrameDecode> frameDecoder;
-    WICPixelFormatGUID format;
-    UINT width, height;
+    string name = m_currentPath + "\\Assets\\" + filename;
+    ComPtr<ID3D11Texture2D> texture;
 
     const auto& tex = m_textureRegistry.find(filename);
     if (tex != m_textureRegistry.end()) {
         return tex->second.Get();
     }
 
-    int size = strlen(filename) + 1;
-    wchar_t* wpath = new wchar_t[size];
-    mbstowcs(wpath, filename, size);
+    wchar_t* wpath = new wchar_t[name.size() + 1];
+    mbstowcs(wpath, name.c_str(), name.size() + 1);
 
-    m_factory->CreateDecoderFromFilename(
-        wpath, NULL, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &decoder);
+    DirectX::CreateWICTextureFromFile(
+        (ID3D11Device*)Graphics::get()->GetDevice(), wpath,
+        (ID3D11Resource**)texture.GetAddressOf(), nullptr);
 
-    decoder->GetFrame(0, &frameDecoder);
+    delete (wpath);
 
-    frameDecoder->GetSize(&width, &height);
+    if (texture != nullptr) {
+        m_textureRegistry.emplace(filename, texture);
+    }
+    return texture;
+}
 
-    unique_ptr<char[]> buffer(new char[height * width * 4]);
-    frameDecoder->GetPixelFormat(&format);
-    frameDecoder->CopyPixels(nullptr, width * 4, width * height * 4,
-                             reinterpret_cast<BYTE*>(buffer.get()));
-    ComPtr<ID3D11Texture2D> texture = Graphics::get()->CreateTexture2D(
-        WICToDXGI(format), false, false, width, height, buffer.get());
+ComPtr<ID3D11Texture2D> Loader::LoadSkyboxFromFile(const char* filename) {
+    string name = m_currentPath + "\\Assets\\" + filename;
+    ComPtr<ID3D11Texture2D> texture;
+
+    const auto& tex = m_textureRegistry.find(filename);
+    if (tex != m_textureRegistry.end()) {
+        return tex->second.Get();
+    }
+
+    wchar_t* wpath = new wchar_t[name.size() + 1];
+    mbstowcs(wpath, name.c_str(), name.size() + 1);
+
+    HRESULT hr = DirectX::CreateDDSTextureFromFile(
+        (ID3D11Device*)Graphics::get()->GetDevice(), wpath,
+        (ID3D11Resource**)texture.GetAddressOf(), nullptr);
+
+    delete (wpath);
+
     if (texture != nullptr) {
         m_textureRegistry.emplace(filename, texture);
     }
@@ -80,42 +77,43 @@ Material Loader::LoadMaterial(const aiMaterial* material) {
         aiString relPath;
         if (material->GetTexture(aiTextureType_DIFFUSE, 0, &relPath) ==
             AI_SUCCESS) {
-            string path = m_currentPath + "\\Assets\\" + relPath.data;
-            mat.pixelShader.textures[mat.pixelShader.baseColorIndex] =
-                LoadTextureFromFile(path.c_str());
+            relPath.data;
+            mat.resources[PIXEL_SHADER_STAGE]
+                .textures[mat.pixelShader.baseColorIndex] =
+                LoadTextureFromFile(relPath.C_Str());
         }
     } else {
-        string path = m_currentPath + "\\Assets\\WhitePlaceholder.png";
-        mat.pixelShader.textures[mat.pixelShader.baseColorIndex] =
-            LoadTextureFromFile(path.c_str());
+        mat.resources[PIXEL_SHADER_STAGE]
+            .textures[mat.pixelShader.baseColorIndex] =
+            LoadTextureFromFile("WhitePlaceholder.png");
     }
 
     if (material->GetTextureCount(aiTextureType_SPECULAR) > 0) {
         aiString relPath;
         if (material->GetTexture(aiTextureType_SPECULAR, 0, &relPath) ==
             AI_SUCCESS) {
-            string path = m_currentPath + "\\Assets\\" + relPath.data;
-            mat.pixelShader.textures[mat.pixelShader.specularIndex] =
-                LoadTextureFromFile(path.c_str());
+            mat.resources[PIXEL_SHADER_STAGE]
+                .textures[mat.pixelShader.specularIndex] =
+                LoadTextureFromFile(relPath.C_Str());
         }
     } else {
-        string path = m_currentPath + "\\Assets\\WhitePlaceholder.png";
-        mat.pixelShader.textures[mat.pixelShader.specularIndex] =
-            LoadTextureFromFile(path.c_str());
+        mat.resources[PIXEL_SHADER_STAGE]
+            .textures[mat.pixelShader.specularIndex] =
+            LoadTextureFromFile("WhitePlaceholder.png");
     }
 
     if (material->GetTextureCount(aiTextureType_EMISSIVE) > 0) {
         aiString relPath;
         if (material->GetTexture(aiTextureType_EMISSIVE, 0, &relPath) ==
             AI_SUCCESS) {
-            string path = m_currentPath + "\\Assets\\" + relPath.data;
-            mat.pixelShader.textures[mat.pixelShader.emissionIndex] =
-                LoadTextureFromFile(path.c_str());
+            mat.resources[PIXEL_SHADER_STAGE]
+                .textures[mat.pixelShader.emissionIndex] =
+                LoadTextureFromFile(relPath.C_Str());
         }
     } else {
-        string path = m_currentPath + "\\Assets\\BlackPlaceholder.png";
-        mat.pixelShader.textures[mat.pixelShader.emissionIndex] =
-            LoadTextureFromFile(path.c_str());
+        mat.resources[PIXEL_SHADER_STAGE]
+            .textures[mat.pixelShader.emissionIndex] =
+            LoadTextureFromFile("BlackPlaceholder.png");
     }
 
     return mat;
@@ -156,8 +154,11 @@ ComPtr<ID3DBlob> Loader::CompileShaderFromFile(const wchar_t* filename,
     if (FAILED(D3DCompileFromFile(filename, nullptr, nullptr, "main", target,
                                   flags, NULL, shader.GetAddressOf(),
                                   error.GetAddressOf()))) {
-        Logger::get()->Error(L"Failed to compile %s : %s", filename,
-                             error->GetBufferPointer());
+        wchar_t* message = new wchar_t[error->GetBufferSize()];
+        mbstowcs(message, (char*)error->GetBufferPointer(),
+                 error->GetBufferSize());
+        Logger::get()->Error(L"Failed to compile %s : %s", filename, message);
+        delete (message);
         return nullptr;
     }
     return shader;
