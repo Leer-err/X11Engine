@@ -24,14 +24,6 @@ constexpr UINT shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #endif
 
 class Loader {
-    struct TextureData {
-        unique_ptr<char[]> data;
-        UINT width;
-        UINT height;
-        UINT formatStride;
-        DXGI_FORMAT format;
-    };
-
    public:
     inline static Loader* get() {
         static Loader instance;
@@ -47,7 +39,6 @@ class Loader {
    private:
     Material LoadMaterial(const aiMaterial* material);
     Mesh LoadMesh(const aiMesh* mesh);
-    // TextureData LoadTextureData(const char* path);
 
     Loader() : m_currentPath(std::filesystem::current_path().string()) {
         CoInitialize(NULL);
