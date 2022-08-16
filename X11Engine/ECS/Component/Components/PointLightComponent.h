@@ -5,6 +5,7 @@
 struct vector3;
 
 struct PointLightComponent : public ECS::Component<PointLightComponent> {
-	PointLightComponent(EntityId owner, PointLight light) : Component(owner), light(light) {}
-	PointLight light;
+    PointLightComponent(uint32_t owner, PointLight light)
+        : Component(owner), light(light) {}
+    PointLight light;
 };

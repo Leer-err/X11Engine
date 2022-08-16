@@ -5,7 +5,6 @@
 #include "Vector3.h"
 #include "Vector4.h"
 
-
 struct matrix {
     inline matrix() { memset(this, 0, sizeof(matrix)); }
     inline matrix(const vector4& a, const vector4& b, const vector4& c,
@@ -66,4 +65,8 @@ inline matrix __vectorcall TranslationMatrix(const vector3& offset) {
 
 inline matrix __vectorcall ScalingMatrix(const vector3& scale) {
     return DirectX::XMMatrixScalingFromVector(scale);
+}
+
+inline matrix __vectorcall IdentityMatrix() {
+    return DirectX::XMMatrixIdentity();
 }

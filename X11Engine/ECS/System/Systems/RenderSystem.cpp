@@ -25,11 +25,9 @@ void RenderSystem::Update() {
                           .Get()
                           ->GetOwner();
     TransformComponent* cameraTransform =
-        ECS::EntityManager::get()
-            ->GetEntity(camera)
-            ->GetComponent<TransformComponent>();
-    Graphics::get()->SetViewMatrix(cameraTransform->rotation,
-                                   cameraTransform->position);
+        camera.GetComponent<TransformComponent>();
+    Graphics::get()->SetViewMatrix(cameraTransform->GetRotation(),
+                                   cameraTransform->GetPosition());
     Graphics::get()->DrawSkybox();
 
     auto& light = ECS::ComponentManager::get()->begin<PointLightComponent>();
@@ -37,9 +35,9 @@ void RenderSystem::Update() {
          i < MAX_POINT_LIGHTS &&
          light != ECS::ComponentManager::get()->end<PointLightComponent>();
          i++, ++light) {
-        vector3 pos = ECS::ComponentManager::get()
-                          ->GetComponent<TransformComponent>(light->GetOwner())
-                          ->position;
+        vector3 pos = static_cast<EntityId>(light->GetOwner())
+                          .GetComponent<TransformComponent>()
+                          ->GetPosition();
         Graphics::get()->SetPointLight(light->light, pos);
     }
 
@@ -49,11 +47,8 @@ void RenderSystem::Update() {
          mesh != ECS::ComponentManager::get()->end<RenderComponent>(); ++mesh) {
         EntityId entity = mesh->GetOwner();
         const TransformComponent* pos =
-            ECS::ComponentManager::get()->GetComponent<TransformComponent>(
-                entity);
-        matrix world = ScalingMatrix(pos->scale) *
-                       RotationMatrix(pos->rotation) *
-                       TranslationMatrix(pos->position);
+            entity.GetComponent<TransformComponent>();
+        matrix world = pos->GetWorldMatrix();
         Graphics::get()->SetWorldMatrix(world);
         Graphics::get()->UpdatePerModelBuffers();
         completed_tasks.emplace_back(TaskManager::get()->submit(

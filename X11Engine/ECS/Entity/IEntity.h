@@ -1,50 +1,49 @@
 #pragma once
-#include "Types.h"
-#include "ComponentManager.h"
 #include <vector>
 
+#include "Types/Types.h"
+
+using std::forward;
 using std::vector;
 
+struct EntityId {
+    EntityId(uint32_t id) : id(id) {}
+
+    template <class T, typename... ARGS>
+    inline T* AddComponent(ARGS&&... args) {
+        return ECS::ComponentManager::get()->AddComponent<T>(
+            id, forward<ARGS>(args)...);
+    }
+
+    template <class T>
+    inline void RemoveComponent() {
+        ECS::ComponentManager::get()->RemoveComponent<T>(id);
+    }
+
+    template <class T>
+    inline T* GetComponent() {
+        return ECS::ComponentManager::get()->GetComponent<T>(id);
+    }
+
+    inline operator uint32_t() const { return id; }
+
+    uint32_t id;
+};
+
 namespace ECS {
-	class IEntity {
-		friend class EntityManager;
-	public:
-		IEntity(EntityId id) : m_id(id), m_componentManager(ECS::ComponentManager::get()) {}
+class IEntity {
+    friend class EntityManager;
 
-		template<class T, class... Args>
-		T* AddComponent(Args&&... args) {
-			return m_componentManager->AddComponent<T, Args...>(m_id, args...);
-		}
+   public:
+    IEntity(EntityId id) : m_id(id) {}
 
-		template<class T>
-		T* GetComponent() {
-			return m_componentManager->GetComponent<T>(m_id);
-		}
+    virtual ~IEntity(){};
 
-		inline vector<EntityId>::iterator begin() {
-			return m_childs.begin();
-		}
-		inline vector<EntityId>::iterator end() {
-			return m_childs.end();
-		}
-		inline void MakeChild(EntityId entity) {
-			m_childs.push_back(entity);
-		}
-		inline void RemoveChild(EntityId entity) {
-			auto child = std::find(m_childs.begin(), m_childs.end(), entity);
-			if(child != m_childs.end()){
-				m_childs.erase(child);
-			}
-		}
+    virtual const TypeId GetEntityTypeId() const = 0;
 
-		virtual ~IEntity() {};
+    inline const EntityId GetEntityId() const { return m_id; };
 
-		virtual const TypeId GetEntityTypeId() const = 0;
-
-		inline const EntityId GetEntityId() const { return m_id; };
-	private:
-		vector<EntityId> m_childs;
-		EntityId m_id;
-		ComponentManager* m_componentManager;
-	};
-}
+   private:
+    EntityId m_id;
+};
+}  // namespace ECS

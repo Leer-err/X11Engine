@@ -3,6 +3,7 @@
 #include "Matrix.h"
 
 struct CameraComponent : ECS::Component<CameraComponent> {
-	CameraComponent(EntityId owner, vector3 viewDirection) : Component(owner), viewDirection(viewDirection) {}
-	vector3 viewDirection;
+    CameraComponent(uint32_t owner, vector3 viewDirection)
+        : Component(owner), viewDirection(viewDirection) {}
+    vector3 viewDirection;
 };

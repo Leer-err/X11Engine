@@ -1,5 +1,5 @@
 #pragma once
-#include <cstdint>
 
-typedef uint64_t EntityId;
+#include <stdint.h>
+
 typedef uint32_t TypeId;

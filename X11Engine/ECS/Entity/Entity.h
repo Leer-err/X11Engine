@@ -2,20 +2,21 @@
 #include "IEntity.h"
 
 namespace ECS {
-	template<class E>
-	class Entity : public IEntity {
-	public:
-		Entity(EntityId id) : IEntity(id) {}
-		virtual ~Entity() {};
+template <class E>
+class Entity : public IEntity {
+   public:
+    Entity(EntityId id) : IEntity(id) {}
+    virtual ~Entity(){};
 
-		inline const TypeId GetEntityTypeId() const override { return TYPE_ID; };
+    inline const TypeId GetEntityTypeId() const override { return TYPE_ID; };
 
-		static const TypeId TYPE_ID;
-	private:
-		void operator delete(void*) = delete;
-		void operator delete[](void*) = delete;
-	};
+    static const TypeId TYPE_ID;
 
-	template<class E>
-	const TypeId Entity<E>::TYPE_ID = Helper<IEntity>::Get<E>();
-}
+   private:
+    void operator delete(void*) = delete;
+    void operator delete[](void*) = delete;
+};
+
+template <class E>
+const TypeId Entity<E>::TYPE_ID = Helper<IEntity>::Get<E>();
+}  // namespace ECS
