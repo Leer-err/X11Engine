@@ -45,7 +45,7 @@ class Logger {
     }
 
     template <typename... ARGS>
-    inline void Debug(const wchar_t* line, ARGS&&... args) {
+    void Debug(const wchar_t* line, ARGS&&... args) {
         m_trace->P7_DEBUG(m_module, line, forward<ARGS>(args)..., 0);
     }
 
