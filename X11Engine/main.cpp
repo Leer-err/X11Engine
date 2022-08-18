@@ -55,9 +55,9 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
     EntityId light1 = ECS::EntityManager::get()->CreateEntity<Cube>();
     EntityId camera = ECS::EntityManager::get()->CreateEntity<Cube>();
 
-    TransformComponent* tr = a.AddComponent<TransformComponent>(
-        Scene::get().GetWorldNode(), vector3(0.f, 0.f, 3.f),
-        vector3(0.f, 0.f, 0.f));
+    a.AddComponent<TransformComponent>(Scene::get().GetWorldNode(),
+                                       vector3(0.f, 0.f, 3.f),
+                                       vector3(0.f, 0.f, 0.f));
     light.AddComponent<TransformComponent>(Scene::get().GetWorldNode(),
                                            vector3(0.f, 0.f, 0.f));
     light1.AddComponent<TransformComponent>(Scene::get().GetWorldNode(),

@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 
+#include <future>
 #include <mutex>
 #include <vector>
 
@@ -13,7 +14,9 @@
 #include "Types/Vector3.h"
 #include "Window.h"
 
+using std::future;
 using std::lock_guard;
+using std::move;
 using std::mutex;
 using std::vector;
 
@@ -22,6 +25,7 @@ using Memory::PoolAllocator;
 constexpr uint32_t MAX_NODE_COUNT = 0x400;
 
 class Scene {
+   public:
     struct Transform {
         Transform(vector3 positions, vector3 scale, quaternion rotation)
             : position(positions), scale(scale), rotation(rotation) {}
@@ -39,7 +43,9 @@ class Scene {
        public:
         Node(vector3 pos = {0.f, 0.f, 0.f}, vector3 scale = {1.f, 1.f, 1.f},
              quaternion rotation = {})
-            : m_transform(pos, scale, rotation), m_parent(nullptr) {}
+            : m_transform(pos, scale, rotation), m_parent(nullptr) {
+            UpdateWorldMatrix();
+        }
         ~Node() {
             for (auto& child : m_children) {
                 Scene::get().RemoveNode(child);
@@ -96,16 +102,17 @@ class Scene {
         vector<Node*> m_children;
         Node* m_parent;
 
-        Transform m_transform;
+        Scene::Transform m_transform;
     };
 
-   public:
     inline static Scene& get() {
         static Scene instance;
         return instance;
     }
 
     inline Node* GetWorldNode() { return m_world; }
+
+    void WaitForUpdate();
 
    protected:
     template <typename... ARGS>
@@ -125,6 +132,8 @@ class Scene {
         m_allocator->free(ptr);
     }
 
+    void AddUpdateTask(future<void> task) { m_updateTasks.push_back(task); }
+
    private:
     Scene();
     ~Scene() { delete (m_allocator); }
@@ -137,4 +146,6 @@ class Scene {
     PoolAllocator* m_allocator;
     Node* m_world;
     mutex m_allocatorMutex;
+
+    vector<future<void>> m_updateTasks;
 };

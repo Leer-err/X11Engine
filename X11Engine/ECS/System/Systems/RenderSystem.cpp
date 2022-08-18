@@ -10,6 +10,7 @@
 #include "ECS/Component/Components/TransformComponent.h"
 #include "ECS/Entity/EntityManager.h"
 #include "Graphics/Graphics.h"
+#include "Scene/Scene.h"
 #include "TaskManager/TaskManager.h"
 
 using std::future;
@@ -19,6 +20,8 @@ void RenderSystem::PreUpdate() { Graphics::get()->Clear(); }
 
 void RenderSystem::Update() {
     vector<future<void>> completed_tasks;
+
+    Scene::get().WaitForUpdate();
 
     EntityId camera = ECS::ComponentManager::get()
                           ->begin<CameraComponent>()

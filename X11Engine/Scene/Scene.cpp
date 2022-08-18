@@ -22,7 +22,8 @@ void Scene::Node::UpdateWorldMatrix() {
     }
 
     for (auto& child : m_children) {
-        TaskManager::get()->submit(&Node::UpdateWorldMatrix, child);
+        Scene::get().AddUpdateTask(
+            move(TaskManager::get()->submit(&Node::UpdateWorldMatrix, child)));
     }
 }
 
@@ -30,11 +31,15 @@ Scene::Scene() {
     void* ptr = Memory::GlobalAllocator::get()->allocate(
         MAX_NODE_COUNT * sizeof(Node), _alignof(Node));
     if (ptr == nullptr) {
-        Logger::get()->Error(L"Cannot allocate memory for scene graph");
+        Logger::get()->Error(L"Cannot allocate memory for scene graph node");
         Window::get()->Terminate();
     }
     m_allocator = new PoolAllocator(sizeof(Node), _alignof(Node),
                                     MAX_NODE_COUNT * sizeof(Node), ptr);
     m_world = CreateNode();
     m_world->UpdateWorldMatrix();
+}
+
+void Scene::WaitForUpdate() {
+    for (const auto& task : m_updateTasks) task.wait();
 }
