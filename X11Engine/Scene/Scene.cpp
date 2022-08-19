@@ -10,7 +10,7 @@ void Scene::Node::RemoveChild(Node* ptr) {
     auto& child = find(m_children.begin(), m_children.end(), ptr);
 
     if (child != m_children.end()) {
-        Scene::get().RemoveNode(*child);
+        Scene::get()->RemoveNode(*child);
     }
 }
 
@@ -22,7 +22,7 @@ void Scene::Node::UpdateWorldMatrix() {
     }
 
     for (auto& child : m_children) {
-        Scene::get().AddUpdateTask(
+        Scene::get()->AddUpdateTask(
             move(TaskManager::get()->submit(&Node::UpdateWorldMatrix, child)));
     }
 }
@@ -42,4 +42,5 @@ Scene::Scene() {
 
 void Scene::WaitForUpdate() {
     for (const auto& task : m_updateTasks) task.wait();
+    m_updateTasks.clear();
 }

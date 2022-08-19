@@ -6,6 +6,7 @@
 #include <mutex>
 #include <vector>
 
+#include "Graphics/Model.h"
 #include "Logger/Logger.h"
 #include "Memory/Memory.h"
 #include "TaskManager/TaskManager.h"
@@ -43,12 +44,14 @@ class Scene {
        public:
         Node(vector3 pos = {0.f, 0.f, 0.f}, vector3 scale = {1.f, 1.f, 1.f},
              quaternion rotation = {})
-            : m_transform(pos, scale, rotation), m_parent(nullptr) {
+            : m_transform(pos, scale, rotation),
+              m_parent(nullptr),
+              m_model(nullptr) {
             UpdateWorldMatrix();
         }
         ~Node() {
             for (auto& child : m_children) {
-                Scene::get().RemoveNode(child);
+                Scene::get()->RemoveNode(child);
             }
         }
 
@@ -69,18 +72,20 @@ class Scene {
                 position * m_parent->m_transform.worldMatrix.Inverse();
             UpdateWorldMatrix();
         }
-        void SetRotation(const quaternion& rotation) {
+        inline void SetRotation(const quaternion& rotation) {
             m_transform.rotation = rotation;
             UpdateWorldMatrix();
         }
-        void SetScale(const vector3& scale) {
+        inline void SetScale(const vector3& scale) {
             m_transform.scale = scale;
             UpdateWorldMatrix();
         }
 
+        inline void SetModel(Model* model) { m_model = model; }
+
         template <typename... ARGS>
         Node* AddChild(ARGS&&... args) {
-            Node* node = Scene::get().CreateNode(forward<ARGS>(args)...);
+            Node* node = Scene::get()->CreateNode(forward<ARGS>(args)...);
             if (node != nullptr) {
                 node->m_parent = this;
 
@@ -97,17 +102,20 @@ class Scene {
         void UpdateWorldMatrix();
 
         inline vector<Node*> GetChildren() const { return m_children; }
+        inline Model* GetModel() const { return m_model; }
 
        private:
         vector<Node*> m_children;
         Node* m_parent;
 
+        Model* m_model;
+
         Scene::Transform m_transform;
     };
 
-    inline static Scene& get() {
+    inline static Scene* get() {
         static Scene instance;
-        return instance;
+        return &instance;
     }
 
     inline Node* GetWorldNode() { return m_world; }
@@ -132,7 +140,9 @@ class Scene {
         m_allocator->free(ptr);
     }
 
-    void AddUpdateTask(future<void> task) { m_updateTasks.push_back(task); }
+    void AddUpdateTask(future<void>&& task) {
+        m_updateTasks.emplace_back(move(task));
+    }
 
    private:
     Scene();

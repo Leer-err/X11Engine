@@ -50,23 +50,23 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
     Model* m =
         Loader::get()->LoadModelFromFile("\\assets\\Minecraft_Axolotl.fbx");
 
-    EntityId a = ECS::EntityManager::get()->CreateEntity<Cube>();
+    EntityId model = ECS::EntityManager::get()->CreateEntity<Cube>();
     EntityId light = ECS::EntityManager::get()->CreateEntity<Cube>();
     EntityId light1 = ECS::EntityManager::get()->CreateEntity<Cube>();
     EntityId camera = ECS::EntityManager::get()->CreateEntity<Cube>();
 
-    a.AddComponent<TransformComponent>(Scene::get().GetWorldNode(),
-                                       vector3(0.f, 0.f, 3.f),
-                                       vector3(0.f, 0.f, 0.f));
-    light.AddComponent<TransformComponent>(Scene::get().GetWorldNode(),
+    TransformComponent* modelPos = model.AddComponent<TransformComponent>(
+        Scene::get()->GetWorldNode(), vector3(0.f, 0.f, 3.f),
+        vector3(0.f, 0.f, 0.f));
+    light.AddComponent<TransformComponent>(Scene::get()->GetWorldNode(),
                                            vector3(0.f, 0.f, 0.f));
-    light1.AddComponent<TransformComponent>(Scene::get().GetWorldNode(),
+    light1.AddComponent<TransformComponent>(Scene::get()->GetWorldNode(),
                                             vector3(0.f, 0.f, 2.f));
     TransformComponent* cameraPos = camera.AddComponent<TransformComponent>(
-        Scene::get().GetWorldNode(), vector3(0.0f, 0.0f, 0.0f));
+        Scene::get()->GetWorldNode(), vector3(0.0f, 0.0f, 0.0f));
     camera.AddComponent<CameraComponent>(vector3(0.f, 0.f, 1.f));
 
-    a.AddComponent<RenderComponent>(m);
+    model.AddComponent<RenderComponent>(modelPos->sceneNode, m);
 
     light.AddComponent<PointLightComponent>(PointLight{
         1.f, .09f, 0.032f, {.0f, .0f, .05f}, {1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}});

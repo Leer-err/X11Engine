@@ -1,6 +1,7 @@
 #include "RenderSystem.h"
 
 #include <future>
+#include <stack>
 #include <vector>
 
 #include "ECS/Component/ComponentManager.h"
@@ -14,14 +15,13 @@
 #include "TaskManager/TaskManager.h"
 
 using std::future;
+using std::stack;
 using std::vector;
 
 void RenderSystem::PreUpdate() { Graphics::get()->Clear(); }
 
 void RenderSystem::Update() {
     vector<future<void>> completed_tasks;
-
-    Scene::get().WaitForUpdate();
 
     EntityId camera = ECS::ComponentManager::get()
                           ->begin<CameraComponent>()
@@ -46,17 +46,40 @@ void RenderSystem::Update() {
 
     Graphics::get()->UpdatePerFrameBuffers();
 
-    for (auto& mesh = ECS::ComponentManager::get()->begin<RenderComponent>();
-         mesh != ECS::ComponentManager::get()->end<RenderComponent>(); ++mesh) {
-        EntityId entity = mesh->GetOwner();
-        const TransformComponent* pos =
-            entity.GetComponent<TransformComponent>();
-        matrix world = pos->GetWorldMatrix();
-        Graphics::get()->SetWorldMatrix(world);
-        Graphics::get()->UpdatePerModelBuffers();
-        completed_tasks.emplace_back(TaskManager::get()->submit(
-            &Graphics::Draw, Graphics::get(), std::cref(mesh->model)));
+    Scene::get()->WaitForUpdate();
+    Scene::Node* worldNode = Scene::get()->GetWorldNode();
+
+    stack<Scene::Node*> nodes;
+    nodes.push(worldNode);
+
+    for (Scene::Node* node; nodes.size() != 0;) {
+        node = nodes.top();
+        nodes.pop();
+
+        Model* model = node->GetModel();
+        if (model != nullptr) {
+            Graphics::get()->SetWorldMatrix(node->GetWorldMatrix());
+            Graphics::get()->UpdatePerModelBuffers();
+            completed_tasks.emplace_back(TaskManager::get()->submit(
+                &Graphics::Draw, Graphics::get(), model));
+        }
+        for (const auto& child : node->GetChildren()) {
+            nodes.push(child);
+        }
     }
+
+    // for (auto& mesh = ECS::ComponentManager::get()->begin<RenderComponent>();
+    //      mesh != ECS::ComponentManager::get()->end<RenderComponent>();
+    //      ++mesh) {
+    //     EntityId entity = mesh->GetOwner();
+    //     const TransformComponent* pos =
+    //         entity.GetComponent<TransformComponent>();
+    //     matrix world = pos->GetWorldMatrix();
+    //     Graphics::get()->SetWorldMatrix(world);
+    //     Graphics::get()->UpdatePerModelBuffers();
+    //     completed_tasks.emplace_back(TaskManager::get()->submit(
+    //         &Graphics::Draw, Graphics::get(), std::cref(mesh->model)));
+    // }
 
     for (const auto& task : completed_tasks) {
         task.wait();
