@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Controls/Keyboard.h"
+//#include "Controls/Keyboard.h"
+#include <Keyboard.h>
+
 #include "ECS/Component/Components/TransformComponent.h"
 #include "ECS/System/System.h"
 
@@ -11,23 +13,24 @@ class MovementSystem : public ECS::System<MovementSystem> {
     void PreUpdate() override{};
     void Update() override {
         vector3 move = {0.f, 0.f, 0.f};
+        DirectX::Keyboard::State state = DirectX::Keyboard::Get().GetState();
 
-        if (Keyboard::get()->IsPressed('W')) {
+        if (state.W) {
             move.z += 0.1f;
         }
-        if (Keyboard::get()->IsPressed('S')) {
+        if (state.S) {
             move.z -= 0.1f;
         }
-        if (Keyboard::get()->IsPressed('A')) {
+        if (state.A) {
             move.x -= 0.1f;
         }
-        if (Keyboard::get()->IsPressed('D')) {
+        if (state.D) {
             move.x += 0.1f;
         }
-        if (Keyboard::get()->IsPressed('E')) {
+        if (state.E) {
             move.y += 0.1f;
         }
-        if (Keyboard::get()->IsPressed('Q')) {
+        if (state.Q) {
             move.y -= 0.1f;
         }
 

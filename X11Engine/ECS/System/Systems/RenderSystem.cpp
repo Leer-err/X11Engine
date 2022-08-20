@@ -68,19 +68,6 @@ void RenderSystem::Update() {
         }
     }
 
-    // for (auto& mesh = ECS::ComponentManager::get()->begin<RenderComponent>();
-    //      mesh != ECS::ComponentManager::get()->end<RenderComponent>();
-    //      ++mesh) {
-    //     EntityId entity = mesh->GetOwner();
-    //     const TransformComponent* pos =
-    //         entity.GetComponent<TransformComponent>();
-    //     matrix world = pos->GetWorldMatrix();
-    //     Graphics::get()->SetWorldMatrix(world);
-    //     Graphics::get()->UpdatePerModelBuffers();
-    //     completed_tasks.emplace_back(TaskManager::get()->submit(
-    //         &Graphics::Draw, Graphics::get(), std::cref(mesh->model)));
-    // }
-
     for (const auto& task : completed_tasks) {
         task.wait();
     }
