@@ -26,6 +26,10 @@ struct vector3 {
         return DirectX::XMVector3Rotate(*this, rot);
     }
 
+    inline vector3 __vectorcall operator-() const {
+        return DirectX::XMVectorNegate(*this);
+    }
+
     inline vector3 __vectorcall operator+(const vector3& other) const {
         return DirectX::XMVectorAdd(*this, other);
     }
