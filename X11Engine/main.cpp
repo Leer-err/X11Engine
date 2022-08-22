@@ -64,7 +64,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
                                             vector3(0.f, 0.f, 2.f));
     TransformComponent* cameraPos = camera.AddComponent<TransformComponent>(
         Scene::get()->GetWorldNode(), vector3(0.0f, 0.0f, 0.0f));
-    camera.AddComponent<CameraComponent>(vector3(0.f, 0.f, 1.f));
+    camera.AddComponent<CameraComponent>(
+        1000.f, .01f, DirectX::XMConvertToRadians(60.f), 16.f / 9.f);
 
     model.AddComponent<RenderComponent>(modelPos->sceneNode, m);
 

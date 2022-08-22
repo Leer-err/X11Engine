@@ -98,7 +98,6 @@ Graphics::Graphics() {
     m_context->VSSetConstantBuffers(2, 1, m_CBVSModel.GetAddressOf());
     m_context->PSSetConstantBuffers(0, 1, m_CBPSFrame.GetAddressOf());
 
-    SetProjectionMatrix();
     UpdatePerWindowBuffers();
 }
 
@@ -174,22 +173,13 @@ void Graphics::Draw(const Model* model) {
     }
 }
 
-void Graphics::SetProjectionMatrix() {
-    int width = Window::get()->GetWidth();
-    int height = Window::get()->GetHeight();
-    CB_VS_PER_WINDOW.projection =
-        PerspectiveProjectionMatrix((float)width / height, 60.f / 180.f * 3.14f,
-                                    1000.f, 0.01f)
-            .Transpose();
+void Graphics::SetProjectionMatrix(const matrix& projection) {
+    CB_VS_PER_WINDOW.projection = projection.Transpose();
 }
 
-void Graphics::SetViewMatrix(const quaternion& viewRotation,
+void Graphics::SetViewMatrix(const matrix& viewMatrix,
                              const vector3& cameraPosition) {
-    CB_VS_PER_FRAME.view =
-        LookToMatrix(cameraPosition,
-                     vector3(0.f, 0.f, 1.f).rotate(viewRotation),
-                     vector3(0.f, 1.f, 0.f).rotate(viewRotation))
-            .Transpose();
+    CB_VS_PER_FRAME.view = viewMatrix.Transpose();
     CB_PS_PER_FRAME.viewPos = cameraPosition;
 }
 

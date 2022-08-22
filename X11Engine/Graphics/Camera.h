@@ -2,53 +2,73 @@
 
 #include <math.h>
 
-#include "Vector3.h"
+#include "Types/Matrix.h"
+#include "Types/Vector3.h"
 
 struct Camera {
+    Camera(float farZ, float nearZ, float fov, float aspectRatio,
+           const vector3& forward, const vector3& up)
+        : forward(forward),
+          up(up),
+          right(cross(forward, up)),
+          farZ(farZ),
+          nearZ(nearZ),
+          aspectRatio(aspectRatio),
+          fov(fov) {
+        CalcProjectionMatrix();
+    }
+
+    void CalcProjectionMatrix() {
+        projection = PerspectiveProjectionMatrix(aspectRatio, fov, farZ, nearZ);
+    }
+
     vector3 forward;
     vector3 up;
     vector3 right;
 
-    float far;
-    float near;
+    float farZ;
+    float nearZ;
     float aspectRatio;
     float fov;
-    int height;
-    int width;
-}
+
+    matrix projection;
+};
 
 struct Frustum {
     struct Plan {
+        Plan() = default;
+        Plan(const vector3& normal, const vector3& distance)
+            : normal(normal), distance(distance.length()) {}
         vector3 normal;
 
         float distance;
+    };
+
+    Frustum(const Camera& camera, const vector3& cameraPos) {
+        float halfHeight = camera.farZ * tanf(camera.fov / 2);
+        float halfWidth = halfHeight * camera.aspectRatio;
+        vector3 farDist = camera.forward * camera.farZ;
+
+        farPlan = {-camera.forward, cameraPos + farDist};
+        nearPlan = {camera.forward, cameraPos + camera.forward * camera.nearZ};
+
+        rightPlan = {cross(camera.up, farDist + camera.right * halfWidth),
+                     cameraPos};
+        leftPlan = {cross(camera.up, farDist - camera.right * halfWidth),
+                    cameraPos};
+
+        topPlan = {cross(camera.right, farDist + camera.right * halfHeight),
+                   cameraPos};
+        bottomPlan = {cross(camera.right, farDist - camera.right * halfHeight),
+                      cameraPos};
     }
 
-    Frustum(const vector3& cameraPos, const vector3& cameraFront,
-            const vector3& cameraUp, const vector3& cameraRight, float farZ,
-            float nearZ, float aspectRatio, float fovY) {
-        vector3 halfHeight = farZ * tanf(fovY / 2);
-        vector3 halfWidth = halfHeight * aspectRatio;
-        vector3 farDist = cameraFront * farZ;
+    Plan topPlan;
+    Plan bottomPlan;
 
-        far = {-cameraFront, cameraPos + farDist};
-        near = {cameraFront, cameraPos + cameraFront * nearZ};
+    Plan rightPlan;
+    Plan leftPlan;
 
-        right = {cross(cameraUp, farDist + cameraRight * halfWidth), cameraPos};
-        left = {cross(cameraUp, farDist - cameraRight * halfWidth), cameraPos};
-
-        top = {cross(cameraRight, farDist + cameraRight * halfHeight),
-               cameraPos};
-        bottom = {cross(cameraRight, farDist - cameraRight * halfHeight),
-                  cameraPos};
-    }
-
-    Plan top;
-    Plan bottom;
-
-    Plan right;
-    Plan left;
-
-    Plan far;
-    Plan near;
-}
+    Plan farPlan;
+    Plan nearPlan;
+};

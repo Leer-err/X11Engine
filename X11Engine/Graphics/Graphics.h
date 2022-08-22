@@ -88,9 +88,8 @@ class Graphics {
     void SetSkybox(ComPtr<ID3D11Texture2D> skybox) { m_skybox = skybox; }
     void SetSkyboxMesh();
 
-    void SetProjectionMatrix();
-    void SetViewMatrix(const quaternion& viewDirection,
-                       const vector3& cameraPosition);
+    void SetProjectionMatrix(const matrix& projection);
+    void SetViewMatrix(const matrix& viewMatrix, const vector3& cameraPosition);
     void SetWorldMatrix(const matrix& world);
     void SetDirLight(const DirLight& light);
     void SetPointLight(const ::PointLight& light, const vector3& position);

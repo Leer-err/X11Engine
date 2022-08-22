@@ -23,14 +23,19 @@ void RenderSystem::PreUpdate() { Graphics::get()->Clear(); }
 void RenderSystem::Update() {
     vector<future<void>> completed_tasks;
 
-    EntityId camera = ECS::ComponentManager::get()
-                          ->begin<CameraComponent>()
-                          .Get()
-                          ->GetOwner();
+    CameraComponent* camera =
+        ECS::ComponentManager::get()->begin<CameraComponent>().Get();
+    EntityId cameraEntity = camera->GetOwner();
     TransformComponent* cameraTransform =
-        camera.GetComponent<TransformComponent>();
-    Graphics::get()->SetViewMatrix(cameraTransform->GetRotation(),
-                                   cameraTransform->GetPosition());
+        cameraEntity.GetComponent<TransformComponent>();
+    Graphics::get()->SetProjectionMatrix(camera->camera.projection);
+    Graphics::get()->UpdatePerWindowBuffers();
+    Graphics::get()->SetViewMatrix(
+        LookToMatrix(
+            cameraTransform->GetPosition(),
+            camera->camera.forward.rotate(cameraTransform->GetRotation()),
+            camera->camera.up.rotate(cameraTransform->GetRotation())),
+        cameraTransform->GetPosition());
     Graphics::get()->DrawSkybox();
 
     auto& light = ECS::ComponentManager::get()->begin<PointLightComponent>();
