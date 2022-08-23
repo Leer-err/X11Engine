@@ -33,6 +33,14 @@ class Scene {
 
         void CalcWorldMatrix(const matrix& parentMatrix);
 
+        vector3 GetUp() const { return (LOCAL_UP * worldMatrix).normalized(); }
+        vector3 GetRight() const {
+            return (LOCAL_RIGHT * worldMatrix).normalized();
+        }
+        vector3 GetForward() const {
+            return (LOCAL_FORWARD * worldMatrix).normalized();
+        }
+
         vector3 position;
         vector3 scale;
         quaternion rotation;
@@ -62,6 +70,7 @@ class Scene {
         inline quaternion GetRotation() const { return m_transform.rotation; }
         inline vector3 GetScale() const { return m_transform.scale; }
         inline matrix GetWorldMatrix() const { return m_transform.worldMatrix; }
+        inline Transform GetTransform() const { return m_transform; }
 
         inline void SetLocalPosition(const vector3& position) {
             m_transform.position = position;

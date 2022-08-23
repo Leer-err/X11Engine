@@ -80,12 +80,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
 
     ECS::SystemManager::get()->AddSystem<MovementSystem>(cameraPos);
     ECS::SystemManager::get()->AddSystem<LookSystem>(cameraPos);
-    ECS::SystemManager::get()->AddSystem<RenderSystem>();
+    ECS::SystemManager::get()->AddSystem<RenderSystem>()->SetCamera(camera);
 
-    EventManager::get()->AddEventCallback(
-        EventType::KeyDown, &Keyboard::OnKeyDown, Keyboard::get());
-    EventManager::get()->AddEventCallback(EventType::KeyUp, &Keyboard::OnKeyUp,
-                                          Keyboard::get());
     EventManager::get()->AddEventCallback(EventType::MouseMove, &Mouse::OnMove,
                                           Mouse::get());
 

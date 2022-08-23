@@ -7,7 +7,7 @@ struct vector3 {
     inline vector3(const DirectX::XMVECTOR& vec) {
         DirectX::XMStoreFloat3(&this->vec, vec);
     }
-    inline vector3(const float x, const float y, const float z)
+    inline constexpr vector3(const float x, const float y, const float z)
         : x(x), y(y), z(z) {}
 
     inline float length() const {
@@ -17,12 +17,12 @@ struct vector3 {
         return DirectX::XMVector3Normalize(*this);
     }
     inline vector3 negate() const { return DirectX::XMVectorNegate(*this); }
-    inline vector3 rotate(float pitch, float yaw, float roll) {
+    inline vector3 rotate(float pitch, float yaw, float roll) const {
         DirectX::XMVECTOR rot =
             DirectX::XMQuaternionRotationRollPitchYaw(pitch, yaw, roll);
         return DirectX::XMVector3Rotate(*this, rot);
     }
-    inline vector3 rotate(DirectX::XMVECTOR rot) {
+    inline vector3 rotate(const DirectX::XMVECTOR rot) const {
         return DirectX::XMVector3Rotate(*this, rot);
     }
 
@@ -74,6 +74,11 @@ struct vector3 {
     }
 
     vector3 __vectorcall operator*(const DirectX::XMMATRIX& m) const {
+        DirectX::XMVECTOR vec = DirectX::XMLoadFloat3((DirectX::XMFLOAT3*)this);
+        return DirectX::XMVector4Transform(vec, m);
+    }
+
+    inline vector3 __vectorcall transform(const DirectX::XMMATRIX& m) const {
         return DirectX::XMVector3Transform(*this, m);
     }
 
@@ -92,3 +97,7 @@ inline float __vectorcall dot(const vector3& a, const vector3& b) {
 inline vector3 __vectorcall cross(const vector3& a, const vector3& b) {
     return DirectX::XMVector3Cross(a, b);
 }
+
+constexpr vector3 LOCAL_FORWARD = {0.f, 0.f, 1.f};
+constexpr vector3 LOCAL_UP = {0.f, 1.f, 0.f};
+constexpr vector3 LOCAL_RIGHT = {1.f, 0.f, 0.f};

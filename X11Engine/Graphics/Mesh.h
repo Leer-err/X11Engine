@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "Scene/AABB.h"
 #include "Types/Vertex.h"
 
 using Microsoft::WRL::ComPtr;
@@ -26,10 +27,15 @@ struct IndexBuffer {
 
 struct Mesh {
     Mesh(const ComPtr<ID3D11Buffer>& vertices, const IndexBuffer& indices,
-         uint32_t materialIndex)
-        : vertices(vertices), indices(indices), materialIndex(materialIndex) {}
+         uint32_t materialIndex, const AABB& boundingBox)
+        : vertices(vertices),
+          indices(indices),
+          materialIndex(materialIndex),
+          boundingBox(boundingBox) {}
 
     ComPtr<ID3D11Buffer> vertices;
     IndexBuffer indices;
     uint32_t materialIndex;
+
+    AABB boundingBox;
 };

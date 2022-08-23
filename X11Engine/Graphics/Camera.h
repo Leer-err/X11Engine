@@ -2,7 +2,9 @@
 
 #include <math.h>
 
+#include "Scene/Scene.h"
 #include "Types/Matrix.h"
+#include "Types/Quaternion.h"
 #include "Types/Vector3.h"
 
 struct Camera {
@@ -10,7 +12,7 @@ struct Camera {
            const vector3& forward, const vector3& up)
         : forward(forward),
           up(up),
-          right(cross(forward, up)),
+          right(cross(up, forward)),
           farZ(farZ),
           nearZ(nearZ),
           aspectRatio(aspectRatio),
@@ -37,30 +39,33 @@ struct Camera {
 struct Frustum {
     struct Plan {
         Plan() = default;
-        Plan(const vector3& normal, const vector3& distance)
-            : normal(normal), distance(distance.length()) {}
+        Plan(const vector3& norm, const vector3& p)
+            : normal(norm.normalized()), distance(dot(normal, p)) {}
         vector3 normal;
 
         float distance;
     };
 
-    Frustum(const Camera& camera, const vector3& cameraPos) {
+    Frustum(const Camera& camera, const Scene::Transform& transform) {
+        vector3 cameraPos = transform.position;
+        quaternion rotation = transform.rotation;
+
+        vector3 forward = camera.forward.rotate(rotation);
+        vector3 up = camera.up.rotate(rotation);
+        vector3 right = camera.right.rotate(rotation);
+
         float halfHeight = camera.farZ * tanf(camera.fov / 2);
         float halfWidth = halfHeight * camera.aspectRatio;
-        vector3 farDist = camera.forward * camera.farZ;
+        vector3 farDist = forward * camera.farZ;
 
-        farPlan = {-camera.forward, cameraPos + farDist};
-        nearPlan = {camera.forward, cameraPos + camera.forward * camera.nearZ};
+        farPlan = {-forward, cameraPos + farDist};
+        nearPlan = {forward, cameraPos + forward * camera.nearZ};
 
-        rightPlan = {cross(camera.up, farDist + camera.right * halfWidth),
-                     cameraPos};
-        leftPlan = {cross(camera.up, farDist - camera.right * halfWidth),
-                    cameraPos};
+        rightPlan = {cross(farDist + right * halfWidth, up), cameraPos};
+        leftPlan = {cross(up, farDist - right * halfWidth), cameraPos};
 
-        topPlan = {cross(camera.right, farDist + camera.right * halfHeight),
-                   cameraPos};
-        bottomPlan = {cross(camera.right, farDist - camera.right * halfHeight),
-                      cameraPos};
+        topPlan = {cross(farDist - up * halfHeight, right), cameraPos};
+        bottomPlan = {cross(right, farDist + up * halfHeight), cameraPos};
     }
 
     Plan topPlan;

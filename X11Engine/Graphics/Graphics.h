@@ -78,7 +78,7 @@ class Graphics {
 
     void Clear();
     void Present();
-    void Draw(const Model* model);
+    void Draw(const Mesh& mesh, const Material& mat);
 
     void DrawSkybox() const;
     void SetSkyboxShaders(PixelShader ps, VertexShader vs) {

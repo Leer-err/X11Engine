@@ -27,6 +27,12 @@ inline void FatalErrorIfFailed(HRESULT hr, const wchar_t* line,
     }
 }
 
+template <typename... ARGS>
+inline void FatalError(const wchar_t* line, ARGS&&... args) {
+    Logger::get()->Error(line, forward<ARGS>(args)...);
+    Window::get()->Terminate();
+}
+
 class Logger {
    public:
     inline static Logger* get() {

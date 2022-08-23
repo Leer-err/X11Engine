@@ -120,6 +120,14 @@ Material Loader::LoadMaterial(const aiMaterial* material) {
 }
 
 Mesh Loader::LoadMesh(const aiMesh* mesh) {
+    vector3 min(std::numeric_limits<float>::max(),
+                std::numeric_limits<float>::max(),
+                std::numeric_limits<float>::max());
+
+    vector3 max(std::numeric_limits<float>::min(),
+                std::numeric_limits<float>::min(),
+                std::numeric_limits<float>::min());
+
     vector<vertex> vert;
     vector<uint32_t> ind;
 
@@ -130,6 +138,15 @@ Mesh Loader::LoadMesh(const aiMesh* mesh) {
         if (mesh->mTextureCoords != nullptr) {
             uv = mesh->mTextureCoords[0][j];
         }
+
+        if (pos.x < min.x) min.x = pos.x;
+        if (pos.y < min.y) min.y = pos.y;
+        if (pos.z < min.z) min.z = pos.z;
+
+        if (pos.x > max.x) max.x = pos.x;
+        if (pos.y > max.y) max.y = pos.y;
+        if (pos.z > max.z) max.z = pos.z;
+
         vert.emplace_back(vector3{pos.x, pos.y, pos.z}, vector2{uv.x, uv.y},
                           vector3{normal.x, normal.y, normal.z});
     }
@@ -145,7 +162,7 @@ Mesh Loader::LoadMesh(const aiMesh* mesh) {
     IndexBuffer ibuf = Graphics::get()->CreateIndexBuffer(
         ind.size() * sizeof(uint32_t), false, ind.data());
 
-    return {vbuf, ibuf, mesh->mMaterialIndex};
+    return {vbuf, ibuf, mesh->mMaterialIndex, AABB(min, max)};
 }
 
 ComPtr<ID3DBlob> Loader::CompileShaderFromFile(const wchar_t* filename,

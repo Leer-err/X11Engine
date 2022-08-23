@@ -122,55 +122,50 @@ void Graphics::Clear() {
 
 void Graphics::Present() { m_swapChain->Present(); }
 
-void Graphics::Draw(const Model* model) {
-    for (const auto& mesh : model->meshes) {
-        UINT stride = sizeof(vertex);
-        UINT offset = 0;
+void Graphics::Draw(const Mesh& mesh, const Material& mat) {
+    UINT stride = sizeof(vertex);
+    UINT offset = 0;
 
-        const auto& mat = model->materials[mesh.materialIndex];
+    ComPtr<ID3D11ShaderResourceView>
+        resources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+    resources[mat.pixelShader.baseColorIndex] =
+        CreateTexture2DSRV(mat.resources[PIXEL_SHADER_STAGE]
+                               .textures[mat.pixelShader.baseColorIndex]
+                               .Get());
+    resources[mat.pixelShader.specularIndex] =
+        CreateTexture2DSRV(mat.resources[PIXEL_SHADER_STAGE]
+                               .textures[mat.pixelShader.specularIndex]
+                               .Get());
+    resources[mat.pixelShader.emissionIndex] =
+        CreateTexture2DSRV(mat.resources[PIXEL_SHADER_STAGE]
+                               .textures[mat.pixelShader.emissionIndex]
+                               .Get());
+    resources[mat.pixelShader.lightsIndex] = CreateBufferSRV(
+        m_lightBuffer.Get(), sizeof(Graphics::PointLight), pointLights.size());
 
-        ComPtr<ID3D11ShaderResourceView>
-            resources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
-        resources[mat.pixelShader.baseColorIndex] =
-            CreateTexture2DSRV(mat.resources[PIXEL_SHADER_STAGE]
-                                   .textures[mat.pixelShader.baseColorIndex]
-                                   .Get());
-        resources[mat.pixelShader.specularIndex] =
-            CreateTexture2DSRV(mat.resources[PIXEL_SHADER_STAGE]
-                                   .textures[mat.pixelShader.specularIndex]
-                                   .Get());
-        resources[mat.pixelShader.emissionIndex] =
-            CreateTexture2DSRV(mat.resources[PIXEL_SHADER_STAGE]
-                                   .textures[mat.pixelShader.emissionIndex]
-                                   .Get());
-        resources[mat.pixelShader.lightsIndex] =
-            CreateBufferSRV(m_lightBuffer.Get(), sizeof(Graphics::PointLight),
-                            pointLights.size());
-
-        ID3D11ShaderResourceView*
-            shaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
-        for (int i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++) {
-            shaderResources[i] = resources[i].Get();
-        }
-
-        m_renderMutex.lock();
-
-        m_context->IASetIndexBuffer(mesh.indices.buffer.Get(),
-                                    DXGI_FORMAT_R32_UINT, 0);
-        m_context->IASetVertexBuffers(0, 1, mesh.vertices.GetAddressOf(),
-                                      &stride, &offset);
-
-        m_context->PSSetShader(mat.pixelShader.shader.Get(), nullptr, 0);
-        m_context->VSSetShader(mat.vertexShader.shader.Get(), nullptr, 0);
-        m_context->IASetInputLayout(mat.vertexShader.inputLayout.Get());
-
-        m_context->PSSetShaderResources(
-            0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, shaderResources);
-        m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
-
-        m_context->DrawIndexed(mesh.indices.indexCount, 0, 0);
-        m_renderMutex.unlock();
+    ID3D11ShaderResourceView*
+        shaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+    for (int i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++) {
+        shaderResources[i] = resources[i].Get();
     }
+
+    m_renderMutex.lock();
+
+    m_context->IASetIndexBuffer(mesh.indices.buffer.Get(), DXGI_FORMAT_R32_UINT,
+                                0);
+    m_context->IASetVertexBuffers(0, 1, mesh.vertices.GetAddressOf(), &stride,
+                                  &offset);
+
+    m_context->PSSetShader(mat.pixelShader.shader.Get(), nullptr, 0);
+    m_context->VSSetShader(mat.vertexShader.shader.Get(), nullptr, 0);
+    m_context->IASetInputLayout(mat.vertexShader.inputLayout.Get());
+
+    m_context->PSSetShaderResources(
+        0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, shaderResources);
+    m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
+
+    m_context->DrawIndexed(mesh.indices.indexCount, 0, 0);
+    m_renderMutex.unlock();
 }
 
 void Graphics::SetProjectionMatrix(const matrix& projection) {
