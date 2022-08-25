@@ -18,12 +18,14 @@
 #include "Systems/MovementSystem.h"
 #include "Systems/RenderSystem.h"
 #include "TaskManager/TaskManager.h"
+#include "Timer/Timer.h"
 #include "Window.h"
 
 using std::thread;
 
 void Update() {
     while (Window::get()->IsRunning()) {
+        Timer::get()->Update();
         EventManager::get()->DispatchEvents();
         ECS::SystemManager::get()->PreUpdate();
         ECS::SystemManager::get()->Update();

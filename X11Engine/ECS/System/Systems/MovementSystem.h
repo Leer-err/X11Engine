@@ -5,6 +5,7 @@
 
 #include "ECS/Component/Components/TransformComponent.h"
 #include "ECS/System/System.h"
+#include "Timer/Timer.h"
 
 class MovementSystem : public ECS::System<MovementSystem> {
    public:
@@ -16,23 +17,25 @@ class MovementSystem : public ECS::System<MovementSystem> {
         DirectX::Keyboard::State state = DirectX::Keyboard::Get().GetState();
 
         if (state.W) {
-            move.z += 0.1f;
+            move.z += 1.f;
         }
         if (state.S) {
-            move.z -= 0.1f;
+            move.z -= 1.f;
         }
         if (state.A) {
-            move.x -= 0.1f;
+            move.x -= 1.f;
         }
         if (state.D) {
-            move.x += 0.1f;
+            move.x += 1.f;
         }
         if (state.E) {
-            move.y += 0.1f;
+            move.y += 1.f;
         }
         if (state.Q) {
-            move.y -= 0.1f;
+            move.y -= 1.f;
         }
+
+        move = move.normalized() * 5.f * Timer::get()->GetDeltaTime();
 
         m_player->SetPosition(m_player->GetPosition() +
                               move.rotate(m_player->GetRotation()));
