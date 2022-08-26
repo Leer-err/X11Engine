@@ -6,7 +6,7 @@
 #include "Vector4.h"
 
 struct quaternion {
-    inline quaternion() : w(1.f) { memset(this, 0, sizeof(float) * 3); }
+    inline quaternion() : x(1.f) { memset(&y, 0, sizeof(float) * 3); }
     inline quaternion(float x, float y, float z, float w)
         : x(x), y(y), z(z), w(w) {}
     inline quaternion(float pitch, float yaw, float roll) {
@@ -21,6 +21,10 @@ struct quaternion {
     }
     inline quaternion(const DirectX::XMVECTOR vec) {
         DirectX::XMStoreFloat4(&this->vec, vec);
+    }
+
+    inline quaternion inverse() const {
+        return DirectX::XMQuaternionInverse(*this);
     }
 
     inline quaternion(const quaternion&) = default;

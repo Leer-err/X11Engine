@@ -42,9 +42,6 @@ class Loader {
 
     Loader() : m_currentPath(std::filesystem::current_path().string()) {
         CoInitialize(NULL);
-
-        CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER,
-                         IID_PPV_ARGS(&m_factory));
     }
     Loader(const Loader&) = delete;
     Loader& operator=(const Loader&) = delete;
@@ -54,5 +51,4 @@ class Loader {
     unordered_map<string, Model> m_modelRegistry;
     unordered_map<string, ComPtr<ID3D11Texture2D>> m_textureRegistry;
     string m_currentPath;
-    ComPtr<IWICImagingFactory> m_factory;
 };

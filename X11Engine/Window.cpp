@@ -2,6 +2,7 @@
 
 Window::Window() : m_width(1920), m_height(1080) {
     m_keyboard = make_unique<DirectX::Keyboard>();
+    m_mouse = make_unique<DirectX::Mouse>();
 
     WNDCLASS wnd = {};
     wnd.hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -25,13 +26,21 @@ Window::Window() : m_width(1920), m_height(1080) {
         CreateWindow(wnd.lpszClassName, "", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 0,
                      0, rect.right - rect.left, rect.bottom - rect.top,
                      HWND_DESKTOP, NULL, NULL, NULL);
+
+    m_mouse->SetWindow(m_hWnd);
+    m_mouse->SetMode(DirectX::Mouse::MODE_RELATIVE);
 }
 
 LRESULT Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
+        case WM_MOUSEACTIVATE:
+            return MA_ACTIVATEANDEAT;  // ignore activation click
+        case WM_MENUCHAR:
+            return MAKELRESULT(0, MNC_CLOSE);  // ignore menu keys
         case WM_ACTIVATE:
         case WM_ACTIVATEAPP:
             DirectX::Keyboard::ProcessMessage(msg, wParam, lParam);
+            DirectX::Mouse::ProcessMessage(msg, wParam, lParam);
             break;
         case WM_SYSKEYDOWN:
             // if (wParam == VK_RETURN && (lParam & 0x60000000) == 0x20000000) {
@@ -43,20 +52,31 @@ LRESULT Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         case WM_SYSKEYUP:
             DirectX::Keyboard::ProcessMessage(msg, wParam, lParam);
             break;
-        case WM_MOUSEMOVE: {
-            POINT center;
-            center.x = Window::get()->m_width / 2;
-            center.y = Window::get()->m_height / 2;
-            float x = (static_cast<float>(GET_X_LPARAM(lParam)) - center.x) /
-                      Window::get()->m_width;
-            float y = (static_cast<float>(GET_Y_LPARAM(lParam)) - center.y) /
-                      Window::get()->m_height;
-            EventManager::get()->RaiseEvent<MouseMove>(x, y);
-            ClientToScreen(hWnd, &center);
-            SetCursorPos(center.x, center.y);
-        } break;
-        case WM_MENUCHAR:
-            return MAKELRESULT(0, MNC_CLOSE);
+        // case WM_MOUSEMOVE: {
+        //     POINT center;
+        //     center.x = Window::get()->m_width / 2;
+        //     center.y = Window::get()->m_height / 2;
+        //     float x = (static_cast<float>(GET_X_LPARAM(lParam)) - center.x) /
+        //               Window::get()->m_width;
+        //     float y = (static_cast<float>(GET_Y_LPARAM(lParam)) - center.y) /
+        //               Window::get()->m_height;
+        //     EventManager::get()->RaiseEvent<MouseMove>(x, y);
+        //     ClientToScreen(hWnd, &center);
+        //     SetCursorPos(center.x, center.y);
+        // } break;
+        case WM_INPUT:
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONUP:
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONUP:
+        case WM_MOUSEWHEEL:
+        case WM_XBUTTONDOWN:
+        case WM_XBUTTONUP:
+        case WM_MOUSEHOVER:
+            DirectX::Mouse::ProcessMessage(msg, wParam, lParam);
+            break;
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;

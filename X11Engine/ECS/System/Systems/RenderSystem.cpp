@@ -95,9 +95,6 @@ void RenderSystem::Update() {
     stack<Scene::Node*> nodes;
     nodes.push(worldNode);
 
-    int cpuProc = 0;
-    int gpuProc = 0;
-
     for (Scene::Node* node; nodes.size() != 0;) {
         node = nodes.top();
         nodes.pop();
@@ -107,11 +104,8 @@ void RenderSystem::Update() {
             Graphics::get()->SetWorldMatrix(node->GetWorldMatrix());
             Graphics::get()->UpdatePerModelBuffers();
             for (const auto& mesh : model->meshes) {
-                cpuProc++;
                 if (TestAABBCollision(mesh.boundingBox, node->GetTransform(),
                                       viewFrustum)) {
-                    gpuProc++;
-
                     completed_tasks.emplace_back(TaskManager::get()->submit(
                         &Graphics::Draw, Graphics::get(), std::cref(mesh),
                         std::cref(model->materials[mesh.materialIndex])));
@@ -122,9 +116,6 @@ void RenderSystem::Update() {
             nodes.push(child);
         }
     }
-
-    std::cout << "CPU Processed : " << cpuProc << std::endl;
-    std::cout << "GPU Processed : " << gpuProc << std::endl;
 
     for (const auto& task : completed_tasks) {
         task.wait();

@@ -5,6 +5,7 @@
 // clang-format on
 
 #include <Keyboard.h>
+#include <Mouse.h>
 #include <windowsx.h>
 
 #include <atomic>
@@ -45,4 +46,5 @@ class Window {
     atomic<bool> m_running;
 
     unique_ptr<DirectX::Keyboard> m_keyboard;
+    unique_ptr<DirectX::Mouse> m_mouse;
 };
