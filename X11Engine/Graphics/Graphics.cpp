@@ -50,6 +50,8 @@ Graphics::Graphics() {
                 L"Failed to create debug device");
 #endif
 
+    m_states = std::make_unique<CommonStates>(m_device.Get());
+
     m_swapChain = std::make_unique<SwapChain>(width, height, hWnd,
                                               m_factory.Get(), m_device.Get());
 
@@ -162,7 +164,12 @@ void Graphics::Draw(const Mesh& mesh, const Material& mat) {
 
     m_context->PSSetShaderResources(
         0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, shaderResources);
-    m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
+
+    ID3D11SamplerState*
+        samplerStates[D3D11_COMMONSHADER_SAMPLER_REGISTER_COUNT] = {};
+    samplerStates[0] = m_states->LinearClamp();
+    m_context->PSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_REGISTER_COUNT,
+                             samplerStates);
 
     m_context->DrawIndexed(mesh.indices.indexCount, 0, 0);
     m_renderMutex.unlock();
@@ -687,7 +694,10 @@ void Graphics::DrawSkybox() const {
 
     m_context->PSSetShader(m_skyboxPS.shader.Get(), nullptr, 0);
     m_context->VSSetShader(m_skyboxVS.shader.Get(), nullptr, 0);
-    m_context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
+
+    ID3D11SamplerState* sampler = m_states->LinearClamp();
+    m_context->PSSetSamplers(0, 1, &sampler);
+
     m_device->CreateShaderResourceView(m_skybox.Get(), nullptr,
                                        skybox.GetAddressOf());
     m_context->PSSetShaderResources(0, 1, skybox.GetAddressOf());

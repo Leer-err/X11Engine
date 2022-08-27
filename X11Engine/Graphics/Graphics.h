@@ -1,4 +1,5 @@
 #pragma once
+#include <CommonStates.h>
 #include <d3d11_4.h>
 #include <d3dcompiler.h>
 #include <dxgi1_6.h>
@@ -13,6 +14,7 @@
 #include "Model.h"
 #include "Types/Matrix.h"
 
+using DirectX::CommonStates;
 using Microsoft::WRL::ComPtr;
 using std::array;
 using std::make_unique;
@@ -155,16 +157,13 @@ class Graphics {
     ComPtr<ID3D11DeviceContext4> m_context;
     ComPtr<ID3D11RenderTargetView> m_rtv;
     ComPtr<IDXGIAdapter4> m_adapter;
-    ComPtr<ID3D11InputLayout> m_inputLayout;
-    ComPtr<ID3D11PixelShader> m_pixelShader;
-    ComPtr<ID3D11VertexShader> m_vertexShader;
     ComPtr<ID3D11DepthStencilView> m_depthStencilView;
 
 #ifdef _DEBUG
     ComPtr<ID3D11Debug> m_debug;
 #endif
 
-    ComPtr<ID3D11SamplerState> m_sampler;
+    unique_ptr<CommonStates> m_states;
 
     unique_ptr<SwapChain> m_swapChain;
     ComPtr<ID3D11Buffer> m_CBVSFrame;

@@ -5,8 +5,6 @@
 #include "Components/PointLightComponent.h"
 #include "Components/RenderComponent.h"
 #include "Components/TransformComponent.h"
-#include "Controls/Keyboard.h"
-#include "Controls/Mouse.h"
 #include "Entities/Cube.h"
 #include "EntityManager.h"
 #include "Event/EventManager.h"
@@ -83,9 +81,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
     ECS::SystemManager::get()->AddSystem<MovementSystem>(cameraPos);
     ECS::SystemManager::get()->AddSystem<LookSystem>(cameraPos);
     ECS::SystemManager::get()->AddSystem<RenderSystem>()->SetCamera(camera);
-
-    EventManager::get()->AddEventCallback(EventType::MouseMove, &Mouse::OnMove,
-                                          Mouse::get());
 
     Graphics::get()->SetDirLight({{0.f, 0.f, 1.f},
                                   {.05f, .05f, .05f},

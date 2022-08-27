@@ -3,16 +3,16 @@
 #include <assimp/scene.h>
 #include <wincodec.h>
 
-#include <array>
 #include <assimp/Importer.hpp>
 #include <filesystem>
 #include <iostream>
+#include <map>
 #include <unordered_map>
 
 #include "Graphics/Graphics.h"
 #include "Graphics/Model.h"
 
-using std::array;
+using std::map;
 using std::string;
 using std::unordered_map;
 
@@ -50,5 +50,6 @@ class Loader {
 
     unordered_map<string, Model> m_modelRegistry;
     unordered_map<string, ComPtr<ID3D11Texture2D>> m_textureRegistry;
+
     string m_currentPath;
 };
