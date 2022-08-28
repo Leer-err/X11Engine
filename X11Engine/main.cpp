@@ -38,13 +38,15 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
     ComPtr<ID3D11Texture2D> t =
         Loader::get()->LoadSkyboxFromFile("misty_pines_Skybox.dds");
     Graphics::get()->SetSkybox(t);
+
     VertexShader vs = Graphics::get()->CreateVertexShader(
-        Loader::get()->CompileShaderFromFile(L"Shaders\\SkyboxVShader.hlsl",
-                                             "vs_5_0", shaderFlags));
-    PixelShader ps =
-        Graphics::get()->CreatePixelShader(Loader::get()->CompileShaderFromFile(
-            L"Shaders\\SkyboxPShader.hlsl", "ps_5_0", shaderFlags));
+        Loader::get()->CompileVertexShaderFromFile(
+            L"Shaders\\SkyboxVShader.hlsl", "main", shaderFlags));
+    PixelShader ps = Graphics::get()->CreatePixelShader(
+        Loader::get()->CompilePixelShaderFromFile(
+            L"Shaders\\SkyboxPShader.hlsl", "main", shaderFlags));
     Graphics::get()->SetSkyboxShaders(ps, vs);
+
     Graphics::get()->SetSkyboxMesh();
 
     Model* m =

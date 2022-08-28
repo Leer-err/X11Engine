@@ -33,12 +33,21 @@ class Loader {
     Model* LoadModelFromFile(const char* filename);
     ComPtr<ID3D11Texture2D> LoadTextureFromFile(const char* filename);
     ComPtr<ID3D11Texture2D> LoadSkyboxFromFile(const char* filename);
-    ComPtr<ID3DBlob> CompileShaderFromFile(const wchar_t* filename,
-                                           const char* target, UINT flags);
+    ComPtr<ID3DBlob> CompilePixelShaderFromFile(const wchar_t* filename,
+                                                const char* entryPoint,
+                                                UINT flags);
+    ComPtr<ID3DBlob> CompileVertexShaderFromFile(const wchar_t* filename,
+                                                 const char* entryPoint,
+                                                 UINT flags);
 
    private:
     Material LoadMaterial(const aiMaterial* material);
     Mesh LoadMesh(const aiMesh* mesh);
+
+    // Tries to load texture of specified type, if failed return defaultTexture
+    ComPtr<ID3D11Texture2D> LoadTexture(const aiMaterial* material,
+                                        aiTextureType type,
+                                        const char* defaultTexture);
 
     Loader() : m_currentPath(std::filesystem::current_path().string()) {
         CoInitialize(NULL);

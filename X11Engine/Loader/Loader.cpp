@@ -62,10 +62,10 @@ ComPtr<ID3D11Texture2D> Loader::LoadSkyboxFromFile(const char* filename) {
 Material Loader::LoadMaterial(const aiMaterial* material) {
     Material mat;
 
-    ComPtr<ID3DBlob> vertexShader = CompileShaderFromFile(
-        L"Shaders\\VertexShader.hlsl", "vs_5_0", shaderFlags);
-    ComPtr<ID3DBlob> pixelShader = CompileShaderFromFile(
-        L"Shaders\\PixelShader.hlsl", "ps_5_0", shaderFlags);
+    ComPtr<ID3DBlob> vertexShader = CompileVertexShaderFromFile(
+        L"Shaders\\VertexShader.hlsl", "main", shaderFlags);
+    ComPtr<ID3DBlob> pixelShader = CompilePixelShaderFromFile(
+        L"Shaders\\PixelShader.hlsl", "main", shaderFlags);
 
     if (vertexShader.Get() != nullptr && pixelShader.Get() != nullptr) {
         mat.pixelShader = Graphics::get()->CreatePixelShader(pixelShader.Get());
@@ -73,48 +73,14 @@ Material Loader::LoadMaterial(const aiMaterial* material) {
             Graphics::get()->CreateVertexShader(vertexShader.Get());
     }
 
-    if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
-        aiString relPath;
-        if (material->GetTexture(aiTextureType_DIFFUSE, 0, &relPath) ==
-            AI_SUCCESS) {
-            relPath.data;
-            mat.resources[PIXEL_SHADER_STAGE]
-                .textures[mat.pixelShader.baseColorIndex] =
-                LoadTextureFromFile(relPath.C_Str());
-        }
-    } else {
-        mat.resources[PIXEL_SHADER_STAGE]
-            .textures[mat.pixelShader.baseColorIndex] =
-            LoadTextureFromFile("WhitePlaceholder.png");
-    }
+    mat.resources[PIXEL_SHADER_STAGE].textures[mat.pixelShader.baseColorIndex] =
+        LoadTexture(material, aiTextureType_DIFFUSE, "ColorPlaceholder.png");
 
-    if (material->GetTextureCount(aiTextureType_SPECULAR) > 0) {
-        aiString relPath;
-        if (material->GetTexture(aiTextureType_SPECULAR, 0, &relPath) ==
-            AI_SUCCESS) {
-            mat.resources[PIXEL_SHADER_STAGE]
-                .textures[mat.pixelShader.specularIndex] =
-                LoadTextureFromFile(relPath.C_Str());
-        }
-    } else {
-        mat.resources[PIXEL_SHADER_STAGE]
-            .textures[mat.pixelShader.specularIndex] =
-            LoadTextureFromFile("WhitePlaceholder.png");
-    }
+    mat.resources[PIXEL_SHADER_STAGE].textures[mat.pixelShader.specularIndex] =
+        LoadTexture(material, aiTextureType_SPECULAR, "WhitePlaceholder.png");
 
-    if (material->GetTextureCount(aiTextureType_EMISSIVE) > 0) {
-        aiString relPath;
-        if (material->GetTexture(aiTextureType_EMISSIVE, 0, &relPath) ==
-            AI_SUCCESS) {
-            mat.resources[PIXEL_SHADER_STAGE]
-                .textures[mat.pixelShader.emissionIndex] =
-                LoadTextureFromFile(relPath.C_Str());
-        }
-    } else {
-        mat.resources[PIXEL_SHADER_STAGE]
-            .textures[mat.pixelShader.emissionIndex] =
-            LoadTextureFromFile("BlackPlaceholder.png");
-    }
+    mat.resources[PIXEL_SHADER_STAGE].textures[mat.pixelShader.emissionIndex] =
+        LoadTexture(material, aiTextureType_EMISSIVE, "BlackPlaceholder.png");
 
     return mat;
 }
@@ -165,16 +131,39 @@ Mesh Loader::LoadMesh(const aiMesh* mesh) {
     return {vbuf, ibuf, mesh->mMaterialIndex, AABB(min, max)};
 }
 
-ComPtr<ID3DBlob> Loader::CompileShaderFromFile(const wchar_t* filename,
-                                               const char* target, UINT flags) {
+ComPtr<ID3DBlob> Loader::CompilePixelShaderFromFile(const wchar_t* filename,
+                                                    const char* entryPoint,
+                                                    UINT flags) {
     ComPtr<ID3DBlob> shader, error;
-    if (FAILED(D3DCompileFromFile(filename, nullptr, nullptr, "main", target,
-                                  flags, NULL, shader.GetAddressOf(),
+
+    if (FAILED(D3DCompileFromFile(filename, nullptr, nullptr, entryPoint,
+                                  "ps_5_0", flags, NULL, shader.GetAddressOf(),
                                   error.GetAddressOf()))) {
         wchar_t* message = new wchar_t[error->GetBufferSize()];
         mbstowcs(message, (char*)error->GetBufferPointer(),
                  error->GetBufferSize());
+
         Logger::get()->Error(L"Failed to compile %s : %s", filename, message);
+
+        delete (message);
+        return nullptr;
+    }
+    return shader;
+}
+
+ComPtr<ID3DBlob> Loader::CompileVertexShaderFromFile(const wchar_t* filename,
+                                                     const char* entryPoint,
+                                                     UINT flags) {
+    ComPtr<ID3DBlob> shader, error;
+    if (FAILED(D3DCompileFromFile(filename, nullptr, nullptr, entryPoint,
+                                  "vs_5_0", flags, NULL, shader.GetAddressOf(),
+                                  error.GetAddressOf()))) {
+        wchar_t* message = new wchar_t[error->GetBufferSize()];
+        mbstowcs(message, (char*)error->GetBufferPointer(),
+                 error->GetBufferSize());
+
+        Logger::get()->Error(L"Failed to compile %s : %s", filename, message);
+
         delete (message);
         return nullptr;
     }
@@ -203,4 +192,17 @@ Model* Loader::LoadModelFromFile(const char* filename) {
     }
 
     return &(m_modelRegistry.emplace(filename, model).first->second);
+}
+
+ComPtr<ID3D11Texture2D> Loader::LoadTexture(const aiMaterial* material,
+                                            aiTextureType type,
+                                            const char* defaultTexture) {
+    aiString relPath;
+
+    if (material->GetTextureCount(type) > 0 &&
+        material->GetTexture(type, 0, &relPath) == AI_SUCCESS) {
+        return LoadTextureFromFile(relPath.C_Str());
+    } else {
+        return LoadTextureFromFile(defaultTexture);
+    }
 }
