@@ -151,6 +151,8 @@ class Graphics {
                                                  int height) const;
     ComPtr<ID3D11DepthStencilView> CreateTexture2DDSV(
         const ComPtr<ID3D11Resource>& res, UINT mip) const;
+    void SetPixelShaderResources(const ShaderResources& res, int lightsIndex);
+    void SetVertexShaderResources(const ShaderResources& res);
 
     ComPtr<IDXGIFactory7> m_factory;
     ComPtr<ID3D11Device5> m_device;

@@ -128,30 +128,11 @@ void Graphics::Draw(const Mesh& mesh, const Material& mat) {
     UINT stride = sizeof(vertex);
     UINT offset = 0;
 
-    ComPtr<ID3D11ShaderResourceView>
-        resources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
-    resources[mat.pixelShader.baseColorIndex] =
-        CreateTexture2DSRV(mat.resources[PIXEL_SHADER_STAGE]
-                               .textures[mat.pixelShader.baseColorIndex]
-                               .Get());
-    resources[mat.pixelShader.specularIndex] =
-        CreateTexture2DSRV(mat.resources[PIXEL_SHADER_STAGE]
-                               .textures[mat.pixelShader.specularIndex]
-                               .Get());
-    resources[mat.pixelShader.emissionIndex] =
-        CreateTexture2DSRV(mat.resources[PIXEL_SHADER_STAGE]
-                               .textures[mat.pixelShader.emissionIndex]
-                               .Get());
-    resources[mat.pixelShader.lightsIndex] = CreateBufferSRV(
-        m_lightBuffer.Get(), sizeof(Graphics::PointLight), pointLights.size());
-
-    ID3D11ShaderResourceView*
-        shaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
-    for (int i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++) {
-        shaderResources[i] = resources[i].Get();
-    }
-
     m_renderMutex.lock();
+
+    SetPixelShaderResources(mat.resources[PIXEL_SHADER_STAGE],
+                            mat.pixelShader.lightsIndex);
+    SetVertexShaderResources(mat.resources[VERTEX_SHADER_STAGE]);
 
     m_context->IASetIndexBuffer(mesh.indices.buffer.Get(), DXGI_FORMAT_R32_UINT,
                                 0);
@@ -161,15 +142,6 @@ void Graphics::Draw(const Mesh& mesh, const Material& mat) {
     m_context->PSSetShader(mat.pixelShader.shader.Get(), nullptr, 0);
     m_context->VSSetShader(mat.vertexShader.shader.Get(), nullptr, 0);
     m_context->IASetInputLayout(mat.vertexShader.inputLayout.Get());
-
-    m_context->PSSetShaderResources(
-        0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, shaderResources);
-
-    ID3D11SamplerState*
-        samplerStates[D3D11_COMMONSHADER_SAMPLER_REGISTER_COUNT] = {};
-    samplerStates[0] = m_states->LinearClamp();
-    m_context->PSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_REGISTER_COUNT,
-                             samplerStates);
 
     m_context->DrawIndexed(mesh.indices.indexCount, 0, 0);
     m_renderMutex.unlock();
@@ -722,4 +694,60 @@ void Graphics::SetSkyboxMesh() {
     m_skyboxVertices =
         CreateVertexBuffer(sizeof(vector3) * 8, false, false, vertices);
     m_skyboxIndices = CreateIndexBuffer(sizeof(uint32_t) * 36, false, indices);
+}
+
+void Graphics::SetPixelShaderResources(const ShaderResources& res,
+                                       int lightsIndex) {
+    ComPtr<ID3D11ShaderResourceView>
+        resources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+    for (int i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++) {
+        if (res.textures[i] != nullptr) {
+            resources[i] = CreateTexture2DSRV(res.textures[i].Get());
+        }
+    }
+    resources[lightsIndex] = CreateBufferSRV(
+        m_lightBuffer.Get(), sizeof(Graphics::PointLight), pointLights.size());
+
+    ID3D11ShaderResourceView*
+        shaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+    for (int i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++) {
+        shaderResources[i] = resources[i].Get();
+    }
+    m_context->PSSetShaderResources(
+        0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, shaderResources);
+
+    ID3D11SamplerState*
+        samplerStates[D3D11_COMMONSHADER_SAMPLER_REGISTER_COUNT] = {};
+    for (int i = 0; i < D3D11_COMMONSHADER_SAMPLER_REGISTER_COUNT; i++) {
+        samplerStates[i] = res.samplers[i].Get();
+    }
+    samplerStates[0] = m_states->LinearClamp();
+    m_context->PSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_REGISTER_COUNT,
+                             samplerStates);
+}
+
+void Graphics::SetVertexShaderResources(const ShaderResources& res) {
+    ComPtr<ID3D11ShaderResourceView>
+        resources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+    for (int i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++) {
+        if (res.textures[i] != nullptr) {
+            resources[i] = CreateTexture2DSRV(res.textures[i].Get());
+        }
+    }
+
+    ID3D11ShaderResourceView*
+        shaderResources[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+    for (int i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++) {
+        shaderResources[i] = resources[i].Get();
+    }
+    m_context->VSSetShaderResources(
+        0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, shaderResources);
+
+    ID3D11SamplerState*
+        samplerStates[D3D11_COMMONSHADER_SAMPLER_REGISTER_COUNT] = {};
+    for (int i = 0; i < D3D11_COMMONSHADER_SAMPLER_REGISTER_COUNT; i++) {
+        samplerStates[i] = res.samplers[i].Get();
+    }
+    m_context->VSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_REGISTER_COUNT,
+                             samplerStates);
 }
