@@ -35,9 +35,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
             int nCmdShow) {
     Window::get();
 
-    ComPtr<ID3D11Texture2D> t =
-        Loader::get()->LoadSkyboxFromFile("misty_pines_Skybox.dds");
-    Graphics::get()->SetSkybox(t);
+    Loader::get()->LoadScene("scene.json");
 
     VertexShader vs = Graphics::get()->CreateVertexShader(
         Loader::get()->CompileVertexShaderFromFile(

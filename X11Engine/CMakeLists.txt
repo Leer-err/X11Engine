@@ -19,6 +19,11 @@ FetchContent_Declare(p7
   URL    http://baical.net/files/libP7Client_v5.6.zip
 )
 FetchContent_MakeAvailable(p7)
+FetchContent_Declare(json 
+  URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
+)
+FetchContent_MakeAvailable(json)
+
 
 if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 set(ASSIMP_DLL ${assimp_BINARY_DIR}/bin/assimp-vc143-mt.dll)
@@ -63,6 +68,7 @@ D3DCompiler.lib
 	DirectXTK
 	assimp
 	p7
+	nlohmann_json::nlohmann_json
 )
 
 set_target_properties(Engine PROPERTIES

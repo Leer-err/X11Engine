@@ -4,12 +4,31 @@
 #include <WICTextureLoader.h>
 #include <d3dcompiler.h>
 
+#include <fstream>
 #include <memory>
+#include <nlohmann/json.hpp>
 
 #include "Logger/Logger.h"
 #include "Window.h"
 
+using nlohmann::json;
+using std::ifstream;
+using std::string;
 using std::unique_ptr;
+
+void Loader::LoadScene(const char* filename) {
+    string name = m_currentPath + "\\Assets\\" + filename;
+
+    ifstream file(name.data());
+    if (!file.is_open()) {
+        FatalError(L"Failed to open file");
+    }
+    json scene = json::parse(file);
+
+    string skyboxName = scene["skybox"].get<string>();
+
+    Graphics::get()->SetSkybox(LoadSkyboxFromFile(skyboxName.data()));
+}
 
 ComPtr<ID3D11Texture2D> Loader::LoadTextureFromFile(const char* filename) {
     string name = m_currentPath + "\\Assets\\" + filename;

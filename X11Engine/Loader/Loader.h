@@ -30,6 +30,8 @@ class Loader {
         return &instance;
     }
 
+    void LoadScene(const char* filename);
+
     Model* LoadModelFromFile(const char* filename);
     ComPtr<ID3D11Texture2D> LoadTextureFromFile(const char* filename);
     ComPtr<ID3D11Texture2D> LoadSkyboxFromFile(const char* filename);
