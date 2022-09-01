@@ -7,11 +7,14 @@
 #include <filesystem>
 #include <iostream>
 #include <map>
+#include <nlohmann/json.hpp>
 #include <unordered_map>
 
 #include "Graphics/Graphics.h"
 #include "Graphics/Model.h"
 
+
+using nlohmann::json;
 using std::map;
 using std::string;
 using std::unordered_map;
@@ -45,6 +48,8 @@ class Loader {
    private:
     Material LoadMaterial(const aiMaterial* material);
     Mesh LoadMesh(const aiMesh* mesh);
+
+    void ProcessLight(json lightObject);
 
     // Tries to load texture of specified type, if failed return defaultTexture
     ComPtr<ID3D11Texture2D> LoadTexture(const aiMaterial* material,

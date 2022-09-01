@@ -6,12 +6,14 @@
 
 #include <fstream>
 #include <memory>
-#include <nlohmann/json.hpp>
 
+#include "ECS/Component/Components/PointLightComponent.h"
+#include "ECS/Component/Components/TransformComponent.h"
+#include "ECS/Entity/Entities/Cube.h"
+#include "ECS/Entity/EntityManager.h"
 #include "Logger/Logger.h"
 #include "Window.h"
 
-using nlohmann::json;
 using std::ifstream;
 using std::string;
 using std::unique_ptr;
@@ -28,6 +30,47 @@ void Loader::LoadScene(const char* filename) {
     string skyboxName = scene["skybox"].get<string>();
 
     Graphics::get()->SetSkybox(LoadSkyboxFromFile(skyboxName.data()));
+
+    json lights = scene["lights"];
+    for (const auto& light : lights) {
+        ProcessLight(light);
+    }
+}
+
+void Loader::ProcessLight(json lightObject) {
+    if (lightObject["type"].get<string>() == "point") {
+        EntityId light = ECS::EntityManager::get()->CreateEntity<Cube>();
+
+        json data = lightObject["data"];
+
+        json position = lightObject["position"];
+
+        PointLight lightData;
+        lightData.constant = data["constant"].get<float>();
+        lightData.lin = data["lin"].get<float>();
+        lightData.quadratic = data["quadratic"].get<float>();
+
+        json ambient = data["ambient"];
+        lightData.ambient =
+            vector3(ambient[0].get<float>(), ambient[1].get<float>(),
+                    ambient[2].get<float>());
+
+        json diffuse = data["diffuse"];
+        lightData.diffuse =
+            vector3(diffuse[0].get<float>(), diffuse[1].get<float>(),
+                    diffuse[2].get<float>());
+
+        json specular = data["specular"];
+        lightData.specular =
+            vector3(specular[0].get<float>(), specular[1].get<float>(),
+                    specular[2].get<float>());
+
+        light.AddComponent<TransformComponent>(
+            Scene::get()->GetWorldNode(),
+            vector3(position[0].get<float>(), position[1].get<float>(),
+                    position[2].get<float>()));
+        light.AddComponent<PointLightComponent>(lightData);
+    }
 }
 
 ComPtr<ID3D11Texture2D> Loader::LoadTextureFromFile(const char* filename) {

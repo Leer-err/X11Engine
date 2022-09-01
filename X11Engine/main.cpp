@@ -51,32 +51,17 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
         Loader::get()->LoadModelFromFile("\\assets\\Minecraft_Axolotl.fbx");
 
     EntityId model = ECS::EntityManager::get()->CreateEntity<Cube>();
-    EntityId light = ECS::EntityManager::get()->CreateEntity<Cube>();
-    EntityId light1 = ECS::EntityManager::get()->CreateEntity<Cube>();
     EntityId camera = ECS::EntityManager::get()->CreateEntity<Cube>();
 
     TransformComponent* modelPos = model.AddComponent<TransformComponent>(
         Scene::get()->GetWorldNode(), vector3(0.f, 0.f, 3.f),
         vector3(0.f, 0.f, 0.f));
-    light.AddComponent<TransformComponent>(Scene::get()->GetWorldNode(),
-                                           vector3(0.f, 0.f, 0.f));
-    light1.AddComponent<TransformComponent>(Scene::get()->GetWorldNode(),
-                                            vector3(0.f, 0.f, 2.f));
     TransformComponent* cameraPos = camera.AddComponent<TransformComponent>(
         Scene::get()->GetWorldNode(), vector3(0.0f, 0.0f, 0.0f));
     camera.AddComponent<CameraComponent>(
         1000.f, .01f, DirectX::XMConvertToRadians(60.f), 16.f / 9.f);
 
     model.AddComponent<RenderComponent>(modelPos->sceneNode, m);
-
-    light.AddComponent<PointLightComponent>(PointLight{
-        1.f, .09f, 0.032f, {.0f, .0f, .05f}, {1.f, 1.f, 1.f}, {1.f, 1.f, 1.f}});
-    light1.AddComponent<PointLightComponent>(PointLight{1.f,
-                                                        .0003f,
-                                                        0.00007f,
-                                                        {.0f, .0f, .05f},
-                                                        {1.f, 1.f, 1.f},
-                                                        {1.f, 1.f, 1.f}});
 
     ECS::SystemManager::get()->AddSystem<MovementSystem>(cameraPos);
     ECS::SystemManager::get()->AddSystem<LookSystem>(cameraPos);

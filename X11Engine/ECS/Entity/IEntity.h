@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 
+#include "ECS/Component/ComponentManager.h"
 #include "Types/Types.h"
 
 using std::forward;
