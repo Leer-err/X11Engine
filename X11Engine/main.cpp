@@ -67,11 +67,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
     ECS::SystemManager::get()->AddSystem<LookSystem>(cameraPos);
     ECS::SystemManager::get()->AddSystem<RenderSystem>()->SetCamera(camera);
 
-    Graphics::get()->SetDirLight({{0.f, 0.f, 1.f},
-                                  {.05f, .05f, .05f},
-                                  {1.f, 1.f, 1.f},
-                                  {1.f, 1.f, 1.f}});
-
     thread th2(Update);
     Window::get()->Run();
     th2.join();

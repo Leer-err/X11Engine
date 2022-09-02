@@ -13,7 +13,6 @@
 #include "Graphics/Graphics.h"
 #include "Graphics/Model.h"
 
-
 using nlohmann::json;
 using std::map;
 using std::string;
@@ -49,7 +48,8 @@ class Loader {
     Material LoadMaterial(const aiMaterial* material);
     Mesh LoadMesh(const aiMesh* mesh);
 
-    void ProcessLight(json lightObject);
+    void ProcessPointLight(json lightObject);
+    void ProcessDirectionalLight(json lightObject);
 
     // Tries to load texture of specified type, if failed return defaultTexture
     ComPtr<ID3D11Texture2D> LoadTexture(const aiMaterial* material,
