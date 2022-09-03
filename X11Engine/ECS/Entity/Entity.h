@@ -1,22 +1,48 @@
 #pragma once
-#include "IEntity.h"
+#include <vector>
 
-namespace ECS {
-template <class E>
-class Entity : public IEntity {
-   public:
-    Entity(EntityId id) : IEntity(id) {}
-    virtual ~Entity(){};
+#include "ECS/Component/ComponentManager.h"
+#include "Types/Types.h"
 
-    inline const TypeId GetEntityTypeId() const override { return TYPE_ID; };
+using std::forward;
+using std::vector;
 
-    static const TypeId TYPE_ID;
+struct EntityId {
+    EntityId(uint32_t id) : id(id) {}
 
-   private:
-    void operator delete(void*) = delete;
-    void operator delete[](void*) = delete;
+    template <class T, typename... ARGS>
+    inline T* AddComponent(ARGS&&... args) {
+        return ECS::ComponentManager::get()->AddComponent<T>(
+            id, forward<ARGS>(args)...);
+    }
+
+    template <class T>
+    inline void RemoveComponent() {
+        ECS::ComponentManager::get()->RemoveComponent<T>(id);
+    }
+
+    template <class T>
+    inline T* GetComponent() {
+        return ECS::ComponentManager::get()->GetComponent<T>(id);
+    }
+
+    inline operator uint32_t() const { return id; }
+
+    uint32_t id;
 };
 
-template <class E>
-const TypeId Entity<E>::TYPE_ID = Helper<IEntity>::Get<E>();
+namespace ECS {
+class Entity {
+    friend class EntityManager;
+
+   public:
+    Entity(EntityId id) : m_id(id) {}
+
+    virtual ~Entity(){};
+
+    inline const EntityId GetEntityId() const { return m_id; };
+
+   private:
+    EntityId m_id;
+};
 }  // namespace ECS

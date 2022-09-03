@@ -9,7 +9,7 @@
 
 #include "ECS/Component/Components/PointLightComponent.h"
 #include "ECS/Component/Components/TransformComponent.h"
-#include "ECS/Entity/Entities/Cube.h"
+#include "ECS/Entity/Entity.h"
 #include "ECS/Entity/EntityManager.h"
 #include "Logger/Logger.h"
 #include "Window.h"
@@ -39,7 +39,7 @@ void Loader::LoadScene(const char* filename) {
 }
 
 void Loader::ProcessPointLight(json lightObject) {
-    EntityId light = ECS::EntityManager::get()->CreateEntity<Cube>();
+    EntityId light = ECS::EntityManager::get()->CreateEntity();
 
     json data = lightObject["data"];
 

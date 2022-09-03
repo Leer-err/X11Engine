@@ -5,8 +5,7 @@
 #include "Components/PointLightComponent.h"
 #include "Components/RenderComponent.h"
 #include "Components/TransformComponent.h"
-#include "Entities/Cube.h"
-#include "EntityManager.h"
+#include "ECS/Entity/EntityManager.h"
 #include "Event/EventManager.h"
 #include "Graphics/Graphics.h"
 #include "Loader/Loader.h"
@@ -50,8 +49,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
     Model* m =
         Loader::get()->LoadModelFromFile("\\assets\\Minecraft_Axolotl.fbx");
 
-    EntityId model = ECS::EntityManager::get()->CreateEntity<Cube>();
-    EntityId camera = ECS::EntityManager::get()->CreateEntity<Cube>();
+    EntityId model = ECS::EntityManager::get()->CreateEntity();
+    EntityId camera = ECS::EntityManager::get()->CreateEntity();
 
     TransformComponent* modelPos = model.AddComponent<TransformComponent>(
         Scene::get()->GetWorldNode(), vector3(0.f, 0.f, 3.f),

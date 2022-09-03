@@ -1,7 +1,7 @@
 #pragma once
 #include <unordered_map>
 
-#include "IEntity.h"
+#include "Entity.h"
 #include "Memory.h"
 
 using std::forward;
@@ -9,22 +9,13 @@ using std::unordered_map;
 
 namespace ECS {
 class EntityManager {
-    class IEntityContainer {
-       public:
-        virtual ~IEntityContainer(){};
-
-        virtual void DestroyEntity(IEntity* object) = 0;
-    };
-
-    template <class T>
-    class EntityContainer : public Memory::ChunkAllocator<T, CHUNK_SIZE>,
-                            public IEntityContainer {
+    class EntityContainer : public Memory::ChunkAllocator<Entity, CHUNK_SIZE> {
        public:
         EntityContainer(){};
         virtual ~EntityContainer(){};
 
-        virtual void DestroyEntity(IEntity* object) {
-            object->~IEntity();
+        virtual void DestroyEntity(Entity* object) {
+            object->~Entity();
             this->DestroyObject(object);
         }
 
@@ -41,36 +32,19 @@ class EntityManager {
 
     void Destroy();
 
-    template <class T, class... Args>
-    EntityId CreateEntity(Args&&... args) {
-        void* ptr = GetEntityContiner<T>()->CreateObject();
+    EntityId CreateEntity() {
+        void* ptr = m_entityContainer->CreateObject();
         EntityId id = AqcuireId();
-        IEntity* entity = (IEntity*)ptr;
-        entity->m_id = id;
-
-        entity = new (ptr) T(id, forward<Args>(args)...);
+        Entity* entity = new (ptr) Entity(id);
 
         m_entities.emplace(id, entity);
         return id;
     }
     void DestroyEntity(EntityId id);
-    IEntity* GetEntity(EntityId id);
+    Entity* GetEntity(EntityId id);
 
    protected:
-    EntityManager() : m_nextId(0) {}
-
-    template <class T>
-    EntityContainer<T>* GetEntityContiner() {
-        auto containerPair = m_entityContainers.find(T::TYPE_ID);
-        EntityContainer<T>* newContainer = nullptr;
-        if (containerPair == m_entityContainers.end()) {
-            newContainer = new EntityContainer<T>();
-            m_entityContainers[T::TYPE_ID] = newContainer;
-        } else {
-            newContainer = (EntityContainer<T>*)containerPair->second;
-        }
-        return newContainer;
-    };
+    EntityManager() : m_nextId(0) { m_entityContainer = new EntityContainer(); }
 
     inline EntityId const AqcuireId() { return m_nextId++; };
 
@@ -78,8 +52,8 @@ class EntityManager {
     EntityManager(const EntityManager&) = delete;
     EntityManager& operator=(const EntityManager&) = delete;
 
-    unordered_map<uint32_t, IEntity*> m_entities;
-    unordered_map<TypeId, IEntityContainer*> m_entityContainers;
+    unordered_map<uint32_t, Entity*> m_entities;
+    EntityContainer* m_entityContainer;
     uint32_t m_nextId;
 };
 }  // namespace ECS

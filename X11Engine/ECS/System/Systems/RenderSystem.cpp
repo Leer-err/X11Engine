@@ -12,7 +12,6 @@
 #include "ECS/Component/Components/PointLightComponent.h"
 #include "ECS/Component/Components/RenderComponent.h"
 #include "ECS/Component/Components/TransformComponent.h"
-#include "ECS/Entity/EntityManager.h"
 #include "Graphics/Graphics.h"
 #include "Scene/Scene.h"
 #include "TaskManager/TaskManager.h"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ECS/Entity/IEntity.h"
+#include "ECS/Entity/Entity.h"
 #include "Graphics/Camera.h"
 #include "System.h"
 

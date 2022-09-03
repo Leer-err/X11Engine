@@ -1,22 +1,14 @@
 #include "EntityManager.h"
 
-void ECS::EntityManager::Destroy() {
-    for (auto entityContainer : m_entityContainers) {
-        delete (entityContainer.second);
-    }
-}
+void ECS::EntityManager::Destroy() { delete (m_entityContainer); }
 
 void ECS::EntityManager::DestroyEntity(EntityId id) {
-    IEntity* entity = GetEntity(id);
-    const TypeId typeId = entity->GetEntityTypeId();
+    Entity* entity = GetEntity(id);
 
-    auto container = m_entityContainers.find(typeId);
-    if (container != m_entityContainers.end()) {
-        container->second->DestroyEntity(entity);
-    }
+    m_entityContainer->DestroyEntity(entity);
 }
 
-ECS::IEntity* ECS::EntityManager::GetEntity(EntityId id) {
+ECS::Entity* ECS::EntityManager::GetEntity(EntityId id) {
     auto entity = m_entities.find(id);
     if (entity == m_entities.end()) {
         return nullptr;
