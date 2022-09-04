@@ -7,10 +7,15 @@
 #include <fstream>
 #include <memory>
 
+#include "ECS/Component/Components/CameraComponent.h"
 #include "ECS/Component/Components/PointLightComponent.h"
 #include "ECS/Component/Components/TransformComponent.h"
 #include "ECS/Entity/Entity.h"
 #include "ECS/Entity/EntityManager.h"
+#include "ECS/System/SystemManager.h"
+#include "ECS/System/Systems/LookSystem.h"
+#include "ECS/System/Systems/MovementSystem.h"
+#include "ECS/System/Systems/RenderSystem.h"
 #include "Logger/Logger.h"
 #include "Window.h"
 
@@ -36,6 +41,7 @@ void Loader::LoadScene(const char* filename) {
     for (const auto& light : scene["lights"]["point"]) {
         ProcessPointLight(light);
     }
+    ProcessPlayer(scene["player"]);
 }
 
 void Loader::ProcessPointLight(json lightObject) {
@@ -95,6 +101,22 @@ void Loader::ProcessDirectionalLight(json lightObject) {
                 specularData[2].get<float>());
 
     Graphics::get()->SetDirLight({direction, ambient, diffuse, specular});
+}
+
+void Loader::ProcessPlayer(json playerObject) {
+    EntityId player = ECS::EntityManager::get()->CreateEntity();
+
+    TransformComponent* playerTransform =
+        player.AddComponent<TransformComponent>(Scene::get()->GetWorldNode(),
+                                                vector3(0.0f, 0.0f, 0.0f));
+    player.AddComponent<CameraComponent>(
+        1000.f, .01f, DirectX::XMConvertToRadians(60.f), 16.f / 9.f);
+
+    ECS::SystemManager::get()->GetSystem<MovementSystem>()->SetPlayer(
+        playerTransform);
+    ECS::SystemManager::get()->GetSystem<LookSystem>()->SetPlayer(
+        playerTransform);
+    ECS::SystemManager::get()->GetSystem<RenderSystem>()->SetCamera(player);
 }
 
 ComPtr<ID3D11Texture2D> Loader::LoadTextureFromFile(const char* filename) {

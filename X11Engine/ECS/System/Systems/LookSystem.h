@@ -6,8 +6,7 @@
 
 class LookSystem : public ECS::System<LookSystem> {
    public:
-    LookSystem(TransformComponent* camera)
-        : cam(camera), m_yaw(0.f), m_pitch(0.f) {}
+    LookSystem() : m_player(nullptr), m_yaw(0.f), m_pitch(0.f) {}
 
     void PreUpdate() override {
         DirectX::Mouse::State state = DirectX::Mouse::Get().GetState();
@@ -25,13 +24,17 @@ class LookSystem : public ECS::System<LookSystem> {
 
         quaternion newRotation = {m_pitch, m_yaw, 0.f};
 
-        cam->SetRotation(newRotation);
+        m_player->SetRotation(newRotation);
     }
     void Update() override {}
     void PostUpdate() override {}
 
+    void SetPlayer(TransformComponent* playerTransform) {
+        m_player = playerTransform;
+    }
+
    private:
-    TransformComponent* cam;
+    TransformComponent* m_player;
     float m_pitch;
     float m_yaw;
 };

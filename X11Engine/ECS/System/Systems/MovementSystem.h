@@ -9,10 +9,12 @@
 
 class MovementSystem : public ECS::System<MovementSystem> {
    public:
-    MovementSystem(TransformComponent* player) : m_player(player) {}
+    MovementSystem() : m_player(nullptr) {}
 
     void PreUpdate() override{};
     void Update() override {
+        assert(m_player != nullptr);
+
         vector3 move = {0.f, 0.f, 0.f};
         DirectX::Keyboard::State state = DirectX::Keyboard::Get().GetState();
 
@@ -41,6 +43,10 @@ class MovementSystem : public ECS::System<MovementSystem> {
                               move.rotate(m_player->GetRotation()));
     };
     void PostUpdate() override{};
+
+    void SetPlayer(TransformComponent* playerTransform) {
+        m_player = playerTransform;
+    }
 
    private:
     TransformComponent* m_player;

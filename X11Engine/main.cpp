@@ -34,6 +34,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
             int nCmdShow) {
     Window::get();
 
+    ECS::SystemManager::get()->AddSystem<MovementSystem>();
+    ECS::SystemManager::get()->AddSystem<LookSystem>();
+    ECS::SystemManager::get()->AddSystem<RenderSystem>();
+
     Loader::get()->LoadScene("scene.json");
 
     VertexShader vs = Graphics::get()->CreateVertexShader(
@@ -55,16 +59,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
     TransformComponent* modelPos = model.AddComponent<TransformComponent>(
         Scene::get()->GetWorldNode(), vector3(0.f, 0.f, 3.f),
         vector3(0.f, 0.f, 0.f));
-    TransformComponent* cameraPos = camera.AddComponent<TransformComponent>(
-        Scene::get()->GetWorldNode(), vector3(0.0f, 0.0f, 0.0f));
-    camera.AddComponent<CameraComponent>(
-        1000.f, .01f, DirectX::XMConvertToRadians(60.f), 16.f / 9.f);
 
     model.AddComponent<RenderComponent>(modelPos->sceneNode, m);
-
-    ECS::SystemManager::get()->AddSystem<MovementSystem>(cameraPos);
-    ECS::SystemManager::get()->AddSystem<LookSystem>(cameraPos);
-    ECS::SystemManager::get()->AddSystem<RenderSystem>()->SetCamera(camera);
 
     thread th2(Update);
     Window::get()->Run();
