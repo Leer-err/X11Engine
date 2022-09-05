@@ -9,6 +9,7 @@
 
 #include "ECS/Component/Components/CameraComponent.h"
 #include "ECS/Component/Components/PointLightComponent.h"
+#include "ECS/Component/Components/RenderComponent.h"
 #include "ECS/Component/Components/TransformComponent.h"
 #include "ECS/Entity/Entity.h"
 #include "ECS/Entity/EntityManager.h"
@@ -36,12 +37,36 @@ void Loader::LoadScene(const char* filename) {
 
     Graphics::get()->SetSkybox(LoadSkyboxFromFile(skyboxName.data()));
 
+    ProcessPlayer(scene["player"]);
     ProcessDirectionalLight(scene["lights"]["directional"]);
 
     for (const auto& light : scene["lights"]["point"]) {
         ProcessPointLight(light);
     }
-    ProcessPlayer(scene["player"]);
+    for (const auto& entity : scene["entities"]) {
+        ProcessEntity(entity);
+    }
+}
+
+void Loader::ProcessEntity(json entityObject) {
+    EntityId entity = ECS::EntityManager::get()->CreateEntity();
+
+    json positionData = entityObject["position"];
+    json rotationData = entityObject["rotation"];
+
+    vector3 position(positionData[0].get<float>(), positionData[1].get<float>(),
+                     positionData[2].get<float>());
+    vector3 rotation(rotationData[0].get<float>(), rotationData[1].get<float>(),
+                     rotationData[2].get<float>());
+
+    string modelFile = entityObject["model"].get<string>();
+    Model* model = Loader::get()->LoadModelFromFile(modelFile.data());
+
+    TransformComponent* entityPosition =
+        entity.AddComponent<TransformComponent>(Scene::get()->GetWorldNode(),
+                                                position, rotation);
+
+    entity.AddComponent<RenderComponent>(entityPosition->sceneNode, model);
 }
 
 void Loader::ProcessPointLight(json lightObject) {

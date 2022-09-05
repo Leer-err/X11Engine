@@ -51,6 +51,7 @@ class Loader {
     void ProcessPointLight(json lightObject);
     void ProcessDirectionalLight(json lightObject);
     void ProcessPlayer(json playerObject);
+    void ProcessEntity(json entityObject);
 
     // Tries to load texture of specified type, if failed return defaultTexture
     ComPtr<ID3D11Texture2D> LoadTexture(const aiMaterial* material,

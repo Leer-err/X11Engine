@@ -50,18 +50,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
 
     Graphics::get()->SetSkyboxMesh();
 
-    Model* m =
-        Loader::get()->LoadModelFromFile("\\assets\\Minecraft_Axolotl.fbx");
-
-    EntityId model = ECS::EntityManager::get()->CreateEntity();
-    EntityId camera = ECS::EntityManager::get()->CreateEntity();
-
-    TransformComponent* modelPos = model.AddComponent<TransformComponent>(
-        Scene::get()->GetWorldNode(), vector3(0.f, 0.f, 3.f),
-        vector3(0.f, 0.f, 0.f));
-
-    model.AddComponent<RenderComponent>(modelPos->sceneNode, m);
-
     thread th2(Update);
     Window::get()->Run();
     th2.join();
