@@ -5,9 +5,8 @@
 struct EntityId;
 
 struct TransformComponent : public ECS::Component<TransformComponent> {
-    TransformComponent(uint32_t owner, Scene::Node* parentNode,
-                       vector3 pos = {}, quaternion rotation = {},
-                       vector3 scale = {1.f, 1.f, 1.f})
+    TransformComponent(uint32_t owner, Scene::Node* parentNode, vector3 pos,
+                       quaternion rotation, vector3 scale)
         : Component(owner),
           sceneNode(parentNode->AddChild(pos, scale, rotation)) {}
 

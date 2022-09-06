@@ -53,20 +53,32 @@ void Loader::ProcessEntity(json entityObject) {
 
     json positionData = entityObject["position"];
     json rotationData = entityObject["rotation"];
+    json scaleData = entityObject["scale"];
 
     vector3 position(positionData[0].get<float>(), positionData[1].get<float>(),
                      positionData[2].get<float>());
-    vector3 rotation(rotationData[0].get<float>(), rotationData[1].get<float>(),
-                     rotationData[2].get<float>());
+    vector3 rotation;
+    vector3 scale(1.f, 1.f, 1.f);
 
-    string modelFile = entityObject["model"].get<string>();
-    Model* model = Loader::get()->LoadModelFromFile(modelFile.data());
-
+    if (!rotationData.empty()) {
+        rotation =
+            vector3(rotationData[0].get<float>(), rotationData[1].get<float>(),
+                    rotationData[2].get<float>());
+    }
+    if (!scaleData.empty()) {
+        scale = vector3(scaleData[0].get<float>(), scaleData[1].get<float>(),
+                        scaleData[2].get<float>());
+    }
     TransformComponent* entityPosition =
         entity.AddComponent<TransformComponent>(Scene::get()->GetWorldNode(),
-                                                position, rotation);
+                                                position, rotation, scale);
 
-    entity.AddComponent<RenderComponent>(entityPosition->sceneNode, model);
+    string modelFile = entityObject["model"].get<string>();
+    if (!modelFile.empty()) {
+        Model* model = Loader::get()->LoadModelFromFile(modelFile.data());
+
+        entity.AddComponent<RenderComponent>(entityPosition->sceneNode, model);
+    }
 }
 
 void Loader::ProcessPointLight(json lightObject) {
@@ -99,7 +111,8 @@ void Loader::ProcessPointLight(json lightObject) {
     light.AddComponent<TransformComponent>(
         Scene::get()->GetWorldNode(),
         vector3(position[0].get<float>(), position[1].get<float>(),
-                position[2].get<float>()));
+                position[2].get<float>()),
+        quaternion(), vector3());
     light.AddComponent<PointLightComponent>(lightData);
 }
 
@@ -131,9 +144,13 @@ void Loader::ProcessDirectionalLight(json lightObject) {
 void Loader::ProcessPlayer(json playerObject) {
     EntityId player = ECS::EntityManager::get()->CreateEntity();
 
+    json positionData = playerObject["position"];
+    vector3 position(positionData[0], positionData[1], positionData[2]);
+
     TransformComponent* playerTransform =
         player.AddComponent<TransformComponent>(Scene::get()->GetWorldNode(),
-                                                vector3(0.0f, 0.0f, 0.0f));
+                                                position, quaternion(),
+                                                vector3(1.f, 1.f, 1.f));
     player.AddComponent<CameraComponent>(
         1000.f, .01f, DirectX::XMConvertToRadians(60.f), 16.f / 9.f);
 
