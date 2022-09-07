@@ -18,6 +18,7 @@
 #include "ECS/System/Systems/MovementSystem.h"
 #include "ECS/System/Systems/RenderSystem.h"
 #include "Logger/Logger.h"
+#include "MaterialRegistry/MaterialRegistry.h"
 #include "Window.h"
 
 using std::ifstream;
@@ -185,6 +186,31 @@ ComPtr<ID3D11Texture2D> Loader::LoadTextureFromFile(const char* filename) {
     return texture;
 }
 
+void Loader::LoadNode(const aiScene* scene, const aiNode* sceneNode,
+                      Scene::Node* node) {
+    Model model;
+
+    for (int i = 0; i < sceneNode->mNumMeshes; i++) {
+        int meshIndex = sceneNode->mMeshes[i];
+        Mesh mesh = LoadMesh(scene->mMeshes[meshIndex]);
+        model.meshes.emplace_back(mesh);
+    }
+    node->SetModel(model);
+
+    for (int i = 0; i < sceneNode->mNumChildren; i++) {
+        aiNode* childNode = sceneNode->mChildren[i];
+
+        aiMatrix4x4 local = childNode->mTransformation;
+        aiVector3D position, rotation, scale;
+        local.Decompose(scale, rotation, position);
+
+        Scene::Node* child =
+            node->AddChild(position, quaternion(rotation), scale);
+
+        LoadNode(scene, childNode, child);
+    }
+}
+
 ComPtr<ID3D11Texture2D> Loader::LoadSkyboxFromFile(const char* filename) {
     string name = m_currentPath + "\\Assets\\" + filename;
     ComPtr<ID3D11Texture2D> texture;
@@ -209,7 +235,7 @@ ComPtr<ID3D11Texture2D> Loader::LoadSkyboxFromFile(const char* filename) {
     return texture;
 }
 
-Material Loader::LoadMaterial(const aiMaterial* material) {
+Material* Loader::LoadMaterial(const aiMaterial* material) {
     Material mat;
 
     ComPtr<ID3DBlob> vertexShader = CompileVertexShaderFromFile(
@@ -232,7 +258,7 @@ Material Loader::LoadMaterial(const aiMaterial* material) {
     mat.resources[PIXEL_SHADER_STAGE].textures[mat.pixelShader.emissionIndex] =
         LoadTexture(material, aiTextureType_EMISSIVE, "BlackPlaceholder.png");
 
-    return mat;
+    return MaterialRegistry::get()->AddMaterial(std::move(mat));
 }
 
 Mesh Loader::LoadMesh(const aiMesh* mesh) {
@@ -333,9 +359,15 @@ Model* Loader::LoadModelFromFile(const char* filename) {
     const aiScene* scene = importer.ReadFile(
         path.c_str(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
 
-    for (int i = 0; i < scene->mNumMeshes; i++) {
-        model.meshes.emplace_back(LoadMesh(scene->mMeshes[i]));
-    }
+    aiNode* rootNode = scene->mRootNode;
+
+    aiMatrix4x4 local = rootNode->mTransformation;
+    aiVector3D position, rotation, scale;
+    local.Decompose(scale, rotation, position);
+
+    Scene::Node* child = Scene::get()->GetWorldNode()->AddChild(
+        position, quaternion(rotation), scale);
+    LoadNode(scene, rootNode, child);
 
     for (int i = 0; i < scene->mNumMaterials; i++) {
         model.materials.emplace_back(LoadMaterial(scene->mMaterials[i]));

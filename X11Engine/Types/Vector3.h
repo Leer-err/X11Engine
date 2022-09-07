@@ -1,11 +1,15 @@
 #pragma once
 //#include <PxPhysicsAPI.h>
 #include <DirectXMath.h>
+#include <assimp/vector3.h>
 
 struct vector3 {
     inline vector3() { memset(this, 0, sizeof(vector3)); }
     inline vector3(const DirectX::XMVECTOR& vec) {
         DirectX::XMStoreFloat3(&this->vec, vec);
+    }
+    inline vector3(const aiVector3D& vec) {
+        memcpy(this, &vec, sizeof(vector3));
     }
     inline constexpr vector3(const float x, const float y, const float z)
         : x(x), y(y), z(z) {}

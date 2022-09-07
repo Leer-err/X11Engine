@@ -12,6 +12,7 @@
 
 #include "Graphics/Graphics.h"
 #include "Graphics/Model.h"
+#include "Scene/Scene.h"
 
 using nlohmann::json;
 using std::map;
@@ -45,7 +46,9 @@ class Loader {
                                                  UINT flags);
 
    private:
-    Material LoadMaterial(const aiMaterial* material);
+    Material* LoadMaterial(const aiMaterial* material);
+    void LoadNode(const aiScene* scene, const aiNode* sceneNode,
+                  Scene::Node* parentNode);
     Mesh LoadMesh(const aiMesh* mesh);
 
     void ProcessPointLight(json lightObject);

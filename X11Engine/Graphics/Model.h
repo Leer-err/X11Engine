@@ -8,7 +8,7 @@ using std::vector;
 
 struct Model {
     vector<Mesh> meshes;
-    vector<Material> materials;
+    vector<Material*> materials;
 
     AABB box;
 };
