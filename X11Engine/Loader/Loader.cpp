@@ -5,7 +5,10 @@
 #include <d3dcompiler.h>
 
 #include <fstream>
+#include <map>
 #include <memory>
+#include <queue>
+#include <unordered_map>
 
 #include "ECS/Component/Components/CameraComponent.h"
 #include "ECS/Component/Components/PointLightComponent.h"
@@ -17,13 +20,16 @@
 #include "ECS/System/Systems/LookSystem.h"
 #include "ECS/System/Systems/MovementSystem.h"
 #include "ECS/System/Systems/RenderSystem.h"
+#include "Graphics/Bone.h"
 #include "Logger/Logger.h"
 #include "MaterialRegistry/MaterialRegistry.h"
 #include "Window.h"
 
 using std::ifstream;
+using std::map;
 using std::string;
 using std::unique_ptr;
+using std::unordered_map;
 
 void Loader::LoadScene(const char* filename) {
     string name = m_currentPath + "\\Assets\\" + filename;
@@ -346,27 +352,72 @@ ComPtr<ID3DBlob> Loader::CompileVertexShaderFromFile(const wchar_t* filename,
     return shader;
 }
 
-Model* Loader::LoadModelFromFile(const char* filename) {
+void Loader::LoadModelFromFile(const char* filename, Scene::Node* parentNode) {
     Model model;
     Assimp::Importer importer;
-    string path = m_currentPath + filename;
-
-    const auto& mod = m_modelRegistry.find(filename);
-    if (mod != m_modelRegistry.end()) {
-        return &(mod->second);
-    }
+    string path = m_currentPath + "\\Assets\\" + filename;
 
     const aiScene* scene = importer.ReadFile(
         path.c_str(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
 
-    aiNode* rootNode = scene->mRootNode;
+    map<aiNode*, bool> nodeNecessity;
+    unordered_map<string, aiNode*> nodeNames;
+    queue<aiNode*> nodeQueue;
+    nodeQueue.push(scene->mRootNode);
+
+    for (aiNode* node = nodeQueue.front(); !nodeQueue.empty();
+         node = nodeQueue.front(), nodeQueue.pop()) {
+        for (int i = 0; i < node->mNumChildren; i++) {
+            nodeQueue.push(node->mChildren[i]);
+        }
+        nodeNecessity.emplace(node, false);
+        nodeNames.emplace(node->mName, node);
+    }
+
+    for (int i = 0; i < scene->mNumMeshes; i++) {
+        aiMesh* mesh = scene->mMeshes[i];
+        for (int j = 0; j < mesh->mNumBones; j++) {
+            aiBone* bone = mesh->mBones[i];
+
+            string boneName(bone->mName.C_Str());
+            aiNode* boneNode = nodeNames.find(boneName)->second;
+
+            nodeNecessity[boneNode] = true;
+            while (boneNode->mParent) {
+                nodeNecessity[boneNode->mParent] = true;
+            }
+        }
+    }
+
+    Bone rootBone;
+    rootBone.parentId = 0;
+    vector<Bone> bones(rootBone);
+    map<aiNode*, int> boneIndices;
+    unordered_map<string, int> boneNames;
+    boneIndices.emplace(scene->mRootNode, 0);
+    for (aiNode* node = nodeQueue.front(); !nodeQueue.empty();
+         node = nodeQueue.front(), nodeQueue.pop()) {
+        if (nodeNecessity[node] == true) {
+            for (int i = 0; i < node->mNumChildren; i++) {
+                nodeQueue.push(node->mChildren[i]);
+            }
+            Bone bone;
+            bone.parentId = boneIndices[node->mParent];
+
+            int boneIndex = bones.size();
+            string boneName = node->mName.C_Str();
+            boneIndices.emplace(node, boneIndex);
+            boneNames.emplace(boneName, boneIndex);
+            bones.push_back(bone);
+        }
+    }
 
     aiMatrix4x4 local = rootNode->mTransformation;
     aiVector3D position, rotation, scale;
     local.Decompose(scale, rotation, position);
 
-    Scene::Node* child = Scene::get()->GetWorldNode()->AddChild(
-        position, quaternion(rotation), scale);
+    Scene::Node* child =
+        parentNode->AddChild(position, quaternion(rotation), scale);
     LoadNode(scene, rootNode, child);
 
     for (int i = 0; i < scene->mNumMaterials; i++) {
