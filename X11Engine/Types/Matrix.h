@@ -1,5 +1,6 @@
 #pragma once
 #include <DirectXMath.h>
+#include <assimp/matrix4x4.h>
 
 #include "Quaternion.h"
 #include "Vector3.h"
@@ -12,6 +13,10 @@ struct matrix {
         : rows{a, b, c, d} {}
     inline matrix(const DirectX::XMMATRIX& matr) {
         DirectX::XMStoreFloat4x4(&this->matr, matr);
+    }
+
+    inline matrix(const aiMatrix4x4& matr) {
+        memcpy(this, &matr, sizeof(matrix));
     }
 
     inline matrix Transpose() const {

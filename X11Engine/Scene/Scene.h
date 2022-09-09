@@ -52,7 +52,9 @@ class Scene {
        public:
         Node(vector3 pos = {0.f, 0.f, 0.f}, vector3 scale = {1.f, 1.f, 1.f},
              quaternion rotation = {})
-            : m_transform(pos, scale, rotation), m_parent(nullptr), m_model() {
+            : m_transform(pos, scale, rotation),
+              m_parent(nullptr),
+              m_model(nullptr) {
             UpdateWorldMatrix();
         }
         ~Node() {
@@ -88,7 +90,7 @@ class Scene {
             UpdateWorldMatrix();
         }
 
-        inline void SetModel(Model model) { m_model = model; }
+        inline void SetModel(Model* model) { m_model = model; }
 
         template <typename... ARGS>
         Node* AddChild(ARGS&&... args) {
@@ -109,13 +111,13 @@ class Scene {
         void UpdateWorldMatrix();
 
         inline vector<Node*> GetChildren() const { return m_children; }
-        inline Model GetModel() const { return m_model; }
+        inline Model* GetModel() const { return m_model; }
 
        private:
         vector<Node*> m_children;
         Node* m_parent;
 
-        Model m_model;
+        Model* m_model;
 
         Scene::Transform m_transform;
     };

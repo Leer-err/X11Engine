@@ -125,7 +125,7 @@ void Graphics::Clear() {
 void Graphics::Present() { m_swapChain->Present(); }
 
 void Graphics::Draw(const Mesh& mesh, const Material& mat) {
-    UINT stride = sizeof(vertex);
+    UINT stride = sizeof(Vertex);
     UINT offset = 0;
 
     m_renderMutex.lock();

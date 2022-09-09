@@ -5,10 +5,8 @@
 #include <d3dcompiler.h>
 
 #include <fstream>
-#include <map>
 #include <memory>
 #include <queue>
-#include <unordered_map>
 
 #include "ECS/Component/Components/CameraComponent.h"
 #include "ECS/Component/Components/PointLightComponent.h"
@@ -26,10 +24,7 @@
 #include "Window.h"
 
 using std::ifstream;
-using std::map;
-using std::string;
 using std::unique_ptr;
-using std::unordered_map;
 
 void Loader::LoadScene(const char* filename) {
     string name = m_currentPath + "\\Assets\\" + filename;
@@ -192,31 +187,6 @@ ComPtr<ID3D11Texture2D> Loader::LoadTextureFromFile(const char* filename) {
     return texture;
 }
 
-void Loader::LoadNode(const aiScene* scene, const aiNode* sceneNode,
-                      Scene::Node* node) {
-    Model model;
-
-    for (int i = 0; i < sceneNode->mNumMeshes; i++) {
-        int meshIndex = sceneNode->mMeshes[i];
-        Mesh mesh = LoadMesh(scene->mMeshes[meshIndex]);
-        model.meshes.emplace_back(mesh);
-    }
-    node->SetModel(model);
-
-    for (int i = 0; i < sceneNode->mNumChildren; i++) {
-        aiNode* childNode = sceneNode->mChildren[i];
-
-        aiMatrix4x4 local = childNode->mTransformation;
-        aiVector3D position, rotation, scale;
-        local.Decompose(scale, rotation, position);
-
-        Scene::Node* child =
-            node->AddChild(position, quaternion(rotation), scale);
-
-        LoadNode(scene, childNode, child);
-    }
-}
-
 ComPtr<ID3D11Texture2D> Loader::LoadSkyboxFromFile(const char* filename) {
     string name = m_currentPath + "\\Assets\\" + filename;
     ComPtr<ID3D11Texture2D> texture;
@@ -267,7 +237,8 @@ Material* Loader::LoadMaterial(const aiMaterial* material) {
     return MaterialRegistry::get()->AddMaterial(std::move(mat));
 }
 
-Mesh Loader::LoadMesh(const aiMesh* mesh) {
+Mesh Loader::LoadMesh(const aiMesh* mesh,
+                      const unordered_map<string, int>& boneNames) {
     vector3 min(std::numeric_limits<float>::max(),
                 std::numeric_limits<float>::max(),
                 std::numeric_limits<float>::max());
@@ -276,7 +247,7 @@ Mesh Loader::LoadMesh(const aiMesh* mesh) {
                 std::numeric_limits<float>::min(),
                 std::numeric_limits<float>::min());
 
-    vector<vertex> vert;
+    vector<Vertex> vert;
     vector<uint32_t> ind;
 
     for (int j = 0; j < mesh->mNumVertices; j++) {
@@ -298,6 +269,26 @@ Mesh Loader::LoadMesh(const aiMesh* mesh) {
         vert.emplace_back(vector3{pos.x, pos.y, pos.z}, vector2{uv.x, uv.y},
                           vector3{normal.x, normal.y, normal.z});
     }
+    for (int i = 0; i < mesh->mNumBones; i++) {
+        aiBone* bone = mesh->mBones[i];
+
+        for (int j = 0; j < bone->mNumWeights; j++) {
+            aiVertexWeight weight = bone->mWeights[j];
+            string boneName = bone->mName.C_Str();
+
+            Vertex& v = vert[weight.mVertexId];
+
+            int weightIndex;
+            for (weightIndex = 0;
+                 weightIndex < 4 && v.boneIds[weightIndex] != -1;
+                 weightIndex++) {
+            }
+
+            v.boneIds[weightIndex] = boneNames.at(boneName);
+            v.boneWeights[weightIndex] = weight.mWeight;
+        }
+    }
+
     for (int j = 0; j < mesh->mNumFaces; j++) {
         const aiFace face = mesh->mFaces[j];
         ind.push_back(face.mIndices[0]);
@@ -306,7 +297,7 @@ Mesh Loader::LoadMesh(const aiMesh* mesh) {
     }
 
     ComPtr<ID3D11Buffer> vbuf = Graphics::get()->CreateVertexBuffer(
-        vert.size() * sizeof(vertex), false, false, vert.data());
+        vert.size() * sizeof(Vertex), false, false, vert.data());
     IndexBuffer ibuf = Graphics::get()->CreateIndexBuffer(
         ind.size() * sizeof(uint32_t), false, ind.data());
 
@@ -352,10 +343,15 @@ ComPtr<ID3DBlob> Loader::CompileVertexShaderFromFile(const wchar_t* filename,
     return shader;
 }
 
-void Loader::LoadModelFromFile(const char* filename, Scene::Node* parentNode) {
+Model* Loader::LoadModelFromFile(const char* filename) {
     Model model;
     Assimp::Importer importer;
     string path = m_currentPath + "\\Assets\\" + filename;
+
+    const auto iter = m_modelRegistry.find(path);
+    if (iter != m_modelRegistry.end()) {
+        return &iter->second;
+    }
 
     const aiScene* scene = importer.ReadFile(
         path.c_str(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
@@ -371,7 +367,7 @@ void Loader::LoadModelFromFile(const char* filename, Scene::Node* parentNode) {
             nodeQueue.push(node->mChildren[i]);
         }
         nodeNecessity.emplace(node, false);
-        nodeNames.emplace(node->mName, node);
+        nodeNames.emplace(node->mName.C_Str(), node);
     }
 
     for (int i = 0; i < scene->mNumMeshes; i++) {
@@ -391,10 +387,11 @@ void Loader::LoadModelFromFile(const char* filename, Scene::Node* parentNode) {
 
     Bone rootBone;
     rootBone.parentId = 0;
-    vector<Bone> bones(rootBone);
+    vector<Bone> bones = {rootBone};
     map<aiNode*, int> boneIndices;
     unordered_map<string, int> boneNames;
     boneIndices.emplace(scene->mRootNode, 0);
+    nodeQueue.push(scene->mRootNode);
     for (aiNode* node = nodeQueue.front(); !nodeQueue.empty();
          node = nodeQueue.front(), nodeQueue.pop()) {
         if (nodeNecessity[node] == true) {
@@ -412,13 +409,18 @@ void Loader::LoadModelFromFile(const char* filename, Scene::Node* parentNode) {
         }
     }
 
-    aiMatrix4x4 local = rootNode->mTransformation;
-    aiVector3D position, rotation, scale;
-    local.Decompose(scale, rotation, position);
+    for (int i = 0; i < scene->mNumMeshes; i++) {
+        aiMesh* mesh = scene->mMeshes[i];
 
-    Scene::Node* child =
-        parentNode->AddChild(position, quaternion(rotation), scale);
-    LoadNode(scene, rootNode, child);
+        model.meshes.push_back(LoadMesh(mesh, boneNames));
+        for (int j = 0; j < mesh->mNumBones; j++) {
+            aiBone* bone = mesh->mBones[j];
+
+            string boneName = bone->mName.C_Str();
+            int boneIndex = boneNames[boneName];
+            bones[boneIndex].offsetMatrix = bone->mOffsetMatrix;
+        }
+    }
 
     for (int i = 0; i < scene->mNumMaterials; i++) {
         model.materials.emplace_back(LoadMaterial(scene->mMaterials[i]));

@@ -3,6 +3,7 @@
 #include "Types/Matrix.h"
 
 struct Bone {
+    Bone() {}
     Bone(const matrix& offset, int parent)
         : offsetMatrix(offset), parentId(parent) {}
 

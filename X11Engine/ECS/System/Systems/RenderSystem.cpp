@@ -98,15 +98,16 @@ void RenderSystem::Update() {
         node = nodes.top();
         nodes.pop();
 
-        Model model = node->GetModel();
+        Model* model = node->GetModel();
+        if (model == nullptr) continue;
         Graphics::get()->SetWorldMatrix(node->GetWorldMatrix());
         Graphics::get()->UpdatePerModelBuffers();
-        for (const auto& mesh : model.meshes) {
+        for (const auto& mesh : model->meshes) {
             if (TestAABBCollision(mesh.boundingBox, node->GetTransform(),
                                   viewFrustum)) {
                 completed_tasks.emplace_back(TaskManager::get()->submit(
                     &Graphics::Draw, Graphics::get(), std::cref(mesh),
-                    std::cref(*(model.materials[mesh.materialIndex]))));
+                    std::cref(*(model->materials[mesh.materialIndex]))));
             }
         }
         for (const auto& child : node->GetChildren()) {

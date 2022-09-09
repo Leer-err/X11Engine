@@ -47,9 +47,8 @@ class Loader {
 
    private:
     Material* LoadMaterial(const aiMaterial* material);
-    void LoadNode(const aiScene* scene, const aiNode* sceneNode,
-                  Scene::Node* parentNode);
-    Mesh LoadMesh(const aiMesh* mesh);
+    Mesh LoadMesh(const aiMesh* mesh,
+                  const unordered_map<string, int>& boneNames);
 
     void ProcessPointLight(json lightObject);
     void ProcessDirectionalLight(json lightObject);
