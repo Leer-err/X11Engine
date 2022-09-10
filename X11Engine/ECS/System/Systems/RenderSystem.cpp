@@ -99,6 +99,7 @@ void RenderSystem::Update() {
         nodes.pop();
 
         Model* model = node->GetModel();
+        for (const auto& child : node->GetChildren()) nodes.push(child);
         if (model == nullptr) continue;
         Graphics::get()->SetWorldMatrix(node->GetWorldMatrix());
         Graphics::get()->UpdatePerModelBuffers();
