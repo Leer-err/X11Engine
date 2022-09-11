@@ -2,7 +2,7 @@
 #include <unordered_map>
 
 #include "Entity.h"
-#include "Memory.h"
+#include "Memory/Memory.h"
 
 using std::forward;
 using std::unordered_map;

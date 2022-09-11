@@ -1,22 +1,23 @@
 #include <thread>
 
-#include "ComponentManager.h"
-#include "Components/CameraComponent.h"
-#include "Components/PointLightComponent.h"
-#include "Components/RenderComponent.h"
-#include "Components/TransformComponent.h"
+#include "ECS/Component/ComponentManager.h"
+#include "ECS/Component/Components/CameraComponent.h"
+#include "ECS/Component/Components/PointLightComponent.h"
+#include "ECS/Component/Components/RenderComponent.h"
+#include "ECS/Component/Components/TransformComponent.h"
 #include "ECS/Entity/EntityManager.h"
+#include "ECS/System/SystemManager.h"
+#include "ECS/System/Systems/LookSystem.h"
+#include "ECS/System/Systems/MovementSystem.h"
+#include "ECS/System/Systems/RenderSystem.h"
 #include "Event/EventManager.h"
 #include "Graphics/Graphics.h"
 #include "Loader/Loader.h"
 #include "Logger/Logger.h"
-#include "SystemManager.h"
-#include "Systems/LookSystem.h"
-#include "Systems/MovementSystem.h"
-#include "Systems/RenderSystem.h"
 #include "TaskManager/TaskManager.h"
 #include "Timer/Timer.h"
 #include "Window.h"
+
 
 using std::thread;
 

@@ -42,18 +42,13 @@ target_include_directories(Engine PRIVATE
 	${PATH_P7_API}
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${DirectXTK_SOURCE_DIR}/Inc
-	ECS/Component
-	ECS/Entity
-	ECS/System
-	Types
-	Memory
 )
 
 add_compile_definitions(NOMINMAX)
 add_compile_definitions(WIN32_LEAN_AND_MEAN)
 
 target_link_libraries(Engine PRIVATE
-D3DCompiler.lib
+	D3DCompiler.lib
     d3d11.lib
 	dxgi.lib
 	dxguid.lib

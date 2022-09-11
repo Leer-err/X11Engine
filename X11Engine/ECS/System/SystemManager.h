@@ -3,8 +3,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "GlobalAllocator.h"
-#include "Memory.h"
+#include "Memory/GlobalAllocator.h"
+#include "Memory/Memory.h"
 #include "System.h"
 
 using std::forward;

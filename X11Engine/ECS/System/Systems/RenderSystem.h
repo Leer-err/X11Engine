@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ECS/Entity/Entity.h"
+#include "ECS/System/System.h"
 #include "Graphics/Camera.h"
-#include "System.h"
 
 class RenderSystem : public ECS::System<RenderSystem> {
    public:

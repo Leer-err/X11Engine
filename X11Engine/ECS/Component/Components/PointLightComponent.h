@@ -1,5 +1,5 @@
 #pragma once
-#include "Component.h"
+#include "ECS/Component/Component.h"
 #include "Graphics/Light.h"
 
 struct vector3;

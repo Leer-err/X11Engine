@@ -2,8 +2,8 @@
 #include <unordered_map>
 #include <utility>
 
-#include "Component.h"
-#include "Memory.h"
+#include "ECS/Component/Component.h"
+#include "Memory/Memory.h"
 
 using std::forward;
 using std::unordered_map;
