@@ -103,6 +103,7 @@ void RenderSystem::Update() {
         if (model == nullptr) continue;
         Graphics::get()->SetWorldMatrix(node->GetWorldMatrix());
         Graphics::get()->UpdatePerModelBuffers();
+
         for (const auto& mesh : model->meshes) {
             if (TestAABBCollision(mesh.boundingBox, node->GetTransform(),
                                   viewFrustum)) {

@@ -408,6 +408,7 @@ Model* Loader::LoadModelFromFile(const char* filename) {
             bones.push_back(bone);
         }
     }
+    model.bones = move(bones);
 
     for (int i = 0; i < scene->mNumMeshes; i++) {
         aiMesh* mesh = scene->mMeshes[i];
