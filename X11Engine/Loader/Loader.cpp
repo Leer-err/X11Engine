@@ -343,19 +343,8 @@ ComPtr<ID3DBlob> Loader::CompileVertexShaderFromFile(const wchar_t* filename,
     return shader;
 }
 
-Model* Loader::LoadModelFromFile(const char* filename) {
-    Model model;
-    Assimp::Importer importer;
-    string path = m_currentPath + "\\Assets\\" + filename;
-
-    const auto iter = m_modelRegistry.find(path);
-    if (iter != m_modelRegistry.end()) {
-        return &iter->second;
-    }
-
-    const aiScene* scene = importer.ReadFile(
-        path.c_str(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
-
+vector<Bone> Loader::LoadBones(const aiScene* scene,
+                               unordered_map<string, int>& boneNames) {
     map<aiNode*, bool> nodeNecessity;
     unordered_map<string, aiNode*> nodeNames;
     queue<aiNode*> nodeQueue;
@@ -389,7 +378,6 @@ Model* Loader::LoadModelFromFile(const char* filename) {
     rootBone.parentId = 0;
     vector<Bone> bones = {rootBone};
     map<aiNode*, int> boneIndices;
-    unordered_map<string, int> boneNames;
     boneIndices.emplace(scene->mRootNode, 0);
     nodeQueue.push(scene->mRootNode);
     for (aiNode* node = nodeQueue.front(); !nodeQueue.empty();
@@ -408,7 +396,23 @@ Model* Loader::LoadModelFromFile(const char* filename) {
             bones.push_back(bone);
         }
     }
-    model.bones = move(bones);
+}
+
+Model* Loader::LoadModelFromFile(const char* filename) {
+    Model model;
+    Assimp::Importer importer;
+    string path = m_currentPath + "\\Assets\\" + filename;
+
+    const auto iter = m_modelRegistry.find(path);
+    if (iter != m_modelRegistry.end()) {
+        return &iter->second;
+    }
+
+    const aiScene* scene = importer.ReadFile(
+        path.c_str(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+
+    unordered_map<string, int> boneNames;
+    model.bones = LoadBones(scene, boneNames);
 
     for (int i = 0; i < scene->mNumMeshes; i++) {
         aiMesh* mesh = scene->mMeshes[i];
@@ -419,7 +423,7 @@ Model* Loader::LoadModelFromFile(const char* filename) {
 
             string boneName = bone->mName.C_Str();
             int boneIndex = boneNames[boneName];
-            bones[boneIndex].offsetMatrix = bone->mOffsetMatrix;
+            model.bones[boneIndex].offsetMatrix = bone->mOffsetMatrix;
         }
     }
 

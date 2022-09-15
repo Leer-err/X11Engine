@@ -36,6 +36,8 @@ class Loader {
     void LoadScene(const char* filename);
 
     Model* LoadModelFromFile(const char* filename);
+    vector<Bone> LoadBones(const aiScene* scene,
+                           unordered_map<string, int>& boneNames);
     ComPtr<ID3D11Texture2D> LoadTextureFromFile(const char* filename);
     ComPtr<ID3D11Texture2D> LoadSkyboxFromFile(const char* filename);
     ComPtr<ID3DBlob> CompilePixelShaderFromFile(const wchar_t* filename,
