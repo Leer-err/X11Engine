@@ -104,6 +104,11 @@ void RenderSystem::Update() {
         Graphics::get()->SetWorldMatrix(node->GetWorldMatrix());
         Graphics::get()->UpdatePerModelBuffers();
 
+        vector<matrix> finalboneMatrices;
+        for (int i = 0; i < finalboneMatrices.size(); i++) {
+            finalboneMatrices[i] = model->bones[i].offsetMatrix;
+        }
+
         for (const auto& mesh : model->meshes) {
             if (TestAABBCollision(mesh.boundingBox, node->GetTransform(),
                                   viewFrustum)) {
