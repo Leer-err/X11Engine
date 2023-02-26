@@ -1,11 +1,5 @@
 #include "Scene.h"
 
-void Scene::Transform::CalcWorldMatrix(const matrix& parentMatrix) {
-    matrix localMatrix = ScalingMatrix(scale) * RotationMatrix(rotation) *
-                         TranslationMatrix(position);
-    worldMatrix = parentMatrix * localMatrix;
-}
-
 void Scene::Node::RemoveChild(Node* ptr) {
     auto& child = find(m_children.begin(), m_children.end(), ptr);
 
@@ -26,6 +20,8 @@ void Scene::Node::UpdateWorldMatrix() {
             move(TaskManager::get()->submit(&Node::UpdateWorldMatrix, child)));
     }
 }
+
+void Scene::Node::SetModel(Model* model) { m_model = model; }
 
 Scene::Scene() {
     void* ptr = Memory::GlobalAllocator::get()->allocate(

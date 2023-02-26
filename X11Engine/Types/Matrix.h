@@ -1,6 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
 #include <assimp/matrix4x4.h>
+#include <memory.h>
 
 #include "Quaternion.h"
 #include "Vector3.h"
@@ -14,9 +15,11 @@ struct matrix {
     inline matrix(const DirectX::XMMATRIX& matr) {
         DirectX::XMStoreFloat4x4(&this->matr, matr);
     }
-
     inline matrix(const aiMatrix4x4& matr) {
-        memcpy(this, &matr, sizeof(matrix));
+        memcpy(this->field[0], &matr.a1, sizeof(vector4));
+        memcpy(this->field[1], &matr.b1, sizeof(vector4));
+        memcpy(this->field[2], &matr.c1, sizeof(vector4));
+        memcpy(this->field[3], &matr.d1, sizeof(vector4));
     }
 
     inline matrix Transpose() const {
@@ -24,6 +27,37 @@ struct matrix {
     }
     inline matrix Inverse() const {
         return DirectX::XMMatrixInverse(nullptr, *this);
+    }
+
+    inline vector3 Translation() {
+        DirectX::XMVECTOR scale, rotation, translation;
+        DirectX::XMMatrixDecompose(&scale, &rotation, &translation, *this);
+        return translation;
+    }
+    inline quaternion Rotation() {
+        DirectX::XMVECTOR scale, rotation, translation;
+        DirectX::XMMatrixDecompose(&scale, &rotation, &translation, *this);
+        return rotation;
+    }
+    inline vector3 Scale() {
+        DirectX::XMVECTOR scale, rotation, translation;
+        DirectX::XMMatrixDecompose(&scale, &rotation, &translation, *this);
+        return scale;
+    }
+    inline matrix ChangeUnit(float factor) {
+        DirectX::XMVECTOR scale, rotation, translation;
+
+        DirectX::XMMatrixDecompose(&scale, &rotation, &translation, *this);
+        translation = DirectX::XMVectorDivide(
+            translation, DirectX::XMVectorSet(factor, factor, factor, 1.0f));
+
+        auto result = DirectX::XMMatrixScalingFromVector(scale);
+        result = DirectX::XMMatrixMultiply(
+            result, DirectX::XMMatrixRotationQuaternion(rotation));
+        result = DirectX::XMMatrixMultiply(
+            result, DirectX::XMMatrixTranslationFromVector(translation));
+
+        return result;
     }
 
     inline matrix __vectorcall operator+(const matrix& other) const {

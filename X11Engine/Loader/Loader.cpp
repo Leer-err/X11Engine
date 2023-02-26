@@ -22,6 +22,8 @@
 #include "Logger/Logger.h"
 #include "MaterialRegistry/MaterialRegistry.h"
 #include "Window.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 using std::ifstream;
 using std::unique_ptr;
@@ -211,11 +213,34 @@ ComPtr<ID3D11Texture2D> Loader::LoadSkyboxFromFile(const char* filename) {
     return texture;
 }
 
-Material* Loader::LoadMaterial(const aiMaterial* material) {
+ComPtr<ID3D11Texture2D> Loader::LoadTextureFromMemory(const char* name,
+                                                      const aiTexture* texPtr) {
+    ComPtr<ID3D11Texture2D> texture;
+
+    const auto& tex = m_textureRegistry.find(name);
+    if (tex != m_textureRegistry.end()) {
+        return tex->second.Get();
+    }
+
+    int x, y, n;
+
+    unsigned char* data = stbi_load_from_memory((unsigned char*)texPtr->pcData,
+                                                texPtr->mWidth, &x, &y, &n, 4);
+
+    texture = Graphics::get()->CreateTexture2D(DXGI_FORMAT_R8G8B8A8_UNORM,
+                                               false, false, x, y, data);
+
+    if (texture != nullptr) {
+        m_textureRegistry.emplace(name, texture);
+    }
+    return texture;
+}
+
+int Loader::LoadMaterial(const aiScene* scene, const aiMaterial* material) {
     Material mat;
 
     ComPtr<ID3DBlob> vertexShader = CompileVertexShaderFromFile(
-        L"Shaders\\VertexShader.hlsl", "main", shaderFlags);
+        L"Shaders\\BoneVShader.hlsl", "main", shaderFlags);
     ComPtr<ID3DBlob> pixelShader = CompilePixelShaderFromFile(
         L"Shaders\\PixelShader.hlsl", "main", shaderFlags);
 
@@ -226,19 +251,21 @@ Material* Loader::LoadMaterial(const aiMaterial* material) {
     }
 
     mat.resources[PIXEL_SHADER_STAGE].textures[mat.pixelShader.baseColorIndex] =
-        LoadTexture(material, aiTextureType_DIFFUSE, "ColorPlaceholder.png");
+        LoadTexture(scene, material, aiTextureType_DIFFUSE,
+                    "ColorPlaceholder.png");
 
     mat.resources[PIXEL_SHADER_STAGE].textures[mat.pixelShader.specularIndex] =
-        LoadTexture(material, aiTextureType_SPECULAR, "WhitePlaceholder.png");
+        LoadTexture(scene, material, aiTextureType_SPECULAR,
+                    "WhitePlaceholder.png");
 
     mat.resources[PIXEL_SHADER_STAGE].textures[mat.pixelShader.emissionIndex] =
-        LoadTexture(material, aiTextureType_EMISSIVE, "BlackPlaceholder.png");
+        LoadTexture(scene, material, aiTextureType_EMISSIVE,
+                    "BlackPlaceholder.png");
 
     return MaterialRegistry::get()->AddMaterial(std::move(mat));
 }
 
-Mesh Loader::LoadMesh(const aiMesh* mesh,
-                      const unordered_map<string, int>& boneNames) {
+Mesh Loader::LoadMesh(const aiMesh* mesh) {
     vector3 min(std::numeric_limits<float>::max(),
                 std::numeric_limits<float>::max(),
                 std::numeric_limits<float>::max());
@@ -250,13 +277,16 @@ Mesh Loader::LoadMesh(const aiMesh* mesh,
     vector<Vertex> vert;
     vector<uint32_t> ind;
 
+    Mesh res;
+
     for (int j = 0; j < mesh->mNumVertices; j++) {
         const aiVector3D pos = mesh->mVertices[j];
-        const aiVector3D normal = mesh->mNormals[j];
-        aiVector3D uv = {0.f, 0.f, 0.f};
-        if (mesh->mTextureCoords != nullptr) {
-            uv = mesh->mTextureCoords[0][j];
-        }
+        const aiVector3D norm = mesh->mNormals[j];
+        const aiVector3D uv = mesh->mTextureCoords[0][j];
+
+        vector3 position = {pos.x, pos.y, pos.z};
+        vector3 normal = {norm.x, norm.y, norm.z};
+        vector2 texCoords = {uv.x, uv.y};
 
         if (pos.x < min.x) min.x = pos.x;
         if (pos.y < min.y) min.y = pos.y;
@@ -266,27 +296,7 @@ Mesh Loader::LoadMesh(const aiMesh* mesh,
         if (pos.y > max.y) max.y = pos.y;
         if (pos.z > max.z) max.z = pos.z;
 
-        vert.emplace_back(vector3{pos.x, pos.y, pos.z}, vector2{uv.x, uv.y},
-                          vector3{normal.x, normal.y, normal.z});
-    }
-    for (int i = 0; i < mesh->mNumBones; i++) {
-        aiBone* bone = mesh->mBones[i];
-
-        for (int j = 0; j < bone->mNumWeights; j++) {
-            aiVertexWeight weight = bone->mWeights[j];
-            string boneName = bone->mName.C_Str();
-
-            Vertex& v = vert[weight.mVertexId];
-
-            int weightIndex;
-            for (weightIndex = 0;
-                 weightIndex < 4 && v.boneIds[weightIndex] != -1;
-                 weightIndex++) {
-            }
-
-            v.boneIds[weightIndex] = boneNames.at(boneName);
-            v.boneWeights[weightIndex] = weight.mWeight;
-        }
+        vert.emplace_back(position, normal, texCoords);
     }
 
     for (int j = 0; j < mesh->mNumFaces; j++) {
@@ -296,12 +306,128 @@ Mesh Loader::LoadMesh(const aiMesh* mesh,
         ind.push_back(face.mIndices[2]);
     }
 
-    ComPtr<ID3D11Buffer> vbuf = Graphics::get()->CreateVertexBuffer(
+    res.vertices = Graphics::get()->CreateVertexBuffer(
         vert.size() * sizeof(Vertex), false, false, vert.data());
-    IndexBuffer ibuf = Graphics::get()->CreateIndexBuffer(
+    res.indices = Graphics::get()->CreateIndexBuffer(
         ind.size() * sizeof(uint32_t), false, ind.data());
+    res.materialIndex = mesh->mMaterialIndex;
+    res.boundingBox = AABB(min, max);
+    return res;
+}
 
-    return {vbuf, ibuf, mesh->mMaterialIndex, AABB(min, max)};
+Mesh Loader::LoadMeshSkinning(const aiMesh* mesh, Skeleton& skeleton,
+                              float scale) {
+    vector3 min(std::numeric_limits<float>::max(),
+                std::numeric_limits<float>::max(),
+                std::numeric_limits<float>::max());
+
+    vector3 max(std::numeric_limits<float>::min(),
+                std::numeric_limits<float>::min(),
+                std::numeric_limits<float>::min());
+
+    vector<VertexSkinning> vert;
+    vector<uint32_t> ind;
+
+    Mesh res;
+
+    for (int j = 0; j < mesh->mNumVertices; j++) {
+        const aiVector3D pos = mesh->mVertices[j];
+        const aiVector3D norm = mesh->mNormals[j];
+        const aiVector3D uv = mesh->mTextureCoords[0][j];
+
+        vector3 position = {pos.x, pos.y, pos.z};
+        position /= scale;
+
+        vector3 normal = {norm.x, norm.y, norm.z};
+        vector2 texCoords = {uv.x, uv.y};
+
+        if (position.x < min.x) min.x = position.x;
+        if (position.y < min.y) min.y = position.y;
+        if (position.z < min.z) min.z = position.z;
+
+        if (position.x > max.x) max.x = position.x;
+        if (position.y > max.y) max.y = position.y;
+        if (position.z > max.z) max.z = position.z;
+
+        vert.emplace_back(position, normal, texCoords);
+    }
+
+    for (int j = 0; j < mesh->mNumFaces; j++) {
+        const aiFace face = mesh->mFaces[j];
+        ind.push_back(face.mIndices[0]);
+        ind.push_back(face.mIndices[1]);
+        ind.push_back(face.mIndices[2]);
+    }
+
+    for (int i = 0; i < mesh->mNumBones; i++) {
+        aiBone* bone = mesh->mBones[i];
+        string boneName = bone->mName.C_Str();
+
+        int boneIndex = skeleton.boneNames.at(boneName);
+        skeleton.offsetMatrices[boneIndex] =
+            matrix(bone->mOffsetMatrix).Transpose().ChangeUnit(scale);
+
+        for (int j = 0; j < bone->mNumWeights; j++) {
+            aiVertexWeight weight = bone->mWeights[j];
+
+            VertexSkinning v = vert[weight.mVertexId];
+
+            int weightIndex;
+            for (weightIndex = 0;
+                 weightIndex < 4 && v.indices[weightIndex] != -1;
+                 weightIndex++) {
+            }
+
+            v.indices[weightIndex] = boneIndex;
+            v.weights[weightIndex] = weight.mWeight;
+
+            vert[weight.mVertexId] = v;
+        }
+    }
+
+    res.vertices = Graphics::get()->CreateVertexBuffer(
+        vert.size() * sizeof(VertexSkinning), false, false, vert.data());
+    res.indices = Graphics::get()->CreateIndexBuffer(
+        ind.size() * sizeof(uint32_t), false, ind.data());
+    res.materialIndex = mesh->mMaterialIndex;
+    res.boundingBox = AABB(min, max);
+    return res;
+}
+
+Animation Loader::LoadAnimation(const aiAnimation* modelAnimation,
+                                const unordered_map<string, int>& boneNames) {
+    Animation animation;
+
+    animation.name = modelAnimation->mName.C_Str();
+    animation.m_duration = modelAnimation->mDuration;
+    animation.m_ticksPerSecond = modelAnimation->mTicksPerSecond;
+    animation.m_boneKeys.resize(boneNames.size());
+
+    for (int i = 0; i < modelAnimation->mNumChannels; i++) {
+        const aiNodeAnim* anim = modelAnimation->mChannels[i];
+        int index = boneNames.at(anim->mNodeName.C_Str());
+
+        BoneKeys boneKeys;
+        for (int j = 0; j < anim->mNumPositionKeys; j++) {
+            vector3 position = anim->mPositionKeys[j].mValue;
+            boneKeys.positions.emplace_back(position / 100.f,
+                                            anim->mPositionKeys[j].mTime);
+        }
+        for (int j = 0; j < anim->mNumRotationKeys; j++) {
+            auto& assimpQuaternion = anim->mRotationKeys[j].mValue;
+            quaternion rotation = {assimpQuaternion.x, assimpQuaternion.y,
+                                   assimpQuaternion.z, assimpQuaternion.w};
+            boneKeys.rotations.emplace_back(rotation,
+                                            anim->mRotationKeys[j].mTime);
+        }
+        for (int j = 0; j < anim->mNumScalingKeys; j++) {
+            boneKeys.scalings.emplace_back(anim->mScalingKeys[j].mValue,
+                                           anim->mPositionKeys[j].mTime);
+        }
+        animation.m_boneKeys[index] = boneKeys;
+    }
+
+    return animation;
 }
 
 ComPtr<ID3DBlob> Loader::CompilePixelShaderFromFile(const wchar_t* filename,
@@ -343,64 +469,91 @@ ComPtr<ID3DBlob> Loader::CompileVertexShaderFromFile(const wchar_t* filename,
     return shader;
 }
 
-vector<Bone> Loader::LoadBones(const aiScene* scene,
-                               unordered_map<string, int>& boneNames) {
-    map<aiNode*, bool> nodeNecessity;
-    unordered_map<string, aiNode*> nodeNames;
-    queue<aiNode*> nodeQueue;
-    nodeQueue.push(scene->mRootNode);
-
-    for (aiNode* node = nodeQueue.front(); !nodeQueue.empty();
-         node = nodeQueue.front(), nodeQueue.pop()) {
-        for (int i = 0; i < node->mNumChildren; i++) {
-            nodeQueue.push(node->mChildren[i]);
-        }
-        nodeNecessity.emplace(node, false);
-        nodeNames.emplace(node->mName.C_Str(), node);
-    }
-
+vector<Mesh> Loader::GetMeshes(const aiScene* scene, Skeleton& skeleton,
+                               float scale) {
+    vector<Mesh> meshes;
     for (int i = 0; i < scene->mNumMeshes; i++) {
-        aiMesh* mesh = scene->mMeshes[i];
-        for (int j = 0; j < mesh->mNumBones; j++) {
-            aiBone* bone = mesh->mBones[i];
+        meshes.push_back(LoadMeshSkinning(scene->mMeshes[i], skeleton, scale));
+    }
+    return meshes;
+}
 
-            string boneName(bone->mName.C_Str());
-            aiNode* boneNode = nodeNames.find(boneName)->second;
+aiNode* FindRootBone(const aiScene* scene) {
+    auto& rootNode = scene->mRootNode;
 
-            nodeNecessity[boneNode] = true;
-            while (boneNode->mParent) {
-                nodeNecessity[boneNode->mParent] = true;
+    for (int i = 0; i < rootNode->mNumChildren; i++) {
+        bool isRootBone = true;
+
+        std::queue<aiNode*> nodes;
+        nodes.push(rootNode->mChildren[i]);
+
+        while (!nodes.empty()) {
+            auto& node = nodes.front();
+
+            if (node->mNumMeshes > 0) {
+                // all children of root bone must be without meshes
+                isRootBone = false;
+                break;
             }
+
+            for (int j = 0; j < node->mNumChildren; j++) {
+                nodes.push(node->mChildren[j]);
+            }
+
+            nodes.pop();
+        }
+
+        if (isRootBone) {
+            return rootNode->mChildren[i];
         }
     }
 
-    Bone rootBone;
-    rootBone.parentId = 0;
-    vector<Bone> bones = {rootBone};
-    map<aiNode*, int> boneIndices;
-    boneIndices.emplace(scene->mRootNode, 0);
-    nodeQueue.push(scene->mRootNode);
-    for (aiNode* node = nodeQueue.front(); !nodeQueue.empty();
-         node = nodeQueue.front(), nodeQueue.pop()) {
-        if (nodeNecessity[node] == true) {
-            for (int i = 0; i < node->mNumChildren; i++) {
-                nodeQueue.push(node->mChildren[i]);
-            }
-            Bone bone;
-            bone.parentId = boneIndices[node->mParent];
+    return nullptr;  // when no root bone found
+}
 
-            int boneIndex = bones.size();
-            string boneName = node->mName.C_Str();
-            boneIndices.emplace(node, boneIndex);
-            boneNames.emplace(boneName, boneIndex);
-            bones.push_back(bone);
-        }
+Skeleton LoadSkeleton(const aiNode* rootBone, matrix globalTransformation) {
+    Skeleton skeleton;
+    std::queue<aiNode*> nodes;
+    for (int i = 0; i < rootBone->mNumChildren; i++) {
+        nodes.push(rootBone->mChildren[i]);
     }
+
+    skeleton.boneNames.emplace(rootBone->mName.C_Str(), 0);
+    skeleton.parents.push_back(INVALID_PARENT);
+    skeleton.offsetMatrices.push_back(matrix(rootBone->mTransformation)
+                                          .Transpose()
+                                          .ChangeUnit(100.f)
+                                          .Inverse());
+
+    while (!nodes.empty()) {
+        auto& node = nodes.front();
+
+        for (int i = 0; i < node->mNumChildren; i++) {
+            nodes.push(node->mChildren[i]);
+        }
+
+        int id = skeleton.parents.size();
+
+        skeleton.boneNames.emplace(node->mName.C_Str(), id);
+
+        skeleton.offsetMatrices.push_back(matrix(node->mTransformation)
+                                              .Transpose()
+                                              .ChangeUnit(100.f)
+                                              .Inverse());
+
+        int parentId = skeleton.boneNames[node->mParent->mName.C_Str()];
+        skeleton.parents.push_back(parentId);
+
+        nodes.pop();
+    }
+
+    return skeleton;
 }
 
 Model* Loader::LoadModelFromFile(const char* filename) {
     Model model;
     Assimp::Importer importer;
+
     string path = m_currentPath + "\\Assets\\" + filename;
 
     const auto iter = m_modelRegistry.find(path);
@@ -409,38 +562,42 @@ Model* Loader::LoadModelFromFile(const char* filename) {
     }
 
     const aiScene* scene = importer.ReadFile(
-        path.c_str(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+        path.c_str(), aiProcess_ValidateDataStructure | aiProcess_Triangulate |
+                          aiProcess_ConvertToLeftHanded);
 
-    unordered_map<string, int> boneNames;
-    model.bones = LoadBones(scene, boneNames);
+    aiNode* rootBone = FindRootBone(scene);
+    Skeleton skeleton =
+        LoadSkeleton(rootBone, scene->mRootNode->mTransformation);
+    model.meshes = GetMeshes(scene, skeleton, 100.0f);
 
-    for (int i = 0; i < scene->mNumMeshes; i++) {
-        aiMesh* mesh = scene->mMeshes[i];
-
-        model.meshes.push_back(LoadMesh(mesh, boneNames));
-        for (int j = 0; j < mesh->mNumBones; j++) {
-            aiBone* bone = mesh->mBones[j];
-
-            string boneName = bone->mName.C_Str();
-            int boneIndex = boneNames[boneName];
-            model.bones[boneIndex].offsetMatrix = bone->mOffsetMatrix;
-        }
-    }
+    model.skeleton = skeleton;
 
     for (int i = 0; i < scene->mNumMaterials; i++) {
-        model.materials.emplace_back(LoadMaterial(scene->mMaterials[i]));
+        model.materials.emplace_back(LoadMaterial(scene, scene->mMaterials[i]));
+    }
+
+    for (int i = 0; i < scene->mNumAnimations; i++) {
+        Animation animation =
+            LoadAnimation(scene->mAnimations[i], skeleton.boneNames);
+        int index = model.animations.size();
+        model.animationNames.emplace(animation.name, index);
+        model.animations.emplace_back(animation);
     }
 
     return &(m_modelRegistry.emplace(filename, model).first->second);
 }
 
-ComPtr<ID3D11Texture2D> Loader::LoadTexture(const aiMaterial* material,
+ComPtr<ID3D11Texture2D> Loader::LoadTexture(const aiScene* scene,
+                                            const aiMaterial* material,
                                             aiTextureType type,
                                             const char* defaultTexture) {
     aiString relPath;
 
-    if (material->GetTextureCount(type) > 0 &&
-        material->GetTexture(type, 0, &relPath) == AI_SUCCESS) {
+    aiString texture_file;
+    auto result = material->Get(AI_MATKEY_TEXTURE(type, 0), texture_file);
+    if (auto texture = scene->GetEmbeddedTexture(texture_file.C_Str())) {
+        return LoadTextureFromMemory(texture_file.C_Str(), texture);
+    } else if (result == aiReturn_SUCCESS) {
         return LoadTextureFromFile(relPath.C_Str());
     } else {
         return LoadTextureFromFile(defaultTexture);

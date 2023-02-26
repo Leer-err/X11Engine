@@ -14,9 +14,7 @@ cbuffer modelData : register(b2)
     float4x4 normalMatrix;
 };
 
-tbuffer bonesMatrices : register(t0){
-    float4x4 boneMatrices[256];
-}
+StructuredBuffer<matrix> boneMatrices : register(t0);
 
 struct output
 {
@@ -31,25 +29,31 @@ struct input
     float3 pos : POSITION;
     float2 uv : TEXCOORD;
     float3 normal : NORMAL;
-    int4 boneIds : BONES;
-    float4 weights : WEIGHTS;
+    int boneIds[4] : BONES;
+    float weights[4] : WEIGHTS;
 };
 
 output main(in input in_data)
 {
     output a;
 
+    a.pos = float4(0.f, 0.f, 0.f, 1.f);
+
     [unroll(4)]
     for(int i = 0 ; i < 4; i++)
-    {
+   {
         if(in_data.boneIds[i] == -1) 
             continue;
 
-        float4 localPosition = mul(boneMatrices[in_data.boneIds[i]], float4(in_data.pos,1.0f));
-        a.pos += localPosition * in_data.weights[i];
+        matrix boneMatrix = boneMatrices[in_data.boneIds[i]];
+        float4 localPosition = mul(float4(in_data.pos,1.0f), boneMatrix);
+        float weight = in_data.weights[i];
+        
+        a.pos.xyz += weight * localPosition.xyz;
     }
 
     float4 normal = float4(in_data.normal, 1.f);
+
     a.pos = mul(a.pos, world);
     a.fragPos = a.pos;
     a.pos = mul(a.pos, view);

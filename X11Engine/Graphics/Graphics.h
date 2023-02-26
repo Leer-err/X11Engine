@@ -95,6 +95,7 @@ class Graphics {
     void SetWorldMatrix(const matrix& world);
     void SetDirLight(const DirLight& light);
     void SetPointLight(const ::PointLight& light, const vector3& position);
+    void SetBoneData(const vector<matrix>& boneData);
 
     void UpdatePerFrameBuffers();
     void UpdatePerModelBuffers();
@@ -103,6 +104,8 @@ class Graphics {
     ComPtr<ID3D11Buffer> CreateConstantBuffer(bool CPUWritable,
                                               const void* data,
                                               size_t dataSize) const;
+    ComPtr<ID3D11Buffer> CreateTextureBuffer(bool CPUWritable, const void* data,
+                                             size_t dataSize) const;
     ComPtr<ID3D11Buffer> CreateStructuredBuffer(UINT count, UINT structureSize,
                                                 bool CPUWritable,
                                                 bool GPUWritable,
@@ -173,6 +176,8 @@ class Graphics {
     ComPtr<ID3D11Buffer> m_CBVSWindow;
     ComPtr<ID3D11Buffer> m_CBPSFrame;
     ComPtr<ID3D11Buffer> m_lightBuffer;
+    ComPtr<ID3D11Buffer> m_boneBuffer;
+    ComPtr<ID3D11ShaderResourceView> m_boneBufferSRV;
 
     ComPtr<ID3D11Texture2D> m_skybox;
     PixelShader m_skyboxPS;

@@ -1,7 +1,8 @@
 #pragma once
-//#include <PxPhysicsAPI.h>
+// #include <PxPhysicsAPI.h>
 #include <DirectXMath.h>
 #include <assimp/vector3.h>
+#include <memory.h>
 
 struct vector3 {
     inline vector3() { memset(this, 0, sizeof(vector3)); }
@@ -60,10 +61,12 @@ struct vector3 {
     inline vector3& __vectorcall operator*=(const float& value) {
         *this =
             DirectX::XMVectorMultiply(*this, DirectX::XMVectorReplicate(value));
+        return *this;
     }
     inline vector3& __vectorcall operator/=(const float& value) {
         *this =
             DirectX::XMVectorDivide(*this, DirectX::XMVectorReplicate(value));
+        return *this;
     }
 
     inline operator DirectX::XMVECTOR() const {

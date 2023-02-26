@@ -46,7 +46,7 @@ struct Frustum {
         float distance;
     };
 
-    Frustum(const Camera& camera, const Scene::Transform& transform) {
+    Frustum(const Camera& camera, const Transform& transform) {
         vector3 cameraPos = transform.position;
         quaternion rotation = transform.rotation;
 

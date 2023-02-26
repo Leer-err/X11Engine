@@ -10,6 +10,7 @@
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 
+#include "Graphics/Animation/Animation.h"
 #include "Graphics/Graphics.h"
 #include "Graphics/Model.h"
 #include "Scene/Scene.h"
@@ -36,9 +37,9 @@ class Loader {
     void LoadScene(const char* filename);
 
     Model* LoadModelFromFile(const char* filename);
-    vector<Bone> LoadBones(const aiScene* scene,
-                           unordered_map<string, int>& boneNames);
     ComPtr<ID3D11Texture2D> LoadTextureFromFile(const char* filename);
+    ComPtr<ID3D11Texture2D> LoadTextureFromMemory(const char* name,
+                                                  const aiTexture* texPtr);
     ComPtr<ID3D11Texture2D> LoadSkyboxFromFile(const char* filename);
     ComPtr<ID3DBlob> CompilePixelShaderFromFile(const wchar_t* filename,
                                                 const char* entryPoint,
@@ -48,9 +49,16 @@ class Loader {
                                                  UINT flags);
 
    private:
-    Material* LoadMaterial(const aiMaterial* material);
-    Mesh LoadMesh(const aiMesh* mesh,
-                  const unordered_map<string, int>& boneNames);
+    int LoadMaterial(const aiScene* scene, const aiMaterial* material);
+    Mesh LoadMesh(const aiMesh* mesh);
+    Mesh LoadMeshSkinning(const aiMesh* mesh,
+                          Skeleton& skeleton,
+                          float scale);
+    Animation LoadAnimation(const aiAnimation* modelAnimation,
+                            const unordered_map<string, int>& boneNames);
+    vector<Mesh> GetMeshes(const aiScene* scene,
+                           Skeleton& skeleton,
+                           float scale);
 
     void ProcessPointLight(json lightObject);
     void ProcessDirectionalLight(json lightObject);
@@ -58,7 +66,8 @@ class Loader {
     void ProcessEntity(json entityObject);
 
     // Tries to load texture of specified type, if failed return defaultTexture
-    ComPtr<ID3D11Texture2D> LoadTexture(const aiMaterial* material,
+    ComPtr<ID3D11Texture2D> LoadTexture(const aiScene* scene,
+                                        const aiMaterial* material,
                                         aiTextureType type,
                                         const char* defaultTexture);
 

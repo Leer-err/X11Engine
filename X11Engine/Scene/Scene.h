@@ -10,6 +10,7 @@
 #include "Logger/Logger.h"
 #include "Memory/Memory.h"
 #include "TaskManager/TaskManager.h"
+#include "Transform.h"
 #include "Types/Matrix.h"
 #include "Types/Quaternion.h"
 #include "Types/Vector3.h"
@@ -27,27 +28,6 @@ constexpr uint32_t MAX_NODE_COUNT = 0x400;
 
 class Scene {
    public:
-    struct Transform {
-        Transform(vector3 positions, vector3 scale, quaternion rotation)
-            : position(positions), scale(scale), rotation(rotation) {}
-
-        void CalcWorldMatrix(const matrix& parentMatrix);
-
-        vector3 GetUp() const { return (LOCAL_UP * worldMatrix).normalized(); }
-        vector3 GetRight() const {
-            return (LOCAL_RIGHT * worldMatrix).normalized();
-        }
-        vector3 GetForward() const {
-            return (LOCAL_FORWARD * worldMatrix).normalized();
-        }
-
-        vector3 position;
-        vector3 scale;
-        quaternion rotation;
-
-        matrix worldMatrix;
-    };
-
     class Node {
        public:
         Node(vector3 pos = {0.f, 0.f, 0.f}, vector3 scale = {1.f, 1.f, 1.f},
@@ -55,6 +35,10 @@ class Scene {
             : m_transform(pos, scale, rotation),
               m_parent(nullptr),
               m_model(nullptr) {
+            UpdateWorldMatrix();
+        }
+        Node(matrix localTransform)
+            : m_transform(localTransform), m_parent(nullptr), m_model(nullptr) {
             UpdateWorldMatrix();
         }
         ~Node() {
@@ -90,7 +74,7 @@ class Scene {
             UpdateWorldMatrix();
         }
 
-        inline void SetModel(Model* model) { m_model = model; }
+        void SetModel(Model* model);
 
         template <typename... ARGS>
         Node* AddChild(ARGS&&... args) {
@@ -119,7 +103,7 @@ class Scene {
 
         Model* m_model;
 
-        Scene::Transform m_transform;
+        Transform m_transform;
     };
 
     inline static Scene* get() {

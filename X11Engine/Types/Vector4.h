@@ -1,6 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
 #include <immintrin.h>
+#include <memory.h>
 
 struct vector4 {
     inline vector4() { memset(this, 0, sizeof(vector4)); }

@@ -93,12 +93,17 @@ Graphics::Graphics() {
         true, nullptr, ((sizeof(CB_VS_PER_WINDOW) >> 4) + 1) << 4);
     m_CBPSFrame = CreateConstantBuffer(
         true, nullptr, ((sizeof(CB_PS_PER_FRAME) >> 4) + 1) << 4);
+    m_boneBuffer =
+        CreateStructuredBuffer(256, sizeof(matrix), true, false, nullptr);
+    m_boneBufferSRV = CreateBufferSRV(m_boneBuffer, sizeof(matrix), 256);
+
     m_lightBuffer = CreateStructuredBuffer(
         MAX_POINT_LIGHTS, sizeof(Graphics::PointLight), true, false, nullptr);
     m_context->VSSetConstantBuffers(0, 1, m_CBVSWindow.GetAddressOf());
     m_context->VSSetConstantBuffers(1, 1, m_CBVSFrame.GetAddressOf());
     m_context->VSSetConstantBuffers(2, 1, m_CBVSModel.GetAddressOf());
     m_context->PSSetConstantBuffers(0, 1, m_CBPSFrame.GetAddressOf());
+    m_context->VSSetShaderResources(0, 1, m_boneBufferSRV.GetAddressOf());
 
     UpdatePerWindowBuffers();
 }
@@ -125,7 +130,7 @@ void Graphics::Clear() {
 void Graphics::Present() { m_swapChain->Present(); }
 
 void Graphics::Draw(const Mesh& mesh, const Material& mat) {
-    UINT stride = sizeof(Vertex);
+    UINT stride = sizeof(VertexSkinning);
     UINT offset = 0;
 
     m_renderMutex.lock();
@@ -182,6 +187,11 @@ void Graphics::SetPointLight(const ::PointLight& light,
     pointLights.push_back(pointLight);
 }
 
+void Graphics::SetBoneData(const vector<matrix>& boneData) {
+    UpdateBuffer(m_boneBuffer, boneData.data(),
+                 sizeof(matrix) * boneData.size());
+}
+
 void Graphics::UpdatePerFrameBuffers() {
     UpdateConstantBuffer(m_CBVSFrame, &CB_VS_PER_FRAME);
     UpdateConstantBuffer(m_CBPSFrame, &CB_PS_PER_FRAME);
@@ -221,6 +231,34 @@ ComPtr<ID3D11Buffer> Graphics::CreateConstantBuffer(bool CPUWritable,
 
     LogIfFailed(m_device->CreateBuffer(&desc, pInitialData, buf.GetAddressOf()),
                 L"Failed to create constant buffer");
+
+    return buf;
+}
+
+ComPtr<ID3D11Buffer> Graphics::CreateTextureBuffer(bool CPUWritable,
+                                                   const void* data,
+                                                   size_t dataSize) const {
+    ComPtr<ID3D11Buffer> buf;
+
+    D3D11_BUFFER_DESC desc = {};
+    desc.ByteWidth = dataSize;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+    if (CPUWritable) {
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        desc.Usage = D3D11_USAGE_DYNAMIC;
+    } else {
+        desc.CPUAccessFlags = NULL;
+        desc.Usage = D3D11_USAGE_IMMUTABLE;
+    }
+
+    D3D11_SUBRESOURCE_DATA res = {};
+    res.pSysMem = data;
+
+    D3D11_SUBRESOURCE_DATA* pInitialData = data == nullptr ? nullptr : &res;
+
+    LogIfFailed(m_device->CreateBuffer(&desc, pInitialData, buf.GetAddressOf()),
+                L"Failed to create texture buffer");
 
     return buf;
 }
@@ -494,6 +532,7 @@ ComPtr<ID3D11ShaderResourceView> Graphics::CreateBufferSRV(
     const ComPtr<ID3D11Resource>& res, UINT elementSize,
     UINT numElements) const {
     ComPtr<ID3D11ShaderResourceView> srv;
+
     D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
     desc.Format = DXGI_FORMAT_UNKNOWN;
     desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
@@ -741,7 +780,7 @@ void Graphics::SetVertexShaderResources(const ShaderResources& res) {
         shaderResources[i] = resources[i].Get();
     }
     m_context->VSSetShaderResources(
-        0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, shaderResources);
+        1, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - 1, shaderResources);
 
     ID3D11SamplerState*
         samplerStates[D3D11_COMMONSHADER_SAMPLER_REGISTER_COUNT] = {};

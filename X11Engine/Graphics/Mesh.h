@@ -26,6 +26,7 @@ struct IndexBuffer {
 };
 
 struct Mesh {
+    Mesh() = default;
     Mesh(const ComPtr<ID3D11Buffer>& vertices, const IndexBuffer& indices,
          uint32_t materialIndex, const AABB& boundingBox)
         : vertices(vertices),

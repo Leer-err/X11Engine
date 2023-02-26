@@ -4,6 +4,7 @@
 
 #include <future>
 #include <iostream>
+#include <map>
 #include <stack>
 #include <vector>
 
@@ -13,6 +14,7 @@
 #include "ECS/Component/Components/RenderComponent.h"
 #include "ECS/Component/Components/TransformComponent.h"
 #include "Graphics/Graphics.h"
+#include "MaterialRegistry/MaterialRegistry.h"
 #include "Scene/Scene.h"
 #include "TaskManager/TaskManager.h"
 
@@ -29,7 +31,7 @@ bool IsForwardPlan(const AABB& box, const Frustum::Plan& plan) {
     return -r <= (dot(plan.normal, box.center) - plan.distance);
 }
 
-bool TestAABBCollision(const AABB& box, const Scene::Transform& transform,
+bool TestAABBCollision(const AABB& box, const Transform& transform,
                        const Frustum& viewFrustum) {
     vector3 globalCenter = box.center.transform(transform.worldMatrix);
 
@@ -60,8 +62,6 @@ bool TestAABBCollision(const AABB& box, const Scene::Transform& transform,
 void RenderSystem::PreUpdate() { Graphics::get()->Clear(); }
 
 void RenderSystem::Update() {
-    vector<future<void>> completed_tasks;
-
     CameraComponent* camera = cameraEntity.GetComponent<CameraComponent>();
     TransformComponent* cameraTransform =
         cameraEntity.GetComponent<TransformComponent>();
@@ -89,41 +89,80 @@ void RenderSystem::Update() {
     Graphics::get()->DrawSkybox();
 
     Scene::get()->WaitForUpdate();
-    Scene::Node* worldNode = Scene::get()->GetWorldNode();
 
-    stack<Scene::Node*> nodes;
-    nodes.push(worldNode);
+    for (auto iter = ECS::ComponentManager::get()->begin<RenderComponent>();
+         iter != ECS::ComponentManager::get()->end<RenderComponent>(); ++iter) {
+        const auto& entity = iter->GetOwner();
+        const auto& model = iter->model;
+        const auto& sceneNode = ECS::ComponentManager::get()
+                                    ->GetComponent<TransformComponent>(entity)
+                                    ->sceneNode;
+        // const auto& animation = ECS::ComponentManager::get()
+        //                             ->GetComponent<AnimationComponent>(entity)
+        //                             ->GetWorldMatrix();
+        const auto& animation = model->animations[0];
 
-    for (Scene::Node* node; nodes.size() != 0;) {
-        node = nodes.top();
-        nodes.pop();
+        vector<matrix> boneMatrices(model->skeleton.offsetMatrices.size());
+        vector<matrix> finalboneMatrices(model->skeleton.offsetMatrices.size());
 
-        Model* model = node->GetModel();
-        for (const auto& child : node->GetChildren()) nodes.push(child);
-        if (model == nullptr) continue;
-        Graphics::get()->SetWorldMatrix(node->GetWorldMatrix());
-        Graphics::get()->UpdatePerModelBuffers();
+        for (int i = 0; i < model->skeleton.offsetMatrices.size(); i++) {
+            int parentIndex = model->skeleton.parents[i];
 
-        vector<matrix> finalboneMatrices;
-        for (int i = 0; i < finalboneMatrices.size(); i++) {
-            finalboneMatrices[i] = model->bones[i].offsetMatrix;
-        }
+            matrix worldMatrix = IdentityMatrix();
 
-        for (const auto& mesh : model->meshes) {
-            if (TestAABBCollision(mesh.boundingBox, node->GetTransform(),
-                                  viewFrustum)) {
-                completed_tasks.emplace_back(TaskManager::get()->submit(
-                    &Graphics::Draw, Graphics::get(), std::cref(mesh),
-                    std::cref(*(model->materials[mesh.materialIndex]))));
+            if (animation.m_boneKeys[i].scalings.size() != 0) {
+                worldMatrix =
+                    worldMatrix *
+                    ScalingMatrix(animation.m_boneKeys[i].scalings[0].scale);
+            }
+
+            if (animation.m_boneKeys[i].rotations.size() != 0) {
+                worldMatrix =
+                    worldMatrix *
+                    RotationMatrix(
+                        animation.m_boneKeys[i].rotations[0].rotation);
+            }
+
+            if (animation.m_boneKeys[i].positions.size() != 0) {
+                worldMatrix =
+                    worldMatrix *
+                    TranslationMatrix(
+                        animation.m_boneKeys[i].positions[0].position);
+            }
+
+            if (parentIndex == INVALID_PARENT) {
+                boneMatrices[i] = worldMatrix;
+            } else {
+                boneMatrices[i] = worldMatrix * boneMatrices[parentIndex];
+            }
+
+            if (animation.m_boneKeys[i].positions.size() == 0 &&
+                animation.m_boneKeys[i].rotations.size() == 0 &&
+                animation.m_boneKeys[i].scalings.size() == 0) {
+                finalboneMatrices[i] = finalboneMatrices[parentIndex];
+            } else {
+                finalboneMatrices[i] =
+                    (model->skeleton.offsetMatrices[i] * boneMatrices[i])
+                        .Transpose();
             }
         }
-        for (const auto& child : node->GetChildren()) {
-            nodes.push(child);
-        }
-    }
 
-    for (const auto& task : completed_tasks) {
-        task.wait();
+        Graphics::get()->SetBoneData(finalboneMatrices);
+
+        matrix worldMatrix = sceneNode->GetWorldMatrix();
+        Graphics::get()->SetWorldMatrix(worldMatrix);
+        Graphics::get()->UpdatePerModelBuffers();
+
+        for (const auto& mesh : model->meshes) {
+            if (!TestAABBCollision(mesh.boundingBox, sceneNode->GetTransform(),
+                                   viewFrustum)) {
+                continue;
+            }
+            const auto& material_index = model->materials[mesh.materialIndex];
+            const auto& material =
+                *MaterialRegistry::get()->GetMaterial(material_index);
+            Graphics::get()->Draw(mesh, material);
+        }
     }
 }
 

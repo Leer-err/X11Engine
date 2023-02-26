@@ -13,9 +13,13 @@ class MaterialRegistry {
         return &instance;
     }
 
-    Material* AddMaterial(Material&& material) {
-        return &m_materials.emplace_back(std::move(material));
+    int AddMaterial(Material&& material) {
+        int index = m_materials.size();
+        m_materials.emplace_back(material);
+        return index;
     }
+
+    inline Material* GetMaterial(int index) { return &m_materials[index]; }
 
    private:
     MaterialRegistry() {}

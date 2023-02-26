@@ -9,10 +9,14 @@
 using std::forward;
 using std::wstring;
 
+constexpr int BUFFER_SIZE = 1024;
+
 template <typename... ARGS>
 inline void LogIfFailed(HRESULT hr, const wchar_t* line, ARGS&&... args) {
+    wchar_t buffer[BUFFER_SIZE];
+    swprintf_s(buffer, BUFFER_SIZE, line, forward<ARGS>(args)...);
     if (FAILED(hr)) {
-        Logger::get()->Error(L"%s with code %x", line, forward<ARGS>(args)...,
+        Logger::get()->Error(L"%s with code %x", buffer, forward<ARGS>(args)...,
                              hr);
     }
 }
@@ -20,8 +24,10 @@ inline void LogIfFailed(HRESULT hr, const wchar_t* line, ARGS&&... args) {
 template <typename... ARGS>
 inline void FatalErrorIfFailed(HRESULT hr, const wchar_t* line,
                                ARGS&&... args) {
+    wchar_t buffer[BUFFER_SIZE];
+    swprintf_s(buffer, BUFFER_SIZE, line, forward<ARGS>(args)...);
     if (FAILED(hr)) {
-        Logger::get()->Error(L"%s with code %x", line, forward<ARGS>(args)...,
+        Logger::get()->Error(L"%s with code %x", buffer, forward<ARGS>(args)...,
                              hr);
         Window::get()->Terminate();
     }

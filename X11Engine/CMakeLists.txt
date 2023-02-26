@@ -23,18 +23,18 @@ FetchContent_Declare(json
   URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
 )
 FetchContent_MakeAvailable(json)
+FetchContent_Declare(stb 
+  URL https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
+  DOWNLOAD_NO_EXTRACT TRUE
+)
+FetchContent_MakeAvailable(stb)
 
 
 if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 set(ASSIMP_DLL ${assimp_BINARY_DIR}/bin/assimp-vc143-mt.dll)
 elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-set(ASSIMP_DLL ${assimp_BINARY_DIR}/bin/assimp-vc143-mtd.dll)
+set(ASSIMP_DLL ${assimp_BINARY_DIR}/bin/Debug/assimp-vc143-mtd.dll)
 endif()
-
-install(FILES ${ASSIMP_DLL} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-
-file(COPY Assets DESTINATION /)
-file(COPY Shaders DESTINATION /)
 
 add_executable(Engine WIN32 ${SOURCES} ${HEADERS})
 
@@ -42,6 +42,7 @@ target_include_directories(Engine PRIVATE
 	${PATH_P7_API}
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${DirectXTK_SOURCE_DIR}/Inc
+	${stb_SOURCE_DIR}
 )
 
 add_compile_definitions(NOMINMAX)
@@ -70,3 +71,21 @@ set_target_properties(Engine PROPERTIES
 	CXX_STANDARD 17
 	CXX_STANDARD_REQUIRED true
 )
+
+add_custom_command(
+        TARGET Engine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+		${ASSIMP_DLL}
+		${CMAKE_CURRENT_BINARY_DIR}/Debug/assimp-vc143-mtd.dll)
+
+add_custom_command(
+        TARGET Engine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_CURRENT_SOURCE_DIR}/Shaders
+		${CMAKE_CURRENT_BINARY_DIR}/Debug/Shaders)
+
+add_custom_command(
+        TARGET Engine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_CURRENT_SOURCE_DIR}/Assets
+		${CMAKE_CURRENT_BINARY_DIR}/Debug/Assets)
