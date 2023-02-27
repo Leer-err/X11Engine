@@ -88,6 +88,10 @@ struct vector3 {
     inline vector3 __vectorcall transform(const DirectX::XMMATRIX& m) const {
         return DirectX::XMVector3Transform(*this, m);
     }
+    static inline vector3 __vectorcall lerp(const vector3& a, const vector3& b,
+                                            float t) {
+        return DirectX::XMVectorLerp(a, b, t);
+    }
 
     union {
         struct {

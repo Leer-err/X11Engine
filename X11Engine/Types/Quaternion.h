@@ -45,6 +45,11 @@ struct quaternion {
         *this = DirectX::XMQuaternionMultiply(*this, other);
     }
 
+    static inline quaternion __vectorcall slerp(const quaternion& a,
+                                                const quaternion& b, float t) {
+        return DirectX::XMQuaternionSlerp(a, b, t);
+    }
+
     inline operator DirectX::XMVECTOR() const {
         return DirectX::XMLoadFloat4(&this->vec);
     }

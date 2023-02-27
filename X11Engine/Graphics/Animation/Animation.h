@@ -47,7 +47,19 @@ struct Animation {
         int keyIndex = time * m_ticksPerSecond;
 
         if (m_boneKeys[boneId].positions.size() > keyIndex) {
-            return m_boneKeys[boneId].positions[keyIndex].position;
+            double timeNext =
+                m_boneKeys[boneId].positions[keyIndex + 1].timeStamp;
+            double timePrev = m_boneKeys[boneId].positions[keyIndex].timeStamp;
+
+            vector3 posNext =
+                m_boneKeys[boneId].positions[keyIndex + 1].position;
+            vector3 posPrev = m_boneKeys[boneId].positions[keyIndex].position;
+
+            double delta = timeNext - timePrev;
+
+            float t = (time * m_ticksPerSecond - timePrev) / delta;
+
+            return vector3::lerp(posPrev, posNext, t);
         } else {
             return vector3();
         }
@@ -56,7 +68,20 @@ struct Animation {
         int keyIndex = time * m_ticksPerSecond;
 
         if (m_boneKeys[boneId].rotations.size() > keyIndex) {
-            return m_boneKeys[boneId].rotations[keyIndex].rotation;
+            double timeNext =
+                m_boneKeys[boneId].rotations[keyIndex + 1].timeStamp;
+            double timePrev = m_boneKeys[boneId].rotations[keyIndex].timeStamp;
+
+            quaternion rotNext =
+                m_boneKeys[boneId].rotations[keyIndex + 1].rotation;
+            quaternion rotPrev =
+                m_boneKeys[boneId].rotations[keyIndex].rotation;
+
+            double delta = timeNext - timePrev;
+
+            float t = (time * m_ticksPerSecond - timePrev) / delta;
+
+            return quaternion::slerp(rotPrev, rotNext, t);
         } else {
             return quaternion();
         }
@@ -65,7 +90,18 @@ struct Animation {
         int keyIndex = time * m_ticksPerSecond;
 
         if (m_boneKeys[boneId].scalings.size() > keyIndex) {
-            return m_boneKeys[boneId].scalings[keyIndex].scale;
+            double timeNext =
+                m_boneKeys[boneId].scalings[keyIndex + 1].timeStamp;
+            double timePrev = m_boneKeys[boneId].scalings[keyIndex].timeStamp;
+
+            vector3 scaleNext = m_boneKeys[boneId].scalings[keyIndex + 1].scale;
+            vector3 scalePrev = m_boneKeys[boneId].scalings[keyIndex].scale;
+
+            double delta = timeNext - timePrev;
+
+            float t = (time * m_ticksPerSecond - timePrev) / delta;
+
+            return vector3::lerp(scalePrev, scaleNext, t);
         } else {
             return vector3(1.f, 1.f, 1.f);
         }
