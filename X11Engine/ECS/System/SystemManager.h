@@ -74,9 +74,9 @@ class SystemManager {
         }
     }
 
-    inline void Update() {
+    inline void Update(float delta) {
         for (auto system : m_workOrder) {
-            system->Update();
+            system->Update(delta);
         }
     }
 

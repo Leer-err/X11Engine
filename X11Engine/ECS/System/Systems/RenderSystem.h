@@ -9,7 +9,7 @@ class RenderSystem : public ECS::System<RenderSystem> {
     RenderSystem() : cameraEntity(0) {}
 
     void PreUpdate() override;
-    void Update() override;
+    void Update(float delta) override;
     void PostUpdate() override;
 
     void SetCamera(const EntityId camera);

@@ -8,6 +8,7 @@
 #include <memory>
 #include <queue>
 
+#include "ECS/Component/Components/AnimationComponent.h"
 #include "ECS/Component/Components/CameraComponent.h"
 #include "ECS/Component/Components/PointLightComponent.h"
 #include "ECS/Component/Components/RenderComponent.h"
@@ -82,6 +83,7 @@ void Loader::ProcessEntity(json entityObject) {
         Model* model = Loader::get()->LoadModelFromFile(modelFile.data());
 
         entity.AddComponent<RenderComponent>(entityPosition->sceneNode, model);
+        entity.AddComponent<AnimationComponent>("mixamo.com", model);
     }
 }
 

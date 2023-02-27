@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "Controls/Keyboard.h"
+// #include "Controls/Keyboard.h"
 #include <Keyboard.h>
 
 #include "ECS/Component/Components/TransformComponent.h"
@@ -12,7 +12,7 @@ class MovementSystem : public ECS::System<MovementSystem> {
     MovementSystem() : m_player(nullptr) {}
 
     void PreUpdate() override{};
-    void Update() override {
+    void Update(float delta) override {
         assert(m_player != nullptr);
 
         vector3 move = {0.f, 0.f, 0.f};
@@ -37,7 +37,7 @@ class MovementSystem : public ECS::System<MovementSystem> {
             move.y -= 1.f;
         }
 
-        move = move.normalized() * 5.f * Timer::get()->GetDeltaTime();
+        move = move.normalized() * 5.f * delta;
 
         m_player->SetPosition(m_player->GetPosition() +
                               move.rotate(m_player->GetRotation()));

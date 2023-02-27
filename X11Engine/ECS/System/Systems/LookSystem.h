@@ -26,7 +26,7 @@ class LookSystem : public ECS::System<LookSystem> {
 
         m_player->SetRotation(newRotation);
     }
-    void Update() override {}
+    void Update(float delta) override {}
     void PostUpdate() override {}
 
     void SetPlayer(TransformComponent* playerTransform) {

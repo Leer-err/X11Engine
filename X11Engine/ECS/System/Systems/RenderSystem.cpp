@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "ECS/Component/ComponentManager.h"
+#include "ECS/Component/Components/AnimationComponent.h"
 #include "ECS/Component/Components/CameraComponent.h"
 #include "ECS/Component/Components/PointLightComponent.h"
 #include "ECS/Component/Components/RenderComponent.h"
@@ -61,7 +62,7 @@ bool TestAABBCollision(const AABB& box, const Transform& transform,
 
 void RenderSystem::PreUpdate() { Graphics::get()->Clear(); }
 
-void RenderSystem::Update() {
+void RenderSystem::Update(float delta) {
     CameraComponent* camera = cameraEntity.GetComponent<CameraComponent>();
     TransformComponent* cameraTransform =
         cameraEntity.GetComponent<TransformComponent>();
@@ -97,57 +98,48 @@ void RenderSystem::Update() {
         const auto& sceneNode = ECS::ComponentManager::get()
                                     ->GetComponent<TransformComponent>(entity)
                                     ->sceneNode;
-        // const auto& animation = ECS::ComponentManager::get()
-        //                             ->GetComponent<AnimationComponent>(entity)
-        //                             ->GetWorldMatrix();
-        const auto& animation = model->animations[0];
+        const auto& animationComponent =
+            ECS::ComponentManager::get()->GetComponent<AnimationComponent>(
+                entity);
 
-        vector<matrix> boneMatrices(model->skeleton.offsetMatrices.size());
-        vector<matrix> finalboneMatrices(model->skeleton.offsetMatrices.size());
+        if (animationComponent != nullptr) {
+            vector<matrix> boneMatrices(model->skeleton.offsetMatrices.size());
+            vector<matrix> finalboneMatrices(
+                model->skeleton.offsetMatrices.size());
 
-        for (int i = 0; i < model->skeleton.offsetMatrices.size(); i++) {
-            int parentIndex = model->skeleton.parents[i];
+            const auto& animation = animationComponent->animation;
+            const auto& animationTime = animationComponent->time;
 
-            matrix worldMatrix = IdentityMatrix();
+            for (int i = 0; i < model->skeleton.offsetMatrices.size(); i++) {
+                int parentIndex = model->skeleton.parents[i];
 
-            if (animation.m_boneKeys[i].scalings.size() != 0) {
-                worldMatrix =
-                    worldMatrix *
-                    ScalingMatrix(animation.m_boneKeys[i].scalings[0].scale);
+                matrix worldMatrix = IdentityMatrix();
+
+                auto scaleKey = animation->GetScaleKey(i, animationTime);
+                auto rotationKey = animation->GetRotationKey(i, animationTime);
+                auto positionKey = animation->GetPositionKey(i, animationTime);
+
+                worldMatrix = worldMatrix * ScalingMatrix(scaleKey);
+                worldMatrix = worldMatrix * RotationMatrix(rotationKey);
+                worldMatrix = worldMatrix * TranslationMatrix(positionKey);
+
+                if (parentIndex == INVALID_PARENT) {
+                    boneMatrices[i] = worldMatrix;
+                } else {
+                    boneMatrices[i] = worldMatrix * boneMatrices[parentIndex];
+                }
+
+                if (animation->IsBoneAnimated(i)) {
+                    finalboneMatrices[i] =
+                        (model->skeleton.offsetMatrices[i] * boneMatrices[i])
+                            .Transpose();
+                } else {
+                    finalboneMatrices[i] = finalboneMatrices[parentIndex];
+                }
             }
 
-            if (animation.m_boneKeys[i].rotations.size() != 0) {
-                worldMatrix =
-                    worldMatrix *
-                    RotationMatrix(
-                        animation.m_boneKeys[i].rotations[0].rotation);
-            }
-
-            if (animation.m_boneKeys[i].positions.size() != 0) {
-                worldMatrix =
-                    worldMatrix *
-                    TranslationMatrix(
-                        animation.m_boneKeys[i].positions[0].position);
-            }
-
-            if (parentIndex == INVALID_PARENT) {
-                boneMatrices[i] = worldMatrix;
-            } else {
-                boneMatrices[i] = worldMatrix * boneMatrices[parentIndex];
-            }
-
-            if (animation.m_boneKeys[i].positions.size() == 0 &&
-                animation.m_boneKeys[i].rotations.size() == 0 &&
-                animation.m_boneKeys[i].scalings.size() == 0) {
-                finalboneMatrices[i] = finalboneMatrices[parentIndex];
-            } else {
-                finalboneMatrices[i] =
-                    (model->skeleton.offsetMatrices[i] * boneMatrices[i])
-                        .Transpose();
-            }
+            Graphics::get()->SetBoneData(finalboneMatrices);
         }
-
-        Graphics::get()->SetBoneData(finalboneMatrices);
 
         matrix worldMatrix = sceneNode->GetWorldMatrix();
         Graphics::get()->SetWorldMatrix(worldMatrix);
