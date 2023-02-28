@@ -12,12 +12,12 @@ struct Transform {
 
     void CalcWorldMatrix(const matrix& parentMatrix);
 
-    vector3 GetUp() const { return (LOCAL_UP * worldMatrix).normalized(); }
+    vector3 GetUp() const { return (vector3::up() * worldMatrix).normalized(); }
     vector3 GetRight() const {
-        return (LOCAL_RIGHT * worldMatrix).normalized();
+        return (vector3::right() * worldMatrix).normalized();
     }
     vector3 GetForward() const {
-        return (LOCAL_FORWARD * worldMatrix).normalized();
+        return (vector3::forward() * worldMatrix).normalized();
     }
 
     vector3 position;

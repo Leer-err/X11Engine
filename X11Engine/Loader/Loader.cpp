@@ -4,6 +4,7 @@
 #include <WICTextureLoader.h>
 #include <d3dcompiler.h>
 
+#include <algorithm>
 #include <fstream>
 #include <memory>
 #include <queue>
@@ -60,27 +61,24 @@ void Loader::ProcessEntity(json entityObject) {
     json rotationData = entityObject["rotation"];
     json scaleData = entityObject["scale"];
 
-    vector3 position(positionData[0].get<float>(), positionData[1].get<float>(),
-                     positionData[2].get<float>());
+    vector3 position = entityObject["position"].get<vector3>();
     vector3 rotation;
-    vector3 scale(1.f, 1.f, 1.f);
+    vector3 scale = vector3(1.f, 1.f, 1.f);
 
     if (!rotationData.empty()) {
-        rotation =
-            vector3(rotationData[0].get<float>(), rotationData[1].get<float>(),
-                    rotationData[2].get<float>());
+        rotation = entityObject["rotation"].get<vector3>();
     }
     if (!scaleData.empty()) {
-        scale = vector3(scaleData[0].get<float>(), scaleData[1].get<float>(),
-                        scaleData[2].get<float>());
+        scale = entityObject["scale"].get<vector3>();
     }
+
     TransformComponent* entityPosition =
         entity.AddComponent<TransformComponent>(Scene::get()->GetWorldNode(),
                                                 position, rotation, scale);
 
     string modelFile = entityObject["model"].get<string>();
     if (!modelFile.empty()) {
-        Model* model = Loader::get()->LoadModelFromFile(modelFile.data());
+        Model* model = LoadModelFromFile(modelFile.data());
 
         entity.AddComponent<RenderComponent>(entityPosition->sceneNode, model);
         entity.AddComponent<AnimationComponent>("mixamo.com", model);
@@ -99,50 +97,22 @@ void Loader::ProcessPointLight(json lightObject) {
     lightData.lin = data["lin"].get<float>();
     lightData.quadratic = data["quadratic"].get<float>();
 
-    json ambient = data["ambient"];
-    lightData.ambient =
-        vector3(ambient[0].get<float>(), ambient[1].get<float>(),
-                ambient[2].get<float>());
+    lightData.ambient = data["ambient"].get<vector3>();
+    lightData.diffuse = data["diffuse"].get<vector3>();
+    lightData.specular = data["specular"].get<vector3>();
 
-    json diffuse = data["diffuse"];
-    lightData.diffuse =
-        vector3(diffuse[0].get<float>(), diffuse[1].get<float>(),
-                diffuse[2].get<float>());
-
-    json specular = data["specular"];
-    lightData.specular =
-        vector3(specular[0].get<float>(), specular[1].get<float>(),
-                specular[2].get<float>());
-
-    light.AddComponent<TransformComponent>(
-        Scene::get()->GetWorldNode(),
-        vector3(position[0].get<float>(), position[1].get<float>(),
-                position[2].get<float>()),
-        quaternion(), vector3());
+    light.AddComponent<TransformComponent>(Scene::get()->GetWorldNode(),
+                                           position.get<vector3>(),
+                                           quaternion(), vector3());
     light.AddComponent<PointLightComponent>(lightData);
 }
 
 void Loader::ProcessDirectionalLight(json lightObject) {
-    json directionData = lightObject["direction"];
+    vector3 direction = lightObject["direction"].get<vector3>();
 
-    vector3 direction(directionData[0].get<float>(),
-                      directionData[1].get<float>(),
-                      directionData[2].get<float>());
-
-    json ambientData = lightObject["ambient"];
-    vector3 ambient =
-        vector3(ambientData[0].get<float>(), ambientData[1].get<float>(),
-                ambientData[2].get<float>());
-
-    json diffuseData = lightObject["diffuse"];
-    vector3 diffuse =
-        vector3(diffuseData[0].get<float>(), diffuseData[1].get<float>(),
-                diffuseData[2].get<float>());
-
-    json specularData = lightObject["specular"];
-    vector3 specular =
-        vector3(specularData[0].get<float>(), specularData[1].get<float>(),
-                specularData[2].get<float>());
+    vector3 ambient = lightObject["ambient"].get<vector3>();
+    vector3 diffuse = lightObject["diffuse"].get<vector3>();
+    vector3 specular = lightObject["specular"].get<vector3>();
 
     Graphics::get()->SetDirLight({direction, ambient, diffuse, specular});
 }
@@ -150,8 +120,7 @@ void Loader::ProcessDirectionalLight(json lightObject) {
 void Loader::ProcessPlayer(json playerObject) {
     EntityId player = ECS::EntityManager::get()->CreateEntity();
 
-    json positionData = playerObject["position"];
-    vector3 position(positionData[0], positionData[1], positionData[2]);
+    vector3 position = playerObject["position"].get<vector3>();
 
     TransformComponent* playerTransform =
         player.AddComponent<TransformComponent>(Scene::get()->GetWorldNode(),
@@ -268,13 +237,8 @@ int Loader::LoadMaterial(const aiScene* scene, const aiMaterial* material) {
 }
 
 Mesh Loader::LoadMesh(const aiMesh* mesh) {
-    vector3 min(std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::max());
-
-    vector3 max(std::numeric_limits<float>::min(),
-                std::numeric_limits<float>::min(),
-                std::numeric_limits<float>::min());
+    vector3 min = vector3::max();
+    vector3 max = vector3::min();
 
     vector<Vertex> vert;
     vector<uint32_t> ind;
@@ -290,13 +254,13 @@ Mesh Loader::LoadMesh(const aiMesh* mesh) {
         vector3 normal = {norm.x, norm.y, norm.z};
         vector2 texCoords = {uv.x, uv.y};
 
-        if (pos.x < min.x) min.x = pos.x;
-        if (pos.y < min.y) min.y = pos.y;
-        if (pos.z < min.z) min.z = pos.z;
+        min.x = std::min(min.x, pos.x);
+        min.y = std::min(min.y, pos.y);
+        min.z = std::min(min.z, pos.z);
 
-        if (pos.x > max.x) max.x = pos.x;
-        if (pos.y > max.y) max.y = pos.y;
-        if (pos.z > max.z) max.z = pos.z;
+        max.x = std::max(max.x, pos.x);
+        max.y = std::max(max.y, pos.y);
+        max.z = std::max(max.z, pos.z);
 
         vert.emplace_back(position, normal, texCoords);
     }
@@ -319,13 +283,8 @@ Mesh Loader::LoadMesh(const aiMesh* mesh) {
 
 Mesh Loader::LoadMeshSkinning(const aiMesh* mesh, Skeleton& skeleton,
                               float scale) {
-    vector3 min(std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::max());
-
-    vector3 max(std::numeric_limits<float>::min(),
-                std::numeric_limits<float>::min(),
-                std::numeric_limits<float>::min());
+    vector3 min = vector3::max();
+    vector3 max = vector3::min();
 
     vector<VertexSkinning> vert;
     vector<uint32_t> ind;
@@ -343,13 +302,13 @@ Mesh Loader::LoadMeshSkinning(const aiMesh* mesh, Skeleton& skeleton,
         vector3 normal = {norm.x, norm.y, norm.z};
         vector2 texCoords = {uv.x, uv.y};
 
-        if (position.x < min.x) min.x = position.x;
-        if (position.y < min.y) min.y = position.y;
-        if (position.z < min.z) min.z = position.z;
+        min.x = std::min(min.x, position.x);
+        min.y = std::min(min.y, position.y);
+        min.z = std::min(min.z, position.z);
 
-        if (position.x > max.x) max.x = position.x;
-        if (position.y > max.y) max.y = position.y;
-        if (position.z > max.z) max.z = position.z;
+        max.x = std::max(max.x, position.x);
+        max.y = std::max(max.y, position.y);
+        max.z = std::max(max.z, position.z);
 
         vert.emplace_back(position, normal, texCoords);
     }

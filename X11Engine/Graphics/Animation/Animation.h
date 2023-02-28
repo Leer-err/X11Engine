@@ -64,6 +64,7 @@ struct Animation {
             return vector3();
         }
     }
+
     inline quaternion GetRotationKey(int boneId, float time) const {
         int keyIndex = time * m_ticksPerSecond;
 
@@ -86,6 +87,7 @@ struct Animation {
             return quaternion();
         }
     }
+
     inline vector3 GetScaleKey(int boneId, float time) const {
         int keyIndex = time * m_ticksPerSecond;
 

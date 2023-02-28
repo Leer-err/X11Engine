@@ -15,6 +15,11 @@ FetchContent_Declare(directxtk
   GIT_TAG           2c9dc8930d41f05bb7b04e09b7824e43b6cea08d
 )
 FetchContent_MakeAvailable(directxtk)
+FetchContent_Declare(imgui
+  GIT_REPOSITORY    https://github.com/ocornut/imgui.git
+  GIT_TAG           v1.89.3
+)
+FetchContent_MakeAvailable(imgui)
 FetchContent_Declare(p7
   URL    http://baical.net/files/libP7Client_v5.6.zip
 )
@@ -49,18 +54,9 @@ add_compile_definitions(NOMINMAX)
 add_compile_definitions(WIN32_LEAN_AND_MEAN)
 
 target_link_libraries(Engine PRIVATE
-	D3DCompiler.lib
-    d3d11.lib
-	dxgi.lib
-	dxguid.lib
-	uuid.lib
-    kernel32.lib
-	user32.lib
-    comdlg32.lib
-	advapi32.lib
-	shell32.lib
-    ole32.lib
-	oleaut32.lib
+	D3DCompiler
+    d3d11
+	dxgi
 	DirectXTK
 	assimp
 	p7

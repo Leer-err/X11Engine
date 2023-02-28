@@ -4,6 +4,8 @@
 #include <assimp/vector3.h>
 #include <memory.h>
 
+#include <nlohmann/json.hpp>
+
 struct vector3 {
     inline vector3() { memset(this, 0, sizeof(vector3)); }
     inline vector3(const DirectX::XMVECTOR& vec) {
@@ -88,6 +90,32 @@ struct vector3 {
     inline vector3 __vectorcall transform(const DirectX::XMMATRIX& m) const {
         return DirectX::XMVector3Transform(*this, m);
     }
+
+    static inline vector3 min() {
+        const vector3 min = {std::numeric_limits<float>::min(),
+                             std::numeric_limits<float>::min(),
+                             std::numeric_limits<float>::min()};
+        return min;
+    }
+    static inline vector3 max() {
+        const vector3 max = {std::numeric_limits<float>::max(),
+                             std::numeric_limits<float>::max(),
+                             std::numeric_limits<float>::max()};
+        return max;
+    }
+    static inline vector3 forward() {
+        const vector3 forward = {0.f, 0.f, 1.f};
+        return forward;
+    }
+    static inline vector3 up() {
+        const vector3 up = {0.f, 1.f, 0.f};
+        return up;
+    }
+    static inline vector3 right() {
+        const vector3 right = {1.f, 0.f, 0.f};
+        return right;
+    }
+
     static inline vector3 __vectorcall lerp(const vector3& a, const vector3& b,
                                             float t) {
         return DirectX::XMVectorLerp(a, b, t);
@@ -101,6 +129,16 @@ struct vector3 {
     };
 };
 
+inline void to_json(nlohmann::json& j, const vector3& vec) {
+    j = nlohmann::json::array({vec.x, vec.y, vec.z});
+}
+
+inline void from_json(const nlohmann::json& j, vector3& vec) {
+    j.at(0).get_to(vec.x);
+    j.at(1).get_to(vec.y);
+    j.at(2).get_to(vec.z);
+}
+
 inline float __vectorcall dot(const vector3& a, const vector3& b) {
     return DirectX::XMVector3Dot(a, b).m128_f32[0];
 }
@@ -108,7 +146,3 @@ inline float __vectorcall dot(const vector3& a, const vector3& b) {
 inline vector3 __vectorcall cross(const vector3& a, const vector3& b) {
     return DirectX::XMVector3Cross(a, b);
 }
-
-constexpr vector3 LOCAL_FORWARD = {0.f, 0.f, 1.f};
-constexpr vector3 LOCAL_UP = {0.f, 1.f, 0.f};
-constexpr vector3 LOCAL_RIGHT = {1.f, 0.f, 0.f};

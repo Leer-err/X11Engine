@@ -40,15 +40,17 @@ bool TestAABBCollision(const AABB& box, const Transform& transform,
     vector3 up = transform.GetUp() * box.extents.y;
     vector3 forward = transform.GetForward() * box.extents.z;
 
-    float extentX = abs(dot(LOCAL_RIGHT, right)) + abs(dot(LOCAL_RIGHT, up)) +
-                    abs(dot(LOCAL_RIGHT, forward));
+    float extentX = abs(dot(vector3::right(), right)) +
+                    abs(dot(vector3::right(), up)) +
+                    abs(dot(vector3::right(), forward));
 
-    float extentY = abs(dot(LOCAL_UP, right)) + abs(dot(LOCAL_UP, up)) +
-                    abs(dot(LOCAL_UP, forward));
+    float extentY = abs(dot(vector3::up(), right)) +
+                    abs(dot(vector3::up(), up)) +
+                    abs(dot(vector3::up(), forward));
 
-    float extentZ = abs(dot(LOCAL_FORWARD, right)) +
-                    abs(dot(LOCAL_FORWARD, up)) +
-                    abs(dot(LOCAL_FORWARD, forward));
+    float extentZ = abs(dot(vector3::forward(), right)) +
+                    abs(dot(vector3::forward(), up)) +
+                    abs(dot(vector3::forward(), forward));
 
     AABB globalBox(globalCenter, extentX, extentY, extentZ);
 
@@ -102,10 +104,10 @@ void RenderSystem::Update(float delta) {
             ECS::ComponentManager::get()->GetComponent<AnimationComponent>(
                 entity);
 
+        vector<matrix> finalboneMatrices(model->skeleton.offsetMatrices.size(),
+                                         IdentityMatrix());
         if (animationComponent != nullptr) {
             vector<matrix> boneMatrices(model->skeleton.offsetMatrices.size());
-            vector<matrix> finalboneMatrices(
-                model->skeleton.offsetMatrices.size());
 
             const auto& animation = animationComponent->animation;
             const auto& animationTime = animationComponent->time;
@@ -137,9 +139,9 @@ void RenderSystem::Update(float delta) {
                     finalboneMatrices[i] = finalboneMatrices[parentIndex];
                 }
             }
-
-            Graphics::get()->SetBoneData(finalboneMatrices);
         }
+
+        Graphics::get()->SetBoneData(finalboneMatrices);
 
         matrix worldMatrix = sceneNode->GetWorldMatrix();
         Graphics::get()->SetWorldMatrix(worldMatrix);
