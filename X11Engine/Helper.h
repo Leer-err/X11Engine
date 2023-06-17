@@ -1,8 +1,7 @@
 #pragma once
 #include <Windows.h>
 
-#include "Types/Types.h"
-
+#include "Framework/Types/Types.h"
 
 template <class T>
 class Helper {

@@ -10,10 +10,12 @@
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 
-#include "Graphics/Animation/Animation.h"
-#include "Graphics/Graphics.h"
-#include "Graphics/Model.h"
-#include "Scene/Scene.h"
+#include "Framework/Graphics/Animation.h"
+#include "Framework/Graphics/Graphics.h"
+#include "Framework/Graphics/Model.h"
+
+// TODO: get rid of Engine dependency
+#include "Engine/Scene/Scene.h"
 
 using nlohmann::json;
 using std::map;
@@ -51,13 +53,10 @@ class Loader {
    private:
     int LoadMaterial(const aiScene* scene, const aiMaterial* material);
     Mesh LoadMesh(const aiMesh* mesh);
-    Mesh LoadMeshSkinning(const aiMesh* mesh,
-                          Skeleton& skeleton,
-                          float scale);
+    Mesh LoadMeshSkinning(const aiMesh* mesh, Skeleton& skeleton, float scale);
     Animation LoadAnimation(const aiAnimation* modelAnimation,
                             const unordered_map<string, int>& boneNames);
-    vector<Mesh> GetMeshes(const aiScene* scene,
-                           Skeleton& skeleton,
+    vector<Mesh> GetMeshes(const aiScene* scene, Skeleton& skeleton,
                            float scale);
 
     void ProcessPointLight(json lightObject);
