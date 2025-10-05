@@ -1,0 +1,9 @@
+[submodule "X11Engine/src/Dependencies/PhysX"]
+	path = X11Engine/src/Dependencies/PhysX
+	url = https://github.com/NVIDIA-Omniverse/PhysX.git
+[submodule "X11Engine/src/Dependencies/assimp"]
+	path = X11Engine/src/Dependencies/assimp
+	url = https://github.com/assimp/assimp.git
+[submodule "X11Engine/src/Dependencies/imgui"]
+	path = X11Engine/src/Dependencies/imgui
+	url = https://github.com/ocornut/imgui.git

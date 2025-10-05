@@ -2,42 +2,31 @@
     "version": 3,
     "configurePresets": [
         {
-            "name": "x64",
-            "displayName": "Clang-cl",
-            "binaryDir": "${sourceDir}/out/build/x64",
+            "name": "Release",
+            "displayName": "ReleaseWithInfo",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "generator": "Ninja",
             "cacheVariables": {
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
-                "CMAKE_C_COMPILER": "clang-cl.exe",
-                "CMAKE_CXX_COMPILER": "clang-cl.exe",
-                "CMAKE_BUILD_TYPE": "Release"
-            }
-        },
-        {
-            "name": "x64 Debug",
-            "displayName": "Clang-cl Debug",
-            "binaryDir": "${sourceDir}/out/build/x64",
-            "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
-                "CMAKE_C_COMPILER": "clang-cl.exe",
-                "CMAKE_CXX_COMPILER": "clang-cl.exe",
+                "CMAKE_C_COMPILER": "clang.exe",
+                "CMAKE_CXX_COMPILER": "clang++.exe",
                 "CMAKE_BUILD_TYPE": "RelWithDebInfo"
             }
-        }
-    ],
-    "buildPresets": [
-        {
-            "name": "Release",
-            "description": "",
-            "displayName": "",
-            "configurePreset": "x64",
-            "configuration": "Release"
         },
         {
             "name": "Debug",
-            "description": "",
-            "displayName": "",
-            "configurePreset": "x64 Debug",
-            "configuration": "RelWithDebInfo"
+            "displayName": "Debug",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "ASSIMP_BUILD_ZLIB": "ON",
+                "ASSIMP_BUILD_TESTS": "OFF"
+            }
         }
     ]
 }

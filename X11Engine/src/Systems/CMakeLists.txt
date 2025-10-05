@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.21)
+
+add_subdirectory(StaticMeshRenderSystem)
+add_subdirectory(AnimatedMeshRenderSystem)
+add_subdirectory(PlayerMovementSystem)
+add_subdirectory(TransformSystem)
+add_subdirectory(PhysicsSystem)
+add_subdirectory(OverlayREnderSystem)
+add_subdirectory(PostSimulateUpdateSystem)
+add_subdirectory(PreSimulateUpdateSystem)
+add_subdirectory(DeleteProjectileSystem)
