@@ -17,10 +17,6 @@ file(GLOB_RECURSE SOURCES *.c *.cpp)
 
 add_executable(${TEST_NAME} ${SOURCES})
 
-add_compile_definitions(
-	GTEST_LINKED_AS_SHARED_LIBRARY
-)
-
 target_link_libraries(${TEST_NAME} PRIVATE
 	X11Engine_lib
 	GTest::gmock

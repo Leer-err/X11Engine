@@ -55,7 +55,7 @@ bool Engine::init(std::shared_ptr<IResourceFactory> resource_factory,
     animation_registry = std::make_shared<AnimationRegistry>();
     auto animation_reader = AssimpAnimationReader();
     auto animations = animation_reader.readAll(
-        "E:\\repos\\X11Engine\\X11Engine\\src_old\\Assets\\Taunt.fbx");
+        "E:\\repos\\X11Engine\\X11Engine\\Assets\\Taunt.fbx");
     for (auto animation : animations) {
         animation_registry->add(animation);
     }
@@ -69,8 +69,8 @@ void Engine::run() {
     auto cam = StaticProjectionCamera(60, (float)4 / 3, 0.1f, 1000.f);
 
     auto model_reader = AssimpModelReader(factory);
-    auto model = model_reader.read(
-        "E:\\repos\\X11Engine\\X11Engine\\src_old\\Assets\\Taunt.fbx");
+    auto model =
+        model_reader.read("E:\\repos\\X11Engine\\X11Engine\\Assets\\Taunt.fbx");
 
     Entity player = world.createEntity();
     player.set<Name>({"Player"});

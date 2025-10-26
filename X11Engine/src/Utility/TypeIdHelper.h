@@ -6,7 +6,7 @@
 class TypeIdHelper {
    public:
     template <class Type>
-    static const TypeId getTypeId() {
+    static inline const TypeId getTypeId() {
         static const TypeId TYPE_ID = type_count++;
         return TYPE_ID;
     }
