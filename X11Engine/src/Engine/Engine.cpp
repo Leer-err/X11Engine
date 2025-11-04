@@ -31,16 +31,17 @@
 #include "PostSimulateUpdateSystem.h"
 #include "PreSimulateUpdateSystem.h"
 #include "Quaternion.h"
+#include "ScriptSystem.h"
 #include "StaticMeshRenderSystem.h"
 #include "StaticProjectionCamera.h"
 #include "Transform.h"
 #include "Vector3.h"
 #include "World.h"
 
-Engine::Engine() : should_exit(false) {}
+Engine::Engine::Engine() : should_exit(false) {}
 
-bool Engine::init(std::shared_ptr<IResourceFactory> resource_factory,
-                  std::shared_ptr<Window> window) {
+bool Engine::Engine::init(std::shared_ptr<IResourceFactory> resource_factory,
+                          std::shared_ptr<Window> window) {
     this->window = window;
     factory = resource_factory;
 
@@ -65,7 +66,7 @@ bool Engine::init(std::shared_ptr<IResourceFactory> resource_factory,
     return true;
 }
 
-void Engine::run() {
+void Engine::Engine::run() {
     auto cam = StaticProjectionCamera(60, (float)4 / 3, 0.1f, 1000.f);
 
     auto model_reader = AssimpModelReader(factory);
@@ -149,9 +150,9 @@ void Engine::run() {
     }
 }
 
-void Engine::exit() { should_exit = true; }
+void Engine::Engine::exit() { should_exit = true; }
 
-void Engine::setupSystemPipeline() {
+void Engine::Engine::setupSystemPipeline() {
     setupPreUpdateStep();
     setupUpdateStep();
     setupPostUpdateStep();
@@ -161,26 +162,27 @@ void Engine::setupSystemPipeline() {
     setupRenderingStep();
 }
 
-void Engine::setupPreUpdateStep() { world.addSystem<PreUpdate>(); }
+void Engine::Engine::setupPreUpdateStep() { world.addSystem<PreUpdate>(); }
 
-void Engine::setupUpdateStep() {
+void Engine::Engine::setupUpdateStep() {
     world.addSystem<Update>().dependsOn<PreUpdate>();
 
+    world.addSystem<ScriptSystem>().dependsOn<Update>();
     world.addSystem<PlayerMovementSystem>().dependsOn<Update>();
     // world.addSystem<DeleteProjectileSystem>().dependsOn<Update>();
 }
 
-void Engine::setupPostUpdateStep() {
+void Engine::Engine::setupPostUpdateStep() {
     world.addSystem<PostUpdate>().dependsOn<Update>();
 }
 
-void Engine::setupPreSimulateStep() {
+void Engine::Engine::setupPreSimulateStep() {
     world.addSystem<PreSimulation>().dependsOn<PostUpdate>();
 
     world.addSystem<PreSimulateUpdateSystem>().dependsOn<PreSimulation>();
 }
 
-void Engine::setupSimulateStep() {
+void Engine::Engine::setupSimulateStep() {
     world.addSystem<Simulation>().dependsOn<PreSimulation>();
 
     world.addSystem<PhysicsSystem>(physics, world, 1.f / 60)
@@ -188,14 +190,14 @@ void Engine::setupSimulateStep() {
     world.addSystem<PlayerMovementSystem>().dependsOn<Simulation>();
 }
 
-void Engine::setupPostSimulateStep() {
+void Engine::Engine::setupPostSimulateStep() {
     world.addSystem<PostSimulation>().dependsOn<Simulation>();
 
     world.addSystem<PostSimulateUpdateSystem>(world)
         .dependsOn<PostSimulation>();
 }
 
-void Engine::setupRenderingStep() {
+void Engine::Engine::setupRenderingStep() {
     world.addSystem<Rendering>().dependsOn<PostSimulation>();
 
     std::shared_ptr<IShaderReader> shader_reader =

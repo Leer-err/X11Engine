@@ -1,6 +1,7 @@
 #include "EntityRegistry.h"
 
 #include <cstddef>
+#include <optional>
 
 #include "ComponentRegistry.h"
 #include "Entity.h"
@@ -38,8 +39,9 @@ void EntityRegistry::killEntity(Entity entity) {
 
 std::vector<Entity> EntityRegistry::getEntities() const { return entities; }
 
-Entity EntityRegistry::getEntityFromId(EntityId id) {
-    size_t index = entity_ids.at(id);
+std::optional<Entity> EntityRegistry::getEntityFromId(EntityId id) {
+    auto index = entity_ids.find(id);
+    if (index == entity_ids.end()) return std::nullopt;
 
-    return entities[index];
+    return entities[index->second];
 }

@@ -18,7 +18,7 @@ class StaticMeshRenderSystem : public ISystem {
     StaticMeshRenderSystem(std::shared_ptr<IResourceFactory> factory,
                            std::shared_ptr<IShaderReader> shader_reader);
 
-    bool prepare() override;
+    bool prepare(World& world) override;
 
     void update(World& world, float delta_time) override;
 

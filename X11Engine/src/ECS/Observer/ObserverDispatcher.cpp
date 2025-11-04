@@ -14,7 +14,7 @@ void ObserverDispatcher::event(TypeId component, EntityId entity_id,
                                Event event) {
     if (callbacks[event].find(component) == callbacks[event].end()) return;
 
-    Entity entity = entity_registry->getEntityFromId(entity_id);
+    Entity entity = entity_registry->getEntityFromId(entity_id).value();
 
     for (const auto& callback : callbacks[event][component]) {
         callback(entity);

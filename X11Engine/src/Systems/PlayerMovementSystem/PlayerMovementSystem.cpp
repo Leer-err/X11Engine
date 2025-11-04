@@ -11,7 +11,7 @@
 #include "Vector3.h"
 #include "World.h"
 
-bool PlayerMovementSystem::prepare() { return true; }
+bool PlayerMovementSystem::prepare(World& world) { return true; }
 
 void PlayerMovementSystem::update(World& world, float delta_time) {
     ZoneScoped;

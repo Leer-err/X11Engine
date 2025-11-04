@@ -6,7 +6,7 @@
 #include "Transform.h"
 #include "World.h"
 
-bool PlayerAttackSystem::prepare() { return true; }
+bool PlayerAttackSystem::prepare(World& world) { return true; }
 
 void PlayerAttackSystem::update(World& world, float delta_time) {
     std::vector<Entity> entities =

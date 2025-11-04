@@ -34,7 +34,7 @@ TransformSystem::TransformSystem(World& world) {
     world.observer<DirtyTransform>().on(Event::Add).call(child_dirty_marker);
 }
 
-bool TransformSystem::prepare() { return true; }
+bool TransformSystem::prepare(World& world) { return true; }
 
 void TransformSystem::update(World& world, float delta_time) {
     ZoneScoped;

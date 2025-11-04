@@ -8,7 +8,7 @@ class PostSimulateUpdateSystem : public ISystem {
    public:
     PostSimulateUpdateSystem(World& world);
 
-    bool prepare() override;
+    bool prepare(World& world) override;
     void update(World& world, float delta_time) override;
 };
 

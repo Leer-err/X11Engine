@@ -1,7 +1,10 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+#include <optional>
+
 #include "ComponentRegistry.h"
+#include "EntityId.h"
 #include "EntityRegistry.h"
 #include "ObserverBuilder.h"
 #include "ObserverDispatcher.h"
@@ -15,10 +18,15 @@ class World {
    public:
     World()
         : observer_dispatcher(&entity_registry),
-          component_registry(&observer_dispatcher) {}
+          component_registry(&observer_dispatcher),
+          system_dispatcher(*this) {}
 
     Entity createEntity() {
         return entity_registry.createEntity(&component_registry);
+    }
+
+    std::optional<Entity> getEntity(EntityId id) {
+        return entity_registry.getEntityFromId(id).value();
     }
 
     void killEntity(Entity entity) {

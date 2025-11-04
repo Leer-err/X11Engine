@@ -24,7 +24,7 @@ target_link_libraries(${TEST_NAME} PRIVATE
 )
 
 set_target_properties(${TEST_NAME} PROPERTIES
-	CXX_STANDARD 17
+	CXX_STANDARD 20
 	CXX_STANDARD_REQUIRED true
 )
 

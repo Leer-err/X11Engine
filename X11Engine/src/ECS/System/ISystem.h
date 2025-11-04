@@ -5,7 +5,7 @@ class World;
 
 class ISystem {
    public:
-    virtual bool prepare() = 0;
+    virtual bool prepare(World& world) = 0;
 
     virtual void update(World& world, float delta_time) = 0;
 };

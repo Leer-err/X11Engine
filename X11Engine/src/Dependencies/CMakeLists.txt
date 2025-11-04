@@ -109,3 +109,30 @@ target_sources(ImGuiLib PRIVATE
 target_link_libraries(${TARGET_NAME} PUBLIC
     ImGuiLib
 )
+
+#Lua
+
+target_include_directories(${TARGET_NAME} PUBLIC
+	${CMAKE_CURRENT_SOURCE_DIR}/lua/include
+)
+
+target_link_directories(${TARGET_NAME} PUBLIC
+	${CMAKE_CURRENT_SOURCE_DIR}/lua
+)
+
+find_library(LUA_PATH PATH liblua54.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lua/)
+
+target_link_libraries(${TARGET_NAME} PUBLIC 
+	${LUA_PATH}
+)
+
+add_custom_command(
+	OUTPUT
+        ${CMAKE_BINARY_DIR}/bin/lua54.dll
+	COMMAND
+		${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/lua/lua54.dll ${CMAKE_BINARY_DIR}/bin
+    DEPENDS ${EXECUTABLE_NAME}
+)
+add_custom_target(copy_lua_libs ALL
+	DEPENDS ${CMAKE_BINARY_DIR}/bin/lua54.dll
+)
