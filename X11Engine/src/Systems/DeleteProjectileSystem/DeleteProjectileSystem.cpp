@@ -8,7 +8,7 @@
 #include "PhysicsComponents.h"
 #include "World.h"
 
-bool DeleteProjectileSystem::prepare() { return true; }
+bool DeleteProjectileSystem::prepare(World& world) { return true; }
 
 void DeleteProjectileSystem::update(World& world, float delta_time) {
     std::vector<Entity> projectiles =

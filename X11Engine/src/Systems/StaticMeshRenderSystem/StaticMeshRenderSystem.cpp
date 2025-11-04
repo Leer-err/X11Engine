@@ -26,7 +26,7 @@ StaticMeshRenderSystem::StaticMeshRenderSystem(
       shader_reader(shader_reader),
       logger(LoggerFactory::getLogger("StaticMeshRenderSystem")) {}
 
-bool StaticMeshRenderSystem::prepare() {
+bool StaticMeshRenderSystem::prepare(World& world) {
     constexpr char PIXEL_SHADER_FILE[] =
         "E:\\repos\\X11Engine\\X11Engine\\src\\Shaders\\PixelShader.hlsl";
     constexpr char VERTEX_SHADER_FILE[] =

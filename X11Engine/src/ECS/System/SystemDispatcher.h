@@ -13,6 +13,8 @@
 #include "TypeId.h"
 #include "TypeIdHelper.h"
 
+class World;
+
 class SystemDispatcher {
    public:
     class SystemDescription {
@@ -48,6 +50,8 @@ class SystemDispatcher {
         std::function<void(std::vector<TypeId>&&)> callback;
     };
 
+    SystemDispatcher(World& world) : world(world) {}
+
     template <typename System, typename... Args>
     SystemDescription add(Args&&... args) {
         static_assert(std::is_base_of_v<ISystem, System>,
@@ -55,7 +59,7 @@ class SystemDispatcher {
 
         auto system = std::make_unique<System>(std::forward<Args>(args)...);
 
-        system->prepare();
+        system->prepare(world);
 
         TypeId id = TypeIdHelper::getTypeId<System>();
 
@@ -137,6 +141,8 @@ class SystemDispatcher {
             execution_order.push_back(generation);
         }
     }
+
+    World& world;
 
     std::unordered_map<TypeId, std::unique_ptr<ISystem>> systems;
     std::unordered_map<TypeId, std::vector<TypeId>> system_dependencies;

@@ -41,7 +41,7 @@ TEST(EntityRegistryTest, GetEntityTest) {
 
     Entity entity = reg.createEntity(nullptr);
 
-    Entity copy = reg.getEntityFromId(entity.getId());
+    Entity copy = reg.getEntityFromId(entity.getId()).value();
 
     ASSERT_EQ(entity, copy);
 }

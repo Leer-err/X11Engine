@@ -1,6 +1,7 @@
 #ifndef ENTITY_REGISTRY_H
 #define ENTITY_REGISTRY_H
 
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -16,7 +17,7 @@ class EntityRegistry {
     Entity createEntity(ComponentRegistry* world);
     void killEntity(Entity entity);
 
-    Entity getEntityFromId(EntityId id);
+    std::optional<Entity> getEntityFromId(EntityId id);
     std::vector<Entity> getEntities() const;
 
    private:

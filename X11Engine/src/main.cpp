@@ -28,11 +28,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
     main_logger.info("Created DirectX 11 resource factory", window->getWidth(),
                      window->getHeight());
 
-    Engine engine;
+    Engine::Engine engine;
     engine.init(factory, window);
 
     main_logger.info("Starting main loop");
-    std::thread engine_thread = std::thread(&Engine::run, &engine);
+    std::thread engine_thread = std::thread(&Engine::Engine::run, &engine);
 
     while (window->processMessages()) {
     }

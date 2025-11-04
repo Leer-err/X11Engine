@@ -14,7 +14,7 @@
 #include "Transform.h"
 #include "World.h"
 
-bool PreSimulateUpdateSystem::prepare() { return true; }
+bool PreSimulateUpdateSystem::prepare(World& world) { return true; }
 
 void PreSimulateUpdateSystem::update(World& world, float delta_time) {
     ZoneScoped;

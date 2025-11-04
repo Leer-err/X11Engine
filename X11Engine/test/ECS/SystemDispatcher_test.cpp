@@ -14,8 +14,8 @@
 //    public:
 //     MockWrapper(MockSystem& system) : system(system) {}
 
-//     bool prepare() override { return system.prepare(); }
-//     void update(World& world, float delta_time) override {
+//     bool prepare(World& world) override { return system.prepare(World&
+//     world); } void update(World& world, float delta_time) override {
 //         system.update(world, delta_time);
 //     }
 

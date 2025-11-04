@@ -25,7 +25,7 @@ AnimatedMeshRenderSystem::AnimatedMeshRenderSystem(
       animation_registry(animation_registry),
       logger(LoggerFactory::getLogger("AnimatedMeshRenderSystem")) {}
 
-bool AnimatedMeshRenderSystem::prepare() {
+bool AnimatedMeshRenderSystem::prepare(World& world) {
     constexpr char PIXEL_SHADER_FILE[] =
         "E:"
         "\\repos\\X11Engine\\X11Engine\\src\\Shaders\\AnimatedShaders\\PixelSha"

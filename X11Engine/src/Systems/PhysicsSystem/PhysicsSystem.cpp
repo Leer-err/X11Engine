@@ -32,7 +32,7 @@ PhysicsSystem::PhysicsSystem(std::shared_ptr<PhysicsFactory> factory,
 
 PhysicsSystem::~PhysicsSystem() {}
 
-bool PhysicsSystem::prepare() { return true; }
+bool PhysicsSystem::prepare(World& world) { return true; }
 
 void PhysicsSystem::update(World& world, float delta_time) {
     ZoneScoped;

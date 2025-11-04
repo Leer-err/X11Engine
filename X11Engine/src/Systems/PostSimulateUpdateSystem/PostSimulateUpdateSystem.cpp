@@ -32,7 +32,7 @@ PostSimulateUpdateSystem::PostSimulateUpdateSystem(World& world) {
     world.observer<DirtyTransform>().on(Event::Add).call(child_dirty_marker);
 }
 
-bool PostSimulateUpdateSystem::prepare() { return true; }
+bool PostSimulateUpdateSystem::prepare(World& world) { return true; }
 
 void PostSimulateUpdateSystem::update(World& world, float delta_time) {
     ZoneScoped;

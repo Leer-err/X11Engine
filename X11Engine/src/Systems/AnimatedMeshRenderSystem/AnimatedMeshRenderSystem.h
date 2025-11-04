@@ -25,7 +25,7 @@ class AnimatedMeshRenderSystem : public ISystem {
         std::shared_ptr<IShaderReader> shader_reader,
         std::shared_ptr<AnimationRegistry> animation_registry);
 
-    bool prepare() override;
+    bool prepare(World& world) override;
 
     void update(World& world, float delta_time) override;
 

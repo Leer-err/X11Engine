@@ -49,7 +49,7 @@ OverlayRenderSystem::~OverlayRenderSystem() {
     ImGui::DestroyContext();
 }
 
-bool OverlayRenderSystem::prepare() { return true; }
+bool OverlayRenderSystem::prepare(World& world) { return true; }
 
 void OverlayRenderSystem::update(World& world, float delta_time) {
     ZoneScoped;

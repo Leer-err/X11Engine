@@ -7,43 +7,43 @@ class World;
 
 class PreUpdate : public ISystem {
    public:
-    bool prepare() override { return true; }
+    bool prepare(World& world) override { return true; }
     void update(World& world, float delta_time) override {}
 };
 
 class PreSimulation : public ISystem {
    public:
-    bool prepare() override { return true; }
+    bool prepare(World& world) override { return true; }
     void update(World& world, float delta_time) override {}
 };
 
 class Simulation : public ISystem {
    public:
-    bool prepare() override { return true; }
+    bool prepare(World& world) override { return true; }
     void update(World& world, float delta_time) override {}
 };
 
 class PostSimulation : public ISystem {
    public:
-    bool prepare() override { return true; }
+    bool prepare(World& world) override { return true; }
     void update(World& world, float delta_time) override {}
 };
 
 class Update : public ISystem {
    public:
-    bool prepare() override { return true; }
+    bool prepare(World& world) override { return true; }
     void update(World& world, float delta_time) override {}
 };
 
 class PostUpdate : public ISystem {
    public:
-    bool prepare() override { return true; }
+    bool prepare(World& world) override { return true; }
     void update(World& world, float delta_time) override {}
 };
 
 class Rendering : public ISystem {
    public:
-    bool prepare() override { return true; }
+    bool prepare(World& world) override { return true; }
     void update(World& world, float delta_time) override {}
 };
 

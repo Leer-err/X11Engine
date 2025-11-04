@@ -8,6 +8,8 @@
 #include "Window.h"
 #include "World.h"
 
+namespace Engine {
+
 class Engine {
    public:
     Engine();
@@ -42,3 +44,5 @@ class Engine {
 
     std::shared_ptr<Window> window;
 };
+
+};  // namespace Engine

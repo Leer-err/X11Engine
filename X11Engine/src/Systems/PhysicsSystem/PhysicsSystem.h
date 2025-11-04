@@ -13,7 +13,7 @@ class PhysicsSystem : public ISystem {
                   float step);
     ~PhysicsSystem();
 
-    bool prepare();
+    bool prepare(World& world);
 
     void update(World& world, float delta_time);
 
