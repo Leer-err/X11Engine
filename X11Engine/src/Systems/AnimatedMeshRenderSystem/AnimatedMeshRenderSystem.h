@@ -6,6 +6,8 @@
 
 #include "Animation.h"
 #include "AnimationRegistry.h"
+#include "Entity.h"
+#include "ICamera.h"
 #include "IResourceFactory.h"
 #include "IShaderReader.h"
 #include "ISystem.h"
@@ -29,6 +31,9 @@ class AnimatedMeshRenderSystem : public ISystem {
 
     void update(World& world, float delta_time) override;
 
+    void setCamera(std::shared_ptr<ICamera> camera);
+    void setCameraEntity(Entity camera_entity);
+
    private:
     std::vector<Matrix> compute_bones(
         const Skeleton& skeleton, const Mesh& mesh,
@@ -37,6 +42,9 @@ class AnimatedMeshRenderSystem : public ISystem {
     TransformedSkeleton compute_skeleton(const Skeleton& skeleton,
                                          const Animation& animation,
                                          float time);
+
+    std::shared_ptr<ICamera> camera;
+    Entity camera_entity;
 
     std::shared_ptr<IConstantBuffer> camera_buffer;
     std::shared_ptr<IConstantBuffer> world_matrix_buffer;

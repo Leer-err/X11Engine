@@ -103,3 +103,7 @@ void StaticMeshRenderSystem::update(World& world, float delta_time) {
         }
     }
 }
+
+void setCamera(std::shared_ptr<ICamera> camera) {}
+
+void setCameraEntity(Entity camera_entity) {}

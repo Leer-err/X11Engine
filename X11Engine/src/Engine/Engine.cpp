@@ -18,7 +18,6 @@
 #include "GameInputConfigReader.h"
 #include "GameInputContext.h"
 #include "IShaderReader.h"
-#include "Input.h"
 #include "Name.h"
 #include "OverlayRenderSystem.h"
 #include "Parent.h"
@@ -40,114 +39,119 @@
 
 Engine::Engine::Engine() : should_exit(false) {}
 
-bool Engine::Engine::init(std::shared_ptr<IResourceFactory> resource_factory,
-                          std::shared_ptr<Window> window) {
-    this->window = window;
-    factory = resource_factory;
+bool Engine::Engine::init(std::shared_ptr<IResourceFactory> resource_factory) {
+    // this->window = window;
+    // factory = resource_factory;
 
-    int width = window->getWidth();
-    int height = window->getHeight();
+    // int width = window->getWidth();
+    // int height = window->getHeight();
 
-    renderer.init(factory, width, height);
+    // renderer.init(factory, width, height);
 
-    physics = std::make_shared<PhysicsFactory>();
-    physics->init();
+    // physics = std::make_shared<PhysicsFactory>();
+    // physics->init();
 
-    animation_registry = std::make_shared<AnimationRegistry>();
-    auto animation_reader = AssimpAnimationReader();
-    auto animations = animation_reader.readAll(
-        "E:\\repos\\X11Engine\\X11Engine\\Assets\\Taunt.fbx");
-    for (auto animation : animations) {
-        animation_registry->add(animation);
-    }
+    // animation_registry = std::make_shared<AnimationRegistry>();
+    // auto animation_reader = AssimpAnimationReader();
+    // auto animations = animation_reader.readAll(
+    //     "E:\\repos\\X11Engine\\X11Engine\\Assets\\Taunt.fbx");
+    // for (auto animation : animations) {
+    //     animation_registry->add(animation);
+    // }
 
-    setupSystemPipeline();
+    // setupSystemPipeline();
 
     return true;
 }
 
 void Engine::Engine::run() {
-    auto cam = StaticProjectionCamera(60, (float)4 / 3, 0.1f, 1000.f);
+    // auto cam = StaticProjectionCamera(60, (float)4 / 3, 0.1f, 1000.f);
 
-    auto model_reader = AssimpModelReader(factory);
-    auto model =
-        model_reader.read("E:\\repos\\X11Engine\\X11Engine\\Assets\\Taunt.fbx");
+    // // auto model_reader = AssimpModelReader(factory);
+    // // auto model =
+    // //
+    // model_reader.read("E:\\repos\\X11Engine\\X11Engine\\Assets\\Taunt.fbx");
 
-    Entity player = world.createEntity();
-    player.set<Name>({"Player"});
-    player.add<Player>();
-    Transform player_transform = {};
-    player_transform.position = {0, 0, -5};
-    player.set(player_transform);
+    // // Entity player = world.createEntity();
+    // // player.set<Name>({"Player"});
+    // // player.add<Player>();
+    // // Transform player_transform = {};
+    // // player_transform.setPosition({0, 0, -5});
+    // // player.set(player_transform);
 
-    Entity camera = world.createEntity();
-    camera.set<Name>({"Camera"});
-    camera.set<Parent>({player});
-    camera.set(cam);
-    Transform camera_transform = {};
-    camera_transform.position = {0, 5, 0};
-    camera.set(camera_transform);
+    // // Entity camera = world.createEntity();
+    // // camera.set<Name>({"Camera"});
+    // // camera.set<Parent>({player});
+    // // camera.set(cam);
+    // // Transform camera_transform = {};
+    // // camera_transform.setPosition({0, 5, 0});
+    // // camera.set(camera_transform);
 
-    player.set<Children>({{camera}});
+    // // player.set<Children>({{camera}});
 
-    Shape plane = physics->createPlaneShape(false);
-    auto plane_body = physics->createRigidStatic(Vector3(0, 0, 0),
-                                                 Quaternion(0, 0, 1.57), plane);
+    // // Shape plane = physics->createPlaneShape(false);
+    // // auto plane_body = physics->createRigidStatic(Vector3(0, 0, 0),
+    // //                                              Quaternion(0, 0, 1.57),
+    // //                                              plane);
 
-    Entity vampire = world.createEntity();
-    vampire.set<Name>({"Vampire"});
-    Shape shape = physics->createCapsuleShape(0.6, 0.25, false);
-    {
-        auto body = physics->createRigidDynamic(shape, 1, &vampire);
-        body->setCCD(true);
-        body->lock(DynamicRigidBody::LockRotationX |
-                   DynamicRigidBody::LockRotationZ);
-        vampire.set<DynamicRigidBodyComponent>({body});
-    }
-    vampire.set<AnimatedMesh>({model.value()});
-    vampire.set<CurrentAnimation>({0, "mixamo.com"});
+    // // Entity vampire = world.createEntity();
+    // // vampire.set<Name>({"Vampire"});
+    // // Shape shape = physics->createCapsuleShape(0.6, 0.25, false);
+    // // {
+    // //     auto body = physics->createRigidDynamic(shape, 1, &vampire);
+    // //     body->setCCD(true);
+    // //     body->lock(DynamicRigidBody::LockRotationX |
+    // //                DynamicRigidBody::LockRotationZ);
+    // //     vampire.set<DynamicRigidBodyComponent>({body});
+    // // }
+    // // vampire.set<AnimatedMesh>({model.value()});
+    // // vampire.set<CurrentAnimation>({0, "mixamo.com"});
 
-    Transform vampire_transform = {};
-    vampire_transform.position = {0, 0, 0};
-    vampire.set(vampire_transform);
+    // // Transform vampire_transform = {};
+    // // vampire_transform.setPosition({0, 0, 0});
+    // // vampire.set(vampire_transform);
 
-    Entity projectile = world.createEntity();
-    projectile.set<Name>({"Projectile"});
-    Shape projectile_shape = physics->createSphereShape(0.5, true);
-    auto projetile_body =
-        physics->createRigidDynamic(projectile_shape, 1, &projectile);
-    projetile_body->setGravity(false);
-    projectile.set<DynamicRigidBodyComponent>({projetile_body});
-    projectile.set<Velocity>({Vector3(0, 0, 2)});
-    projectile.add<DeleteProjectile>();
+    // // Entity projectile = world.createEntity();
+    // // projectile.set<Name>({"Projectile"});
+    // // Shape projectile_shape = physics->createSphereShape(0.5, true);
+    // // auto projetile_body =
+    // //     physics->createRigidDynamic(projectile_shape, 1, &projectile);
+    // // projetile_body->setGravity(false);
+    // // projectile.set<DynamicRigidBodyComponent>({projetile_body});
+    // // projectile.set<Velocity>({Vector3(0, 0, 2)});
+    // // projectile.add<DeleteProjectile>();
 
-    Transform projectile_transform = {};
-    projectile_transform.position = {0, 0.5, -4};
-    projectile.set<Transform>(projectile_transform);
+    // // Transform projectile_transform = {};
+    // // projectile_transform.setPosition({0, 0.5, -4});
+    // // projectile.set<Transform>(projectile_transform);
 
-    GameInputConfigReader input_config_reader;
-    input_config_reader.read(
-        "E:\\repos\\X11Engine\\X11Engine\\src\\Data\\Input\\Config.json",
-        GameInputContext::get());
+    // GameInputConfigReader input_config_reader;
+    // input_config_reader.read(
+    //     "E:\\repos\\X11Engine\\X11Engine\\src\\Data\\Input\\Config.json",
+    //     GameInputContext::get());
 
-    std::chrono::high_resolution_clock clock;
-    auto start = clock.now();
+    // std::chrono::high_resolution_clock clock;
+    // auto start = clock.now();
 
-    while (should_exit == false) {
-        PhysicalInput::get().saveState();
-        Input::get().saveState();
+    // while (should_exit == false) {
+    //     std::chrono::duration<float> elapsed = clock.now() - start;
+    //     float delta_time = elapsed.count();
+    //     start = clock.now();
 
-        std::chrono::duration<float> elapsed = clock.now() - start;
-        float delta_time = elapsed.count();
-        start = clock.now();
+    //     update(delta_time);
+    // }
+}
 
-        renderer.beginFrame();
+void Engine::Engine::update(float delta_time) {
+    ZoneScoped;
+    PhysicalInput::get().saveState();
 
-        world.progress(delta_time);
+    renderer.beginFrame();
 
-        renderer.endFrame();
-        FrameMark;
-    }
+    world.progress(delta_time);
+
+    renderer.endFrame();
+    FrameMark;
 }
 
 void Engine::Engine::exit() { should_exit = true; }
@@ -168,7 +172,6 @@ void Engine::Engine::setupUpdateStep() {
     world.addSystem<Update>().dependsOn<PreUpdate>();
 
     world.addSystem<ScriptSystem>().dependsOn<Update>();
-    world.addSystem<PlayerMovementSystem>().dependsOn<Update>();
     // world.addSystem<DeleteProjectileSystem>().dependsOn<Update>();
 }
 
@@ -179,22 +182,21 @@ void Engine::Engine::setupPostUpdateStep() {
 void Engine::Engine::setupPreSimulateStep() {
     world.addSystem<PreSimulation>().dependsOn<PostUpdate>();
 
-    world.addSystem<PreSimulateUpdateSystem>().dependsOn<PreSimulation>();
+    // world.addSystem<PreSimulateUpdateSystem>().dependsOn<PreSimulation>();
 }
 
 void Engine::Engine::setupSimulateStep() {
     world.addSystem<Simulation>().dependsOn<PreSimulation>();
 
-    world.addSystem<PhysicsSystem>(physics, world, 1.f / 60)
-        .dependsOn<Simulation>();
-    world.addSystem<PlayerMovementSystem>().dependsOn<Simulation>();
+    // world.addSystem<PhysicsSystem>(physics, world, 1.f / 60)
+    //     .dependsOn<Simulation>();
 }
 
 void Engine::Engine::setupPostSimulateStep() {
     world.addSystem<PostSimulation>().dependsOn<Simulation>();
 
-    world.addSystem<PostSimulateUpdateSystem>(world)
-        .dependsOn<PostSimulation>();
+    // world.addSystem<PostSimulateUpdateSystem>(world)
+    //     .dependsOn<PostSimulation>();
 }
 
 void Engine::Engine::setupRenderingStep() {
@@ -203,12 +205,12 @@ void Engine::Engine::setupRenderingStep() {
     std::shared_ptr<IShaderReader> shader_reader =
         std::make_shared<D3DShaderReader>();
 
-    world.addSystem<StaticMeshRenderSystem>(factory, shader_reader)
-        .dependsOn<Rendering>();
-    world
-        .addSystem<AnimatedMeshRenderSystem>(factory, shader_reader,
-                                             animation_registry)
-        .dependsOn<Rendering>();
-    world.addSystem<OverlayRenderSystem>(window, factory)
-        .dependsOn<Rendering>();
+    // world.addSystem<StaticMeshRenderSystem>(factory, shader_reader)
+    //     .dependsOn<Rendering>();
+    // world
+    //     .addSystem<AnimatedMeshRenderSystem>(factory, shader_reader,
+    //                                          animation_registry)
+    //     .dependsOn<Rendering>();
+    // world.addSystem<OverlayRenderSystem>(window, factory)
+    //     .dependsOn<Rendering>();
 }

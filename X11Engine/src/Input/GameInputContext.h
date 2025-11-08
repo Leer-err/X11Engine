@@ -4,7 +4,7 @@
 #include "InputContext.h"
 
 enum GameAction { TOGGLE_OVERLAY };
-enum GameAxis { MOVE_FORWARD_BACKWARD, MOVE_LEFT_RIGHT, LOOK_X, LOOK_Y };
+enum GameAxis { MOVE_FORWARD_BACKWARD, MOVE_RIGHT_LEFT, LOOK_X, LOOK_Y };
 
 class GameInputContext : public InputContext<GameAction, GameAxis> {
    public:

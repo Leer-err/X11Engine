@@ -16,7 +16,3 @@ StaticProjectionCamera::StaticProjectionCamera(float fov, float aspect_ratio,
 Matrix StaticProjectionCamera::getProjectionMatrix() const {
     return Matrix::projection(fov, aspect_ratio, far_clip, near_clip);
 }
-
-Matrix StaticProjectionCamera::getViewMatrix() const {
-    return Matrix::identity();
-}

@@ -9,15 +9,16 @@ using std::atomic;
 using std::make_unique;
 using std::unique_ptr;
 
-class IInput;
+struct WindowConfig;
 
 class Window {
    public:
-    Window();
+    static Window& get() {
+        static Window window;
+        return window;
+    }
 
-    void init(uint32_t width, uint32_t height);
-
-    void setInput(std::shared_ptr<IInput> input);
+    void init(const WindowConfig& config);
 
     bool processMessages();
 
@@ -26,6 +27,14 @@ class Window {
     inline int getHeight() const { return height; }
 
    private:
+    Window();
+
+    Window(const Window&) = delete;
+    Window& operator=(const Window&) = delete;
+
+    Window(Window&&) = delete;
+    Window& operator=(Window&&) = delete;
+
     static LRESULT WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
     void registerWindowClass();

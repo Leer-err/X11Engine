@@ -3,6 +3,6 @@
 
 namespace Engine::Script::Binding::ECS {
 
-void initECSBindings(lua_State* state, World& world);
+void initECSBindings(lua_State* state, World* world);
 
 };  // namespace Engine::Script::Binding::ECS

@@ -18,7 +18,7 @@ void getGlobalByName(lua_State* state, const std::string& name) {
 
 void getMemberByName(lua_State* state, const std::string& name,
                      int table_index) {
-    lua_getfield(state, -1, name.c_str());
+    lua_getfield(state, table_index, name.c_str());
 }
 
 void setMetatable(lua_State* state, const std::string& name, int table_index) {

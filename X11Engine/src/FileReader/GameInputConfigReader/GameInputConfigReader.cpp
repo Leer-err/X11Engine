@@ -27,10 +27,10 @@ void GameInputConfigReader::read(const std::string& file_name,
             context.addBinding(GameAxis::MOVE_FORWARD_BACKWARD,
                                getPhysicalButton(physical_name), -1.0f);
         if (logical_name == "move_left")
-            context.addBinding(GameAxis::MOVE_LEFT_RIGHT,
+            context.addBinding(GameAxis::MOVE_RIGHT_LEFT,
                                getPhysicalButton(physical_name), -1.0f);
         if (logical_name == "move_right")
-            context.addBinding(GameAxis::MOVE_LEFT_RIGHT,
+            context.addBinding(GameAxis::MOVE_RIGHT_LEFT,
                                getPhysicalButton(physical_name), 1.0f);
         if (logical_name == "toggle_overlay")
             context.addBinding(GameAction::TOGGLE_OVERLAY,

@@ -1,5 +1,7 @@
 #include "InputBindings.h"
 
+#include <tracy/Tracy.hpp>
+
 #include "GameInputContext.h"
 #include "LuaUtility.h"
 #include "PhysicalInput.h"
@@ -17,13 +19,14 @@ void loadContextBindings(lua_State* state) {
     lua_newtable(state);
     Utility::setMemberVariable(state, "MOVE_FORWARD_BACKWARD",
                                MOVE_FORWARD_BACKWARD);
-    Utility::setMemberVariable(state, "MOVE_LEFT_RIGHT", MOVE_LEFT_RIGHT);
+    Utility::setMemberVariable(state, "MOVE_RIGHT_LEFT", MOVE_RIGHT_LEFT);
     Utility::setMemberVariable(state, "LOOK_X", LOOK_X);
     Utility::setMemberVariable(state, "LOOK_Y", LOOK_Y);
     Utility::setGlobalName(state, "GameAxis");
 }
 
 extern "C" int isPressed(lua_State* state) {
+    ZoneScoped;
     GameAction action = (GameAction)lua_tointeger(state, 1);
 
     auto button_state = GameInputContext::get().getButton(action);
@@ -35,6 +38,7 @@ extern "C" int isPressed(lua_State* state) {
 }
 
 extern "C" int isReleased(lua_State* state) {
+    ZoneScoped;
     GameAction action = (GameAction)lua_tointeger(state, 1);
 
     auto button_state = GameInputContext::get().getButton(action);
@@ -46,6 +50,7 @@ extern "C" int isReleased(lua_State* state) {
 }
 
 extern "C" int getAction(lua_State* state) {
+    ZoneScoped;
     GameAction action = (GameAction)lua_tointeger(state, 1);
 
     auto button_state = GameInputContext::get().getButton(action);
@@ -58,6 +63,7 @@ extern "C" int getAction(lua_State* state) {
 }
 
 extern "C" int getAxis(lua_State* state) {
+    ZoneScoped;
     GameAxis action = (GameAxis)lua_tointeger(state, 1);
 
     auto axis_value = GameInputContext::get().getAxis(action);

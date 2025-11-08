@@ -48,7 +48,8 @@ class EventBus {
         auto& listener_list = listeners[event_type];
         listener_list.push_back(listener);
 
-        return EventSubscription([=]() { unsubscribe(event_type, listener); });
+        return EventSubscription(
+            [=, this]() { unsubscribe(event_type, listener); });
     }
 
     template <typename EventType>

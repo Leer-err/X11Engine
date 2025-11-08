@@ -6,6 +6,7 @@
 #include <winuser.h>
 
 #include "PhysicalInput.h"
+#include "WindowConfig.h"
 
 constexpr auto WINDOW_CLASS_NAME = "WindowClass";
 
@@ -98,30 +99,6 @@ constexpr Button button_mapping[] = {
 };
 
 Window::Window() {}
-
-void Window::init(uint32_t width, uint32_t height) {
-    constexpr auto WINDOW_STYLE = WS_OVERLAPPEDWINDOW;
-
-    this->width = width;
-    this->height = height;
-
-    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-
-    registerWindowClass();
-
-    auto rect = createWindowRect(WINDOW_STYLE);
-    auto rect_width = rect.right - rect.left;
-    auto rect_height = rect.bottom - rect.top;
-
-    handle = CreateWindow(WINDOW_CLASS_NAME, "", WINDOW_STYLE, 0, 0, rect_width,
-                          rect_height, HWND_DESKTOP, NULL, NULL, NULL);
-
-    SetWindowLongPtr(handle, GWLP_USERDATA, (LONG_PTR)this);
-
-    ShowWindow(handle, SW_SHOW);
-
-    ImGui_ImplWin32_EnableDpiAwareness();
-}
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd,
                                                              UINT msg,
@@ -271,4 +248,27 @@ RECT Window::createWindowRect(DWORD style) {
     AdjustWindowRect(&rect, style, false);
 
     return rect;
+}
+
+void Window::init(const WindowConfig& config) {
+    constexpr auto WINDOW_STYLE = WS_OVERLAPPEDWINDOW;
+
+    width = config.width;
+    height = config.height;
+
+    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    ImGui_ImplWin32_EnableDpiAwareness();
+
+    registerWindowClass();
+
+    auto rect = createWindowRect(WINDOW_STYLE);
+    auto rect_width = rect.right - rect.left;
+    auto rect_height = rect.bottom - rect.top;
+
+    handle = CreateWindow(WINDOW_CLASS_NAME, "", WINDOW_STYLE, 0, 0, rect_width,
+                          rect_height, HWND_DESKTOP, NULL, NULL, NULL);
+
+    SetWindowLongPtr(handle, GWLP_USERDATA, (LONG_PTR)this);
+
+    ShowWindow(handle, SW_SHOW);
 }
