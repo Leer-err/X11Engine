@@ -9,7 +9,7 @@ end
 
 function CreateCamera()
     local camera = World.createEntity()
-    Engine.setCameraEntity(camera)
+    CameraManager.setCameraEntity(camera)
 
     return camera
 end
