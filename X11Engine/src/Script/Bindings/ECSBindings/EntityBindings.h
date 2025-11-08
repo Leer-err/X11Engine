@@ -3,13 +3,16 @@
 
 #include <lua.hpp>
 
+#include "EntityId.h"
 #include "lua.h"
 
 class World;
 
 namespace Engine::Script::Binding::ECS {
 
-void initEntityBindings(lua_State* state, World* world);
+EntityId getEntityId(lua_State* state, int stack_index = 1);
+
+void initEntityBindings(lua_State* state);
 
 };  // namespace Engine::Script::Binding::ECS
 

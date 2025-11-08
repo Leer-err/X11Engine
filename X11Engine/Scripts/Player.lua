@@ -1,15 +1,15 @@
 function CreatePlayer()
-    local player = World.createEntity()
+    Player = World.createEntity()
+    Player:setName("Player")
+    Player:addComponent(Components.Transform)
 
-    local camera = CreateCamera()
-    player.addChild()
+    Camera = World.createEntity()
+    Camera:setName("Camera")
+    Camera:addComponent(Components.Transform)
 
-    return player
-end
+    local camera_transform = Camera:getTransform()
+    camera_transform:setPosition(Vector3:new(0, 0, 0))
+    Player:addChild(Camera)
 
-function CreateCamera()
-    local camera = World.createEntity()
-    CameraManager.setCameraEntity(camera)
-
-    return camera
+    CameraManager.setCameraEntity(Camera)
 end

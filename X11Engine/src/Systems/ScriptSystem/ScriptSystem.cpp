@@ -8,7 +8,7 @@
 using namespace Engine::Script;
 
 bool ScriptSystem::prepare(World& world) {
-    sandbox.initBindings(world);
+    sandbox.initBindings();
 
     ScriptLoader(sandbox).loadFromDirectory(
         "E:\\repos\\X11Engine\\X11Engine\\Scripts");

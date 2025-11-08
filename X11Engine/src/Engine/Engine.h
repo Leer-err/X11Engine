@@ -22,6 +22,8 @@ class Engine {
     void run();
     void exit();
 
+    World& getWorld();
+
    private:
     Engine();
     Engine(const Engine&) = delete;

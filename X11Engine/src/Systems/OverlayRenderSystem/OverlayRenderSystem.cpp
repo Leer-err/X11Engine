@@ -21,15 +21,15 @@
 #include "PhysicalInput.h"
 #include "PhysicsComponents.h"
 #include "PositionComponents.h"
+#include "Transform.h"
 #include "Window.h"
 #include "World.h"
 
 constexpr int INITIAL_MAX_FRAMETIMES = 100;
 
 OverlayRenderSystem::OverlayRenderSystem(
-    std::shared_ptr<Window> window,
     std::shared_ptr<IResourceFactory> resource_factory)
-    : is_showing(false), max_frame_times(INITIAL_MAX_FRAMETIMES) {
+    : is_showing(true), max_frame_times(INITIAL_MAX_FRAMETIMES) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -39,7 +39,7 @@ OverlayRenderSystem::OverlayRenderSystem(
     ID3D11Device* device_handle = dx_factory->getDeviceHandle();
     ID3D11DeviceContext* context_handle = dx_factory->getContextHandle();
 
-    ImGui_ImplWin32_Init(window->getHandle());
+    ImGui_ImplWin32_Init(Window::get().getHandle());
     ImGui_ImplDX11_Init(device_handle, context_handle);
 }
 
@@ -118,9 +118,9 @@ void OverlayRenderSystem::drawEntityInfo(const Entity& entity) {
 }
 
 void OverlayRenderSystem::drawPositionInfo(const Entity& entity) {
-    auto global_matrix = entity.get<GlobalMatrix>();
-    if (global_matrix) {
-        ImGui::Text("%s", global_matrix->serialize().c_str());
+    auto transform = entity.get<Transform>();
+    if (transform) {
+        ImGui::Text("%s", transform->serialize().c_str());
     }
 }
 

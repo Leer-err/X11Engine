@@ -23,9 +23,7 @@ ScriptSandbox::ScriptSandbox()
 
 ScriptSandbox::~ScriptSandbox() {}
 
-void ScriptSandbox::initBindings(World& world) {
-    Binding::initBindings(wrapper->state, &world);
-}
+void ScriptSandbox::initBindings() { Binding::initBindings(wrapper->state); }
 
 std::optional<ScriptError> ScriptSandbox::runFile(const std::string& filename) {
     int result = luaL_loadfile(wrapper->state, filename.c_str());

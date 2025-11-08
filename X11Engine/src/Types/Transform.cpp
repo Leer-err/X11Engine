@@ -1,5 +1,7 @@
 #include "Transform.h"
 
+#include <format>
+
 #include "Matrix.h"
 
 Transform::Transform() { scale = Vector3(1, 1, 1); }
@@ -51,3 +53,15 @@ Vector3 Transform::getUp() const {
 }
 
 bool Transform::isDirty() const { return dirty_matrix; }
+
+std::string Transform::serialize() const {
+    auto position_str = std::format("Position: ({}, {}, {})", position.x,
+                                    position.y, position.z);
+    auto orientation_str =
+        std::format("Orientation: ({}, {}, {}, {})", orientation.w,
+                    orientation.x, orientation.y, orientation.z);
+    auto scale_str =
+        std::format("Scale: ({}, {}, {})", scale.x, scale.y, scale.z);
+
+    return std::format("{}\n{}\n{}", position_str, orientation_str, scale_str);
+}

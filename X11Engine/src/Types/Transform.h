@@ -1,9 +1,12 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
 
+#include <string>
+
 #include "Matrix.h"
 #include "Quaternion.h"
 #include "Vector3.h"
+
 
 class Transform {
    public:
@@ -24,6 +27,8 @@ class Transform {
     Matrix getLocalMatrix();
 
     bool isDirty() const;
+
+    std::string serialize() const;
 
    private:
     Vector3 position;

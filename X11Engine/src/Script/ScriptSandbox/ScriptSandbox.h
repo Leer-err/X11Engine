@@ -36,7 +36,7 @@ class ScriptSandbox {
     ScriptSandbox();
     ~ScriptSandbox();
 
-    void initBindings(World& world);
+    void initBindings();
 
     std::optional<ScriptError> runFile(const std::string& filename);
     std::optional<ScriptError> runString(const std::string& script);

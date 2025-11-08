@@ -12,7 +12,7 @@ namespace Engine::Script::Binding::ECS {
 
 void pushTransform(lua_State* state, ComponentId transform);
 
-void initTransformBindings(lua_State* state, World* world);
+void initTransformBindings(lua_State* state);
 
 };  // namespace Engine::Script::Binding::ECS
 

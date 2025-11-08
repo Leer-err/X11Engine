@@ -10,5 +10,4 @@ target_include_directories(${TARGET_NAME} PUBLIC
 add_subdirectory(ScriptSandbox)
 add_subdirectory(ScriptLoader)
 add_subdirectory(LuaUtility)
-#add_subdirectory(ArgumentWrapper)
 add_subdirectory(Bindings)

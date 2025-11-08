@@ -35,18 +35,17 @@
 #include "StaticProjectionCamera.h"
 #include "Transform.h"
 #include "Vector3.h"
+#include "Window.h"
 #include "World.h"
 
-Engine::Engine::Engine() : should_exit(false) {}
+namespace Engine {
 
-bool Engine::Engine::init(std::shared_ptr<IResourceFactory> resource_factory) {
-    // this->window = window;
-    // factory = resource_factory;
+Engine::Engine() : should_exit(false) {}
 
-    // int width = window->getWidth();
-    // int height = window->getHeight();
+bool Engine::init(std::shared_ptr<IResourceFactory> resource_factory) {
+    factory = resource_factory;
 
-    // renderer.init(factory, width, height);
+    renderer.init(factory, 800, 600);
 
     // physics = std::make_shared<PhysicsFactory>();
     // physics->init();
@@ -59,12 +58,12 @@ bool Engine::Engine::init(std::shared_ptr<IResourceFactory> resource_factory) {
     //     animation_registry->add(animation);
     // }
 
-    // setupSystemPipeline();
+    setupSystemPipeline();
 
     return true;
 }
 
-void Engine::Engine::run() {
+void Engine::run() {
     // auto cam = StaticProjectionCamera(60, (float)4 / 3, 0.1f, 1000.f);
 
     // // auto model_reader = AssimpModelReader(factory);
@@ -125,24 +124,24 @@ void Engine::Engine::run() {
     // // projectile_transform.setPosition({0, 0.5, -4});
     // // projectile.set<Transform>(projectile_transform);
 
-    // GameInputConfigReader input_config_reader;
-    // input_config_reader.read(
-    //     "E:\\repos\\X11Engine\\X11Engine\\src\\Data\\Input\\Config.json",
-    //     GameInputContext::get());
+    GameInputConfigReader input_config_reader;
+    input_config_reader.read(
+        "E:\\repos\\X11Engine\\X11Engine\\src\\Data\\Input\\Config.json",
+        GameInputContext::get());
 
-    // std::chrono::high_resolution_clock clock;
-    // auto start = clock.now();
+    std::chrono::high_resolution_clock clock;
+    auto start = clock.now();
 
-    // while (should_exit == false) {
-    //     std::chrono::duration<float> elapsed = clock.now() - start;
-    //     float delta_time = elapsed.count();
-    //     start = clock.now();
+    while (should_exit == false) {
+        std::chrono::duration<float> elapsed = clock.now() - start;
+        float delta_time = elapsed.count();
+        start = clock.now();
 
-    //     update(delta_time);
-    // }
+        update(delta_time);
+    }
 }
 
-void Engine::Engine::update(float delta_time) {
+void Engine::update(float delta_time) {
     ZoneScoped;
     PhysicalInput::get().saveState();
 
@@ -154,9 +153,9 @@ void Engine::Engine::update(float delta_time) {
     FrameMark;
 }
 
-void Engine::Engine::exit() { should_exit = true; }
+void Engine::exit() { should_exit = true; }
 
-void Engine::Engine::setupSystemPipeline() {
+void Engine::setupSystemPipeline() {
     setupPreUpdateStep();
     setupUpdateStep();
     setupPostUpdateStep();
@@ -166,40 +165,40 @@ void Engine::Engine::setupSystemPipeline() {
     setupRenderingStep();
 }
 
-void Engine::Engine::setupPreUpdateStep() { world.addSystem<PreUpdate>(); }
+void Engine::setupPreUpdateStep() { world.addSystem<PreUpdate>(); }
 
-void Engine::Engine::setupUpdateStep() {
+void Engine::setupUpdateStep() {
     world.addSystem<Update>().dependsOn<PreUpdate>();
 
     world.addSystem<ScriptSystem>().dependsOn<Update>();
     // world.addSystem<DeleteProjectileSystem>().dependsOn<Update>();
 }
 
-void Engine::Engine::setupPostUpdateStep() {
+void Engine::setupPostUpdateStep() {
     world.addSystem<PostUpdate>().dependsOn<Update>();
 }
 
-void Engine::Engine::setupPreSimulateStep() {
+void Engine::setupPreSimulateStep() {
     world.addSystem<PreSimulation>().dependsOn<PostUpdate>();
 
     // world.addSystem<PreSimulateUpdateSystem>().dependsOn<PreSimulation>();
 }
 
-void Engine::Engine::setupSimulateStep() {
+void Engine::setupSimulateStep() {
     world.addSystem<Simulation>().dependsOn<PreSimulation>();
 
     // world.addSystem<PhysicsSystem>(physics, world, 1.f / 60)
     //     .dependsOn<Simulation>();
 }
 
-void Engine::Engine::setupPostSimulateStep() {
+void Engine::setupPostSimulateStep() {
     world.addSystem<PostSimulation>().dependsOn<Simulation>();
 
     // world.addSystem<PostSimulateUpdateSystem>(world)
     //     .dependsOn<PostSimulation>();
 }
 
-void Engine::Engine::setupRenderingStep() {
+void Engine::setupRenderingStep() {
     world.addSystem<Rendering>().dependsOn<PostSimulation>();
 
     std::shared_ptr<IShaderReader> shader_reader =
@@ -211,6 +210,9 @@ void Engine::Engine::setupRenderingStep() {
     //     .addSystem<AnimatedMeshRenderSystem>(factory, shader_reader,
     //                                          animation_registry)
     //     .dependsOn<Rendering>();
-    // world.addSystem<OverlayRenderSystem>(window, factory)
-    //     .dependsOn<Rendering>();
+    world.addSystem<OverlayRenderSystem>(factory).dependsOn<Rendering>();
 }
+
+World& Engine::getWorld() { return world; }
+
+};  // namespace Engine

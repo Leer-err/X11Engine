@@ -18,6 +18,8 @@ class Entity {
         component_registry->add<ComponentType>(id);
     }
 
+    void addChild(Entity child);
+
     template <typename ComponentType>
     void set(const ComponentType& component) {
         component_registry->set<ComponentType>(id, component);
@@ -35,6 +37,11 @@ class Entity {
 
     template <typename ComponentType>
     const ComponentType* get() const {
+        return component_registry->get<ComponentType>(id);
+    }
+
+    template <typename ComponentType>
+    ComponentType* get() {
         return component_registry->get<ComponentType>(id);
     }
 

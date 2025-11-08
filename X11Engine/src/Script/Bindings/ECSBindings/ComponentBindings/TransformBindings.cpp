@@ -3,6 +3,7 @@
 #include <tracy/Tracy.hpp>
 
 #include "ComponentPool.h"
+#include "Engine.h"
 #include "LuaUtility.h"
 #include "Transform.h"
 #include "Vector3.h"
@@ -13,11 +14,10 @@ namespace Utility = Engine::Script::Utility;
 
 extern "C" int getPosition(lua_State* state) {
     ZoneScoped;
-    World* world =
-        static_cast<World*>(lua_touserdata(state, lua_upvalueindex(1)));
+    World& world = Engine::Engine::get().getWorld();
 
     ComponentId* id = Utility::getUserData<ComponentId>(state, 1);
-    auto transform = world->get<Transform>(*id);
+    auto transform = world.get<Transform>(*id);
     if (transform == nullptr) {
         Utility::pushNil(state);
         return 1;
@@ -31,11 +31,10 @@ extern "C" int getPosition(lua_State* state) {
 
 extern "C" int setPosition(lua_State* state) {
     ZoneScoped;
-    World* world =
-        static_cast<World*>(lua_touserdata(state, lua_upvalueindex(1)));
+    World& world = Engine::Engine::get().getWorld();
 
     ComponentId* id = Utility::getUserData<ComponentId>(state, 1);
-    auto transform = world->get<Transform>(*id);
+    auto transform = world.get<Transform>(*id);
     if (transform == nullptr) return 0;
 
     Vector3 position = Engine::Script::Binding::Types::toVector3(state, 2);
@@ -46,11 +45,10 @@ extern "C" int setPosition(lua_State* state) {
 
 extern "C" int getForward(lua_State* state) {
     ZoneScoped;
-    World* world =
-        static_cast<World*>(lua_touserdata(state, lua_upvalueindex(1)));
+    World& world = Engine::Engine::get().getWorld();
 
     ComponentId* id = Utility::getUserData<ComponentId>(state, 1);
-    auto transform = world->get<Transform>(*id);
+    auto transform = world.get<Transform>(*id);
     if (transform == nullptr) {
         Utility::pushNil(state);
         return 1;
@@ -64,11 +62,10 @@ extern "C" int getForward(lua_State* state) {
 
 extern "C" int getRight(lua_State* state) {
     ZoneScoped;
-    World* world =
-        static_cast<World*>(lua_touserdata(state, lua_upvalueindex(1)));
+    World& world = Engine::Engine::get().getWorld();
 
     ComponentId* id = Utility::getUserData<ComponentId>(state, 1);
-    auto transform = world->get<Transform>(*id);
+    auto transform = world.get<Transform>(*id);
     if (transform == nullptr) {
         Utility::pushNil(state);
         return 1;
@@ -82,11 +79,10 @@ extern "C" int getRight(lua_State* state) {
 
 extern "C" int getUp(lua_State* state) {
     ZoneScoped;
-    World* world =
-        static_cast<World*>(lua_touserdata(state, lua_upvalueindex(1)));
+    World& world = Engine::Engine::get().getWorld();
 
     ComponentId* id = Utility::getUserData<ComponentId>(state, 1);
-    auto transform = world->get<Transform>(*id);
+    auto transform = world.get<Transform>(*id);
     if (transform == nullptr) {
         Utility::pushNil(state);
         return 1;
@@ -104,22 +100,22 @@ void pushTransform(lua_State* state, ComponentId transform) {
     Utility::pushUserData(state, "Transform", transform);
 }
 
-void createTransformMetatable(lua_State* state, World* world) {
+void createTransformMetatable(lua_State* state) {
     lua_createtable(state, 0, 5);
 
     lua_pushvalue(state, -1);
     Utility::setMemberName(state, "__index");
     Utility::setMemberVariable(state, "__name", "TransformComponent");
-    Utility::setMemberFunction(state, "getPosition", getPosition, -1, world);
-    Utility::setMemberFunction(state, "setPosition", setPosition, -1, world);
-    Utility::setMemberFunction(state, "getForward", getForward, -1, world);
-    Utility::setMemberFunction(state, "getRight", getRight, -1, world);
-    Utility::setMemberFunction(state, "getUp", getUp, -1, world);
+    Utility::setMemberFunction(state, "getPosition", getPosition);
+    Utility::setMemberFunction(state, "setPosition", setPosition);
+    Utility::setMemberFunction(state, "getForward", getForward);
+    Utility::setMemberFunction(state, "getRight", getRight);
+    Utility::setMemberFunction(state, "getUp", getUp);
     Utility::setGlobalName(state, "Transform");
 }
 
-void initTransformBindings(lua_State* state, World* world) {
-    createTransformMetatable(state, world);
+void initTransformBindings(lua_State* state) {
+    createTransformMetatable(state);
 }
 
 };  // namespace Engine::Script::Binding::ECS

@@ -7,13 +7,11 @@
 #include "Entity.h"
 #include "IResourceFactory.h"
 #include "ISystem.h"
-#include "Window.h"
 #include "World.h"
 
 class OverlayRenderSystem : public ISystem {
    public:
-    OverlayRenderSystem(std::shared_ptr<Window> window,
-                        std::shared_ptr<IResourceFactory> resource_factory);
+    OverlayRenderSystem(std::shared_ptr<IResourceFactory> resource_factory);
     ~OverlayRenderSystem();
 
     bool prepare(World& world) override;

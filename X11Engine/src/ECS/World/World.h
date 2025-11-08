@@ -22,7 +22,7 @@ class World {
     }
 
     std::optional<Entity> getEntity(EntityId id) {
-        return entity_registry.getEntityFromId(id).value();
+        return entity_registry.getEntityFromId(id);
     }
 
     void killEntity(Entity entity) {

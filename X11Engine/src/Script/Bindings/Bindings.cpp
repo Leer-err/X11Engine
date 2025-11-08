@@ -1,16 +1,17 @@
 #include "Bindings.h"
 
+#include "CameraBindings/CameraBindings.h"
 #include "ECSBindings.h"
 #include "InputBindings.h"
-#include "World.h"
 
 using namespace Engine::Script;
 
 namespace Engine::Script::Binding {
 
-void initBindings(lua_State* state, World* world) {
+void initBindings(lua_State* state) {
     Input::initInputBindings(state);
-    ECS::initECSBindings(state, world);
+    ECS::initBindings(state);
+    Camera::initBindings(state);
 }
 
 };  // namespace Engine::Script::Binding

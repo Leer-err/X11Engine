@@ -1,8 +1,12 @@
-#include "ScriptSandbox.h"
-#include "World.h"
+#ifndef ECS_BINDINGS_H
+#define ECS_BINDINGS_H
+
+#include "lua.hpp"
 
 namespace Engine::Script::Binding::ECS {
 
-void initECSBindings(lua_State* state, World* world);
+void initBindings(lua_State* state);
 
 };  // namespace Engine::Script::Binding::ECS
+
+#endif  // ECS_BINDINGS_H

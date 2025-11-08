@@ -8,7 +8,7 @@
 
 class CameraManager {
    public:
-    CameraManager& get() {
+    static CameraManager& get() {
         static CameraManager instance;
         return instance;
     }
@@ -20,7 +20,7 @@ class CameraManager {
     Entity getMainCameraEntity() const;
 
    private:
-    CameraManager();
+    CameraManager() {}
     CameraManager(const CameraManager&) = delete;
     CameraManager(CameraManager&&) = delete;
     CameraManager& operator=(const CameraManager&) = delete;
