@@ -26,8 +26,6 @@ PhysicsSystem::PhysicsSystem(std::shared_ptr<PhysicsFactory> factory,
     auto velocity_ditry_marker = [](Entity entity) {
         entity.add<DirtyVelocity>();
     };
-
-    world.observer<Velocity>().on(Event::Set).call(velocity_ditry_marker);
 }
 
 PhysicsSystem::~PhysicsSystem() {}
@@ -76,8 +74,8 @@ void PhysicsSystem::update(World& world, float delta_time) {
         Matrix local_matrix = global_matrix * parent_matrix.inverse();
 
         Transform tr;
-        tr.position = local_matrix.getTranslation();
-        tr.orientation = local_matrix.getRotation();
+        tr.setPosition(local_matrix.getTranslation());
+        tr.setOrientation(local_matrix.getRotation());
         dynamic_rigid_body.set<Transform>(tr);
 
         Vector3 velocity = dynamic_rigid_body.get<DynamicRigidBodyComponent>()

@@ -4,28 +4,34 @@
 #include "Matrix.h"
 #include "Quaternion.h"
 #include "Vector3.h"
-#include "Vector4.h"
 
-struct Transform {
-    Transform() {
-        scale.x = 1.;
-        scale.y = 1.;
-        scale.z = 1.;
-    }
+class Transform {
+   public:
+    Transform();
 
+    void setPosition(const Vector3& position);
+    void setOrientation(const Quaternion& orientation);
+    void setScale(const Vector3& scale);
+
+    Vector3 getPosition() const;
+    Quaternion getOrientation() const;
+    Vector3 getScale() const;
+
+    Vector3 getForward() const;
+    Vector3 getRight() const;
+    Vector3 getUp() const;
+
+    Matrix getLocalMatrix();
+
+    bool isDirty() const;
+
+   private:
     Vector3 position;
     Quaternion orientation;
     Vector3 scale;
 
-    Matrix toMatrix() const {
-        Matrix translation = Matrix::translation(position);
-
-        Matrix rotation = Matrix::rotation(orientation);
-
-        Matrix scale_matrix = Matrix::scale(scale);
-
-        return scale_matrix * rotation * translation;
-    }
+    Matrix local_matrix;
+    bool dirty_matrix;
 };
 
 #endif  // TRANSFORM_H

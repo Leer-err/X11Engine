@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <optional>
+#include <tracy/Tracy.hpp>
 
 #include "ComponentRegistry.h"
 #include "Entity.h"
@@ -40,6 +41,8 @@ void EntityRegistry::killEntity(Entity entity) {
 std::vector<Entity> EntityRegistry::getEntities() const { return entities; }
 
 std::optional<Entity> EntityRegistry::getEntityFromId(EntityId id) {
+    ZoneScoped;
+
     auto index = entity_ids.find(id);
     if (index == entity_ids.end()) return std::nullopt;
 

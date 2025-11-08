@@ -6,7 +6,6 @@
 #include "Children.h"
 #include "Entity.h"
 #include "Matrix.h"
-#include "ObserverDispatcher.h"
 #include "Parent.h"
 #include "PhysicsComponents.h"
 #include "PositionComponents.h"
@@ -29,9 +28,6 @@ TransformSystem::TransformSystem(World& world) {
             child.add<DirtyTransform>();
         }
     };
-
-    world.observer<Transform>().on(Event::Set).call(transform_ditry_marker);
-    world.observer<DirtyTransform>().on(Event::Add).call(child_dirty_marker);
 }
 
 bool TransformSystem::prepare(World& world) { return true; }
@@ -46,9 +42,9 @@ void TransformSystem::update(World& world, float delta_time) {
                                                  .execute();
 
     for (auto& entity : top_level_entities) {
-        const Transform* transform = entity.get<Transform>();
+        Transform transform = *entity.get<Transform>();
 
-        Matrix matrix = transform->toMatrix();
+        Matrix matrix = transform.getLocalMatrix();
         entity.set<LocalMatrix>({matrix});
         entity.set<GlobalMatrix>({matrix});
 
@@ -73,10 +69,10 @@ void TransformSystem::update(World& world, float delta_time) {
 
             const GlobalMatrix* parent_matrix_component =
                 parent->parent.get<GlobalMatrix>();
-            const Transform* transform = entity.get<Transform>();
+            Transform transform = *entity.get<Transform>();
 
             Matrix parent_matrix = parent_matrix_component->matrix;
-            Matrix matrix = transform->toMatrix();
+            Matrix matrix = transform.getLocalMatrix();
             Matrix global_matrix = parent_matrix * matrix;
             entity.set<LocalMatrix>({matrix});
             entity.set<GlobalMatrix>({global_matrix});

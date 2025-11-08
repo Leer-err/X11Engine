@@ -3,11 +3,10 @@
 
 #include <optional>
 
+#include "ComponentPool.h"
 #include "ComponentRegistry.h"
 #include "EntityId.h"
 #include "EntityRegistry.h"
-#include "ObserverBuilder.h"
-#include "ObserverDispatcher.h"
 #include "QueryBuilder.h"
 #include "SystemDispatcher.h"
 #include "TypeIdHelper.h"
@@ -16,10 +15,7 @@ class Entity;
 
 class World {
    public:
-    World()
-        : observer_dispatcher(&entity_registry),
-          component_registry(&observer_dispatcher),
-          system_dispatcher(*this) {}
+    World() : component_registry(), system_dispatcher(*this) {}
 
     Entity createEntity() {
         return entity_registry.createEntity(&component_registry);
@@ -45,8 +41,18 @@ class World {
     }
 
     template <typename ComponentType>
-    const ComponentType* get(Entity entity) const {
+    void set(ComponentId id, const ComponentType& component) {
+        component_registry.set<ComponentType>(id, component);
+    }
+
+    template <typename ComponentType>
+    ComponentType* get(Entity entity) {
         return component_registry.get<ComponentType>(entity);
+    }
+
+    template <typename ComponentType>
+    ComponentType* get(const ComponentId& component) {
+        return component_registry.get<ComponentType>(component);
     }
 
     template <typename ComponentType>
@@ -56,13 +62,6 @@ class World {
 
     QueryBuilder query() {
         return QueryBuilder(entity_registry, component_registry);
-    }
-
-    template <typename ComponentType>
-    ObserverBuilder observer() {
-        TypeId type_id = TypeIdHelper::getTypeId<ComponentType>();
-
-        return ObserverBuilder(type_id, observer_dispatcher);
     }
 
     void progress(float delta_time) {
@@ -78,7 +77,6 @@ class World {
     EntityRegistry entity_registry;
     ComponentRegistry component_registry;
     SystemDispatcher system_dispatcher;
-    ObserverDispatcher observer_dispatcher;
 };
 
 #endif  // WORLD_H

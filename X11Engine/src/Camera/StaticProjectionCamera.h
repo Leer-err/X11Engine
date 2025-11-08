@@ -5,11 +5,11 @@
 
 class StaticProjectionCamera : public ICamera {
    public:
+    StaticProjectionCamera() {}
     StaticProjectionCamera(float fov, float aspect_ratio, float near_clip,
                            float far_clip);
 
     Matrix getProjectionMatrix() const override;
-    Matrix getViewMatrix() const override;
 
    private:
     float fov;

@@ -73,14 +73,7 @@ void AnimatedMeshRenderSystem::update(World& world, float delta_time) {
     context->setPixelShader(pixel_shader);
     context->setVertexShader(vertex_shader);
 
-    std::vector<Entity> players = world.query().with<Player>().execute();
-    std::vector<Entity> cameras = world.query()
-                                      .childOf(players[0])
-                                      .with<StaticProjectionCamera>()
-                                      .with<GlobalMatrix>()
-                                      .execute();
-    auto camera = (const ICamera*)cameras[0].get<StaticProjectionCamera>();
-    auto camera_transform = cameras[0].get<GlobalMatrix>();
+    auto camera_transform = camera_entity.get<GlobalMatrix>();
 
     auto camera_translation = camera_transform->matrix.getTranslation();
     auto camera_orientation = camera_transform->matrix.getRotation();
@@ -244,4 +237,12 @@ std::vector<Matrix> AnimatedMeshRenderSystem::compute_bones(
     }
 
     return final_bones;
+}
+
+void AnimatedMeshRenderSystem::setCamera(std::shared_ptr<ICamera> camera) {
+    this->camera = camera;
+}
+
+void AnimatedMeshRenderSystem::setCameraEntity(Entity camera_entity) {
+    this->camera_entity = camera_entity;
 }

@@ -3,6 +3,6 @@
 
 #include <cstdint>
 
-typedef uint32_t TypeId;
+using TypeId = uint64_t;
 
 #endif  // TYPE_ID_H

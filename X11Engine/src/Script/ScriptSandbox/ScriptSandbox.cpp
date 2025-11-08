@@ -11,34 +11,6 @@
 
 using namespace Engine::Script;
 
-Table Table::newTable(lua_State* state) {
-    lua_newtable(state);
-    return Table(state);
-}
-
-Table Table::globalTable(lua_State* state, const std::string& name) {
-    Utility::getGlobalByName(state, name);
-    return Table(state);
-}
-
-Table Table::memberTable(lua_State* state, const std::string& name) {
-    Utility::getMemberByName(state, name);
-    return Table(state);
-}
-
-Table Table::fromArgument(lua_State* state, int argument_index) {
-    return Table(state, argument_index);
-}
-
-Table::Table(lua_State* state, int stack_index)
-    : state(state), stack_index(stack_index) {}
-
-TableBuilder::TableBuilder(lua_State* state) : state(state) {
-    lua_newtable(state);
-}
-
-TableBuilder::~TableBuilder() {}
-
 ScriptSandbox::StateWrapper::StateWrapper() : state(luaL_newstate()) {}
 
 ScriptSandbox::StateWrapper::~StateWrapper() { lua_close(state); }
@@ -52,7 +24,7 @@ ScriptSandbox::ScriptSandbox()
 ScriptSandbox::~ScriptSandbox() {}
 
 void ScriptSandbox::initBindings(World& world) {
-    Binding::initBindings(wrapper->state, world);
+    Binding::initBindings(wrapper->state, &world);
 }
 
 std::optional<ScriptError> ScriptSandbox::runFile(const std::string& filename) {

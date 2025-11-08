@@ -7,7 +7,6 @@
 #include "Children.h"
 #include "Entity.h"
 #include "Matrix.h"
-#include "ObserverDispatcher.h"
 #include "Parent.h"
 #include "PositionComponents.h"
 #include "Transform.h"
@@ -27,9 +26,6 @@ PostSimulateUpdateSystem::PostSimulateUpdateSystem(World& world) {
             child.add<DirtyTransform>();
         }
     };
-
-    world.observer<Transform>().on(Event::Set).call(transform_ditry_marker);
-    world.observer<DirtyTransform>().on(Event::Add).call(child_dirty_marker);
 }
 
 bool PostSimulateUpdateSystem::prepare(World& world) { return true; }
@@ -66,9 +62,9 @@ void PostSimulateUpdateSystem::update(World& world, float delta_time) {
             parent_matrix = parent_matrix_component->matrix;
         }
 
-        const Transform* transform = entity.get<Transform>();
+        Transform transform = *entity.get<Transform>();
 
-        Matrix matrix = transform->toMatrix();
+        Matrix matrix = transform.getLocalMatrix();
         Matrix global_matrix = matrix * parent_matrix;
         entity.set<LocalMatrix>({matrix});
         entity.set<GlobalMatrix>({global_matrix});

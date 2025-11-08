@@ -6,6 +6,8 @@
 #include <string_view>
 #include <type_traits>
 
+#include "lua.h"
+
 namespace Engine::Script::Utility {
 
 void setGlobalName(lua_State* state, const std::string& name);
@@ -53,6 +55,19 @@ void pushArgument(lua_State* state, T&& argument) {
     } else {
         static_assert(false, "Type is not supported");
     }
+}
+
+template <typename T>
+void pushUserData(lua_State* state, const std::string& metatable_name,
+                  T userdata) {
+    T* ptr = (T*)lua_newuserdata(state, sizeof(T));
+    *ptr = userdata;
+    Utility::setMetatable(state, metatable_name);
+}
+
+template <typename T>
+T* getUserData(lua_State* state, int index = -1) {
+    return static_cast<T*>(lua_touserdata(state, 1));
 }
 
 template <typename T>
@@ -118,14 +133,14 @@ T getArgument(lua_State* state, int index = -1) {
 template <typename T>
 T getGlobalVariable(lua_State* state, const std::string& name) {
     getGlobalByName(state, name);
-    getArgument<T>(state);
+    return getArgument<T>(state);
 }
 
 template <typename T>
 T getMemberVariable(lua_State* state, const std::string& name,
                     int table_index = -1) {
     getMemberByName(state, name, table_index);
-    getArgument<T>(state);
+    return getArgument<T>(state);
 }
 
 };  // namespace Engine::Script::Utility

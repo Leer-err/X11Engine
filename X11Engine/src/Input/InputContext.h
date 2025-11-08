@@ -12,11 +12,13 @@ class InputContext {
     class IButtonBinding {
        public:
         virtual ButtonState evaluate(const PhysicalInput& input) const = 0;
+        virtual ~IButtonBinding() {};
     };
 
     class IAxisBinding {
        public:
         virtual float evaluate(const PhysicalInput& input) const = 0;
+        virtual ~IAxisBinding() {};
     };
 
     class ButtonBinding : public IButtonBinding {

@@ -2,18 +2,15 @@
 #define COMPONENT_REGISTRY_H
 
 #include <memory>
+#include <tracy/Tracy.hpp>
 #include <unordered_map>
 
 #include "ComponentPool.h"
-#include "ObserverDispatcher.h"
 #include "TypeId.h"
 #include "TypeIdHelper.h"
 
 class ComponentRegistry {
    public:
-    ComponentRegistry(ObserverDispatcher* dispatcher)
-        : event_dispatcher(dispatcher) {}
-
     template <typename ComponentType>
     void add(EntityId entity) {
         ComponentPool<ComponentType>* pool = getOrCreatePool<ComponentType>();
@@ -21,26 +18,63 @@ class ComponentRegistry {
         pool->add(entity);
 
         size_t type_id = TypeIdHelper::getTypeId<ComponentType>();
-        event_dispatcher->event(type_id, entity, Event::Add);
     }
 
     template <typename ComponentType>
     void set(EntityId entity, const ComponentType& component) {
+        ZoneScoped;
         ComponentPool<ComponentType>* pool = getOrCreatePool<ComponentType>();
 
         pool->set(entity, component);
 
         size_t type_id = TypeIdHelper::getTypeId<ComponentType>();
-        event_dispatcher->event(type_id, entity, Event::Set);
     }
 
     template <typename ComponentType>
-    const ComponentType* get(EntityId entity) const {
-        const ComponentPool<ComponentType>* pool = getPool<ComponentType>();
+    void set(ComponentId id, const ComponentType& component) {
+        ZoneScoped;
+        ComponentPool<ComponentType>* pool = getOrCreatePool<ComponentType>();
+
+        pool->set(id, component);
+    }
+
+    template <typename ComponentType>
+    ComponentType* get(EntityId entity) {
+        ZoneScoped;
+        ComponentPool<ComponentType>* pool = getPool<ComponentType>();
 
         if (pool == nullptr) return nullptr;
 
         return pool->get(entity);
+    }
+
+    template <typename ComponentType>
+    const ComponentType* get(EntityId entity) const {
+        ZoneScoped;
+        ComponentPool<ComponentType>* pool = getPool<ComponentType>();
+
+        if (pool == nullptr) return nullptr;
+
+        return pool->get(entity);
+    }
+
+    template <typename ComponentType>
+    ComponentType* get(ComponentId component_id) {
+        ZoneScoped;
+        ComponentPool<ComponentType>* pool = getPool<ComponentType>();
+
+        if (pool == nullptr) return nullptr;
+
+        return pool->get(component_id);
+    }
+
+    template <typename ComponentType>
+    ComponentId getComponentId(EntityId entity) const {
+        const ComponentPool<ComponentType>* pool = getPool<ComponentType>();
+
+        if (pool == nullptr) return INVALID_COMPONENT_ID;
+
+        return pool->getId(entity);
     }
 
     template <typename ComponentType>
@@ -90,27 +124,20 @@ class ComponentRegistry {
     }
 
     IComponentPool* getPoolById(TypeId component_id) const {
-        if (component_pools.find(component_id) == component_pools.end()) {
-            return nullptr;
-        }
+        auto it = component_pools.find(component_id);
+        if (it == component_pools.end()) return nullptr;
 
-        return component_pools.at(component_id).get();
+        return it->second.get();
     }
 
     template <typename ComponentType>
     ComponentPool<ComponentType>* getPool() const {
         size_t type_id = TypeIdHelper::getTypeId<ComponentType>();
 
-        if (component_pools.find(type_id) == component_pools.end()) {
-            return nullptr;
-        }
-
         return static_cast<ComponentPool<ComponentType>*>(getPoolById(type_id));
     }
 
     std::unordered_map<TypeId, std::unique_ptr<IComponentPool>> component_pools;
-
-    ObserverDispatcher* event_dispatcher;
 };
 
 #endif  // COMPONENT_REGISTRY_H

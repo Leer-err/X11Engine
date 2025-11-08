@@ -8,7 +8,7 @@ using namespace Engine::Script;
 
 namespace Engine::Script::Binding {
 
-void initBindings(lua_State* state, World& world) {
+void initBindings(lua_State* state, World* world) {
     Input::initInputBindings(state);
     ECS::initECSBindings(state, world);
 }

@@ -11,6 +11,7 @@ FetchContent_MakeAvailable(DXmath)
 target_sources(${TARGET_NAME} PRIVATE
     Matrix.cpp
     Quaternion.cpp
+    Transform.cpp
 )
 
 target_include_directories(${TARGET_NAME} PUBLIC

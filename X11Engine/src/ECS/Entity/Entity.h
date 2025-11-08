@@ -1,11 +1,15 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+#include <tracy/Tracy.hpp>
+
 #include "ComponentRegistry.h"
 #include "EntityId.h"
 
 class Entity {
    public:
+    Entity() : id(INVALID_ENTITY_ID), component_registry(nullptr) {}
+
     Entity(EntityId id, ComponentRegistry* component_registry)
         : id(id), component_registry(component_registry) {}
 
@@ -33,6 +37,13 @@ class Entity {
     const ComponentType* get() const {
         return component_registry->get<ComponentType>(id);
     }
+
+    template <typename ComponentType>
+    ComponentId getComponentId() const {
+        return component_registry->getComponentId<ComponentType>(id);
+    }
+
+    bool isValid() const { return id != INVALID_ENTITY_ID; }
 
     EntityId getId() const { return id; }
 

@@ -12,16 +12,24 @@ namespace Engine {
 
 class Engine {
    public:
-    Engine();
+    static Engine& get() {
+        static Engine instance;
+        return instance;
+    }
 
-    bool init(std::shared_ptr<IResourceFactory> resource_factory,
-              std::shared_ptr<Window> window);
+    bool init(std::shared_ptr<IResourceFactory> resource_factory);
 
     void run();
-
     void exit();
 
    private:
+    Engine();
+    Engine(const Engine&) = delete;
+    Engine(Engine&&) = delete;
+    Engine& operator=(Engine&&) = delete;
+
+    void update(float delta_time);
+
     void setupSystemPipeline();
 
     void setupPreUpdateStep();
@@ -41,8 +49,6 @@ class Engine {
 
     World world;
     std::shared_ptr<AnimationRegistry> animation_registry;
-
-    std::shared_ptr<Window> window;
 };
 
 };  // namespace Engine

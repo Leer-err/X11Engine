@@ -1,7 +1,6 @@
 function Init()
-    print("Hello world")
+    Player = CreatePlayer()
 end
 
-function Update()
-    MovePlayer()
+function Update(delta_time)
 end

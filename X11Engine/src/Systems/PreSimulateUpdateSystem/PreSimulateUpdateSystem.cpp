@@ -7,7 +7,6 @@
 #include "Children.h"
 #include "Entity.h"
 #include "Matrix.h"
-#include "ObserverDispatcher.h"
 #include "Parent.h"
 #include "PhysicsComponents.h"
 #include "PositionComponents.h"
@@ -48,9 +47,9 @@ void PreSimulateUpdateSystem::update(World& world, float delta_time) {
             parent_matrix = parent_matrix_component->matrix;
         }
 
-        const Transform* transform = entity.get<Transform>();
+        Transform transform = *entity.get<Transform>();
 
-        Matrix matrix = transform->toMatrix();
+        Matrix matrix = transform.getLocalMatrix();
         Matrix global_matrix = parent_matrix * matrix;
         entity.set<LocalMatrix>({matrix});
         entity.set<GlobalMatrix>({global_matrix});

@@ -3,6 +3,8 @@
 
 #include <memory>
 
+#include "Entity.h"
+#include "ICamera.h"
 #include "IConstantBuffer.h"
 #include "IPixelShader.h"
 #include "IRenderContext.h"
@@ -22,7 +24,13 @@ class StaticMeshRenderSystem : public ISystem {
 
     void update(World& world, float delta_time) override;
 
+    void setCamera(std::shared_ptr<ICamera> camera);
+    void setCameraEntity(Entity camera_entity);
+
    private:
+    Entity camera_entity;
+    std::shared_ptr<ICamera> camera;
+
     std::shared_ptr<IConstantBuffer> camera_buffer;
     std::shared_ptr<IConstantBuffer> world_matrix_buffer;
 

@@ -1,6 +1,7 @@
 #include "Renderer.h"
 
 #include <memory>
+#include <tracy/Tracy.hpp>
 
 #include "Matrix.h"
 #include "Model.h"
@@ -32,10 +33,14 @@ void Renderer::init(std::shared_ptr<IResourceFactory> factory, uint32_t width,
 }
 
 void Renderer::beginFrame() {
+    ZoneScoped;
     context->clearRenderTarget(render_target);
     context->clearDepthStencil(depth_stencil);
 
     context->setRenderTarget(render_target, depth_stencil);
 }
 
-void Renderer::endFrame() { swap_chain->present(); }
+void Renderer::endFrame() {
+    ZoneScoped;
+    swap_chain->present();
+}

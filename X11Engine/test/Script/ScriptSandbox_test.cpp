@@ -80,14 +80,3 @@ TEST(ScriptSandboxTest, SandboxCopyTest) {
 
     EXPECT_EQ(result.getResult(), "Hello World2");
 }
-
-TEST(ScriptSandboxTest, TableCreateTest) {
-    auto sandbox = ScriptSandbox();
-    sandbox.createTable("foo").addProperty("bar", 42).addProperty(
-        "bar2", [](lua_State*) -> int { return 0; });
-    sandbox.runString("a = foo.bar foo.bar2()");
-
-    auto result = sandbox.getNumber("a");
-
-    EXPECT_EQ(result.getResult(), 42);
-}
