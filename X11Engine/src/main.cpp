@@ -1,30 +1,23 @@
 #include <Windows.h>
 
-#include <cstdint>
-#include <memory>
-#include <thread>
-
-#include "Config/Window/WindowConfig.h"
-#include "Dx11Factory.h"
-#include "Engine/Engine.h"
-#include "Logger/Logger.h"
-#include "Logger/LoggerFactory.h"
+#include "Engine.h"
+#include "Logger.h"
+#include "LoggerFactory.h"
 #include "Window.h"
+#include "WindowConfig.h"
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
             int nCmdShow) {
     Logger main_logger = LoggerFactory::getLogger("Main");
     main_logger.info("Starting");
 
-    WindowConfig config = {800, 600};
-    Window& window = Window::get();
-    window.init(config);
+    WindowConfig config = {};
+    config.width = 800;
+    config.height = 600;
 
-    auto factory = std::make_shared<Dx11Factory>(
-        window.getHandle(), window.getWidth(), window.getHeight());
-    main_logger.info("Created DirectX 11 resource factory");
+    Window::get().init(config);
 
-    Engine::Engine::get().init(factory);
+    Engine::Engine::get().init();
 
     main_logger.info("Starting main loop");
     std::thread engine_thread =

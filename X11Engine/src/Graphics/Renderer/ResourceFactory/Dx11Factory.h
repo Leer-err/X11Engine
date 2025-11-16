@@ -2,6 +2,7 @@
 
 #include <d3d11.h>
 #include <dxgi.h>
+#include <dxgi1_4.h>
 #include <dxgiformat.h>
 #include <wrl/client.h>
 
@@ -9,6 +10,7 @@
 #include <memory>
 
 #include "Format.h"
+#include "GraphicsConfig.h"
 #include "IPixelShader.h"
 #include "IRenderContext.h"
 #include "IResourceFactory.h"
@@ -21,10 +23,12 @@
 
 class Dx11Factory : public IResourceFactory {
    public:
-    Dx11Factory(HWND window, uint32_t width, uint32_t height);
+    Dx11Factory();
 
     std::shared_ptr<IRenderContext> getContext() const override;
     std::shared_ptr<ISwapChain> getSwapChain() const override;
+    std::shared_ptr<ISwapChain> createSwapChain(uint32_t width, uint32_t height,
+                                                bool is_windowed);
 
     ID3D11Device* getDeviceHandle() const;
     ID3D11DeviceContext* getContextHandle() const;
@@ -37,6 +41,8 @@ class Dx11Factory : public IResourceFactory {
                                             bool gpu_writable) override;
 
     std::shared_ptr<IRenderTarget> createRenderTarget() override;
+    std::shared_ptr<IRenderTarget> createRenderTarget(
+        std::shared_ptr<ITexture>);
     std::shared_ptr<IDepthStencil> createDepthStencil(uint32_t width,
                                                       uint32_t height) override;
 
@@ -69,6 +75,8 @@ class Dx11Factory : public IResourceFactory {
     Microsoft::WRL::ComPtr<ID3D11Device> device;
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> context;
     Microsoft::WRL::ComPtr<IDXGISwapChain> swap_chain;
+
+    Microsoft::WRL::ComPtr<IDXGIFactory4> factory;
 
     Logger logger;
 };

@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
 
-target_sources(${TARGET_NAME} PRIVATE
+target_sources(${TARGET_NAME} PUBLIC
     Dx11Texture.cpp
+    TextureBuilder.cpp
+    Texture.cpp
 )
 
 target_include_directories(${TARGET_NAME} PUBLIC

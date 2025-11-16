@@ -4,49 +4,15 @@
 #include <memory>
 #include <tracy/Tracy.hpp>
 
-#include "AnimatedMesh.h"
-#include "AnimatedMeshRenderSystem.h"
-#include "AnimationRegistry.h"
-#include "AssimpAnimationReader.h"
-#include "AssimpModelReader.h"
-#include "BasicPipeline/BasicPipelineSystems.h"
-#include "Children.h"
-#include "D3DShaderReader.h"
-#include "DeleteProjectileSystem.h"
-#include "DynamicRigidBody.h"
-#include "Entity.h"
 #include "GameInputConfigReader.h"
-#include "GameInputContext.h"
-#include "IShaderReader.h"
-#include "Name.h"
-#include "OverlayRenderSystem.h"
-#include "Parent.h"
 #include "PhysicalInput.h"
-#include "PhysicsComponents.h"
-#include "PhysicsFactory.h"
-#include "PhysicsSystem.h"
-#include "PlayerComponent.h"
-#include "PlayerMovementSystem.h"
-#include "PostSimulateUpdateSystem.h"
-#include "PreSimulateUpdateSystem.h"
-#include "Quaternion.h"
-#include "ScriptSystem.h"
-#include "StaticMeshRenderSystem.h"
-#include "StaticProjectionCamera.h"
-#include "Transform.h"
-#include "Vector3.h"
-#include "Window.h"
 #include "World.h"
 
 namespace Engine {
 
 Engine::Engine() : should_exit(false) {}
 
-bool Engine::init(std::shared_ptr<IResourceFactory> resource_factory) {
-    factory = resource_factory;
-
-    renderer.init(factory, 800, 600);
-
+bool Engine::init() {
     // physics = std::make_shared<PhysicsFactory>();
     // physics->init();
 
@@ -165,44 +131,46 @@ void Engine::setupSystemPipeline() {
     setupRenderingStep();
 }
 
-void Engine::setupPreUpdateStep() { world.addSystem<PreUpdate>(); }
+void Engine::setupPreUpdateStep() {
+    // world.addSystem<PreUpdate>();
+}
 
 void Engine::setupUpdateStep() {
-    world.addSystem<Update>().dependsOn<PreUpdate>();
+    // world.addSystem<Update>().dependsOn<PreUpdate>();
 
-    world.addSystem<ScriptSystem>().dependsOn<Update>();
+    // world.addSystem<ScriptSystem>().dependsOn<Update>();
     // world.addSystem<DeleteProjectileSystem>().dependsOn<Update>();
 }
 
 void Engine::setupPostUpdateStep() {
-    world.addSystem<PostUpdate>().dependsOn<Update>();
+    // world.addSystem<PostUpdate>().dependsOn<Update>();
 }
 
 void Engine::setupPreSimulateStep() {
-    world.addSystem<PreSimulation>().dependsOn<PostUpdate>();
+    // world.addSystem<PreSimulation>().dependsOn<PostUpdate>();
 
     // world.addSystem<PreSimulateUpdateSystem>().dependsOn<PreSimulation>();
 }
 
 void Engine::setupSimulateStep() {
-    world.addSystem<Simulation>().dependsOn<PreSimulation>();
+    // world.addSystem<Simulation>().dependsOn<PreSimulation>();
 
     // world.addSystem<PhysicsSystem>(physics, world, 1.f / 60)
     //     .dependsOn<Simulation>();
 }
 
 void Engine::setupPostSimulateStep() {
-    world.addSystem<PostSimulation>().dependsOn<Simulation>();
+    // world.addSystem<PostSimulation>().dependsOn<Simulation>();
 
     // world.addSystem<PostSimulateUpdateSystem>(world)
     //     .dependsOn<PostSimulation>();
 }
 
 void Engine::setupRenderingStep() {
-    world.addSystem<Rendering>().dependsOn<PostSimulation>();
+    // world.addSystem<Rendering>().dependsOn<PostSimulation>();
 
-    std::shared_ptr<IShaderReader> shader_reader =
-        std::make_shared<D3DShaderReader>();
+    // std::shared_ptr<IShaderReader> shader_reader =
+    //     std::make_shared<D3DShaderReader>();
 
     // world.addSystem<StaticMeshRenderSystem>(factory, shader_reader)
     //     .dependsOn<Rendering>();
@@ -210,9 +178,8 @@ void Engine::setupRenderingStep() {
     //     .addSystem<AnimatedMeshRenderSystem>(factory, shader_reader,
     //                                          animation_registry)
     //     .dependsOn<Rendering>();
-    world.addSystem<OverlayRenderSystem>(factory).dependsOn<Rendering>();
+    // world.addSystem<OverlayRenderSystem>(factory).dependsOn<Rendering>();
 }
 
 World& Engine::getWorld() { return world; }
-
 };  // namespace Engine
