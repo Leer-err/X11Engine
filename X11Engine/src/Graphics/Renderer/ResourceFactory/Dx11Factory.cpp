@@ -5,7 +5,7 @@
 #include <d3dcommon.h>
 #include <d3dcompiler.h>
 #include <dxgi.h>
-#include <dxgi1_2.h>
+#include <dxgi1_3.h>
 #include <dxgiformat.h>
 #include <dxgitype.h>
 #include <intsafe.h>
@@ -30,8 +30,10 @@
 #include "Dx11VertexBuffer.h"
 #include "Dx11VertexShader.h"
 #include "Format.h"
+#include "GraphicsConfig.h"
 #include "IShaderBlob.h"
 #include "LoggerFactory.h"
+#include "Window.h"
 
 constexpr std::optional<DXGI_FORMAT> imageFormatToDXGIFormat(
     ImageFormat format) {
@@ -45,32 +47,21 @@ constexpr std::optional<DXGI_FORMAT> imageFormatToDXGIFormat(
     }
 }
 
-Dx11Factory::Dx11Factory(HWND window, uint32_t width, uint32_t height)
-    : logger(LoggerFactory::getLogger("Dx11Factory")) {
-    Microsoft::WRL::ComPtr<IDXGIFactory> factory;
-    HRESULT result = CreateDXGIFactory(IID_PPV_ARGS(&factory));
-    logger.debug("Got factory");
+Dx11Factory::Dx11Factory() : logger(LoggerFactory::getLogger("Dx11Factory")) {
+    Microsoft::WRL::ComPtr<IDXGIFactory> factory1;
+    HRESULT result = CreateDXGIFactory1(IID_PPV_ARGS(&factory1));
+    if (FAILED(factory1.As(&factory))) {
+        logger.debug("Got DXGI factory");
+    } else {
+        logger.error("Failed to create DXGI factory");
+    }
 
-    Microsoft::WRL::ComPtr<IDXGIAdapter> adapter;
-    result = factory->EnumAdapters(0, adapter.GetAddressOf());
+    Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+    result = factory->EnumAdapters1(0, adapter.GetAddressOf());
     logger.debug("Got adapter");
 
     D3D_FEATURE_LEVEL feature_levels[] = {D3D_FEATURE_LEVEL_11_0};
     UINT num_feature_levels = ARRAYSIZE(feature_levels);
-
-    DXGI_SWAP_CHAIN_DESC desc = {};
-    desc.BufferCount = 2;
-    desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    desc.BufferDesc.Width = width;
-    desc.BufferDesc.Height = height;
-    desc.BufferDesc.RefreshRate.Numerator = 0;
-    desc.BufferDesc.RefreshRate.Denominator = 1;
-    desc.SampleDesc.Count = 1;
-    desc.SampleDesc.Quality = 0;
-    desc.OutputWindow = window;
-    desc.Windowed = true;
-    desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
     UINT creation_flags = 0;
 #if defined(_DEBUG)
@@ -78,10 +69,10 @@ Dx11Factory::Dx11Factory(HWND window, uint32_t width, uint32_t height)
 #endif
 
     D3D_FEATURE_LEVEL feature_level;
-    result = D3D11CreateDeviceAndSwapChain(
+    result = D3D11CreateDevice(
         nullptr, D3D_DRIVER_TYPE_HARDWARE, NULL, creation_flags, feature_levels,
-        num_feature_levels, D3D11_SDK_VERSION, &desc, swap_chain.GetAddressOf(),
-        device.GetAddressOf(), &feature_level, context.GetAddressOf());
+        num_feature_levels, D3D11_SDK_VERSION, device.GetAddressOf(),
+        &feature_level, context.GetAddressOf());
 
     logger.debug("Created resources");
 }
@@ -89,7 +80,30 @@ Dx11Factory::Dx11Factory(HWND window, uint32_t width, uint32_t height)
 std::shared_ptr<IRenderContext> Dx11Factory::getContext() const {
     return std::make_shared<Dx11Context>(context);
 }
-std::shared_ptr<ISwapChain> Dx11Factory::getSwapChain() const {
+
+std::shared_ptr<ISwapChain> Dx11Factory::createSwapChain(uint32_t width,
+                                                         uint32_t height,
+                                                         bool is_windowed) {
+    DXGI_SWAP_CHAIN_DESC1 desc = {};
+    desc.Width = width;
+    desc.Height = height;
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.Stereo = FALSE;
+    desc.SampleDesc.Count = 1;
+    desc.SampleDesc.Quality = 0;
+    desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    desc.BufferCount = 2;
+    desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
+    DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreen_desc = {};
+    fullscreen_desc.RefreshRate.Numerator = 0;
+    fullscreen_desc.RefreshRate.Denominator = 1;
+    fullscreen_desc.Windowed = is_windowed;
+
+    Microsoft::WRL::ComPtr<IDXGISwapChain1> swap_chain;
+    factory->CreateSwapChainForHwnd(device.Get(), Window::get().getHandle(),
+                                    &desc, &fullscreen_desc, NULL, &swap_chain);
+
     return std::make_shared<Dx11SwapChain>(swap_chain);
 }
 
@@ -226,6 +240,24 @@ std::shared_ptr<ITexture> Dx11Factory::createTexture(ImageFormat format,
 
     return std::make_shared<Dx11Texture>(texture, view, sampler, width, height);
 }
+
+// std::shared_ptr<IRenderTarget> Dx11Factory::createRenderTarget() {
+//     D3D11_RENDER_TARGET_VIEW_DESC desc = {};
+//     desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+//     desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+//     desc.Texture2D.MipSlice = 0;
+
+//     Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
+//     swap_chain->GetBuffer(0, IID_PPV_ARGS(&texture));
+
+//     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> render_target;
+//     auto result = device->CreateRenderTargetView(texture.Get(), &desc,
+//                                                  render_target.GetAddressOf());
+
+//     if (FAILED(result)) return nullptr;
+
+//     return std::make_shared<Dx11RenderTarget>(render_target);
+// }
 
 std::shared_ptr<IRenderTarget> Dx11Factory::createRenderTarget() {
     D3D11_RENDER_TARGET_VIEW_DESC desc = {};

@@ -3,44 +3,38 @@
 #include <memory>
 #include <tracy/Tracy.hpp>
 
-#include "Matrix.h"
-#include "Model.h"
-#include "Shader/ShaderType.h"
+#include "ResourceFactory.h"
 
-Renderer::Renderer() {}
+Renderer::Renderer() {
+    // auto factory = ResourceFactory::get();
 
-void Renderer::init(std::shared_ptr<IResourceFactory> factory, uint32_t width,
-                    uint32_t height) {
-    this->factory = factory;
+    // context = factory->getContext();
 
-    context = factory->getContext();
-    swap_chain = factory->getSwapChain();
-
-    render_target = factory->createRenderTarget();
-    depth_stencil = factory->createDepthStencil(width, height);
-
-    rasterizer = factory->createRasterizerState();
-    context->setRasterizerState(rasterizer);
-
-    camera_buffer =
-        factory->createConstantBuffer(nullptr, sizeof(Matrix), true);
-    bone_buffer = factory->createStructuredBuffer(nullptr, sizeof(Matrix) * 100,
-                                                  sizeof(Matrix), true);
-
-    context->setViewport(width, height);
-
-    context->bindConstantBuffer(ShaderType::Vertex, camera_buffer, 0);
+    // rasterizer = factory->createRasterizerState();
+    // context->setRasterizerState(rasterizer);
 }
 
 void Renderer::beginFrame() {
     ZoneScoped;
-    context->clearRenderTarget(render_target);
-    context->clearDepthStencil(depth_stencil);
+    // context->clearRenderTarget(render_target);
+    // context->clearDepthStencil(depth_stencil);
 
-    context->setRenderTarget(render_target, depth_stencil);
+    // context->setRenderTarget(render_target, depth_stencil);
 }
 
 void Renderer::endFrame() {
     ZoneScoped;
-    swap_chain->present();
+    // swap_chain->present();
+}
+
+void Renderer::initializeResources(const GraphicsConfig& config) {
+    // auto factory = ResourceFactory::get();
+    // swap_chain = factory->createSwapChain(
+    //     config.render_width, config.render_height,
+    //     config.window_state != WindowState::Fullscreen);
+
+    // render_target = factory->createRenderTarget();
+    // depth_stencil = factory->createDepthStencil(width, height);
+
+    // context->setViewport(width, height);
 }

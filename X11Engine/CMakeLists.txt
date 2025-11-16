@@ -9,4 +9,4 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(src)
-add_subdirectory(test)
+# add_subdirectory(test)

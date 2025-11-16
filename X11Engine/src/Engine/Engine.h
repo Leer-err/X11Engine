@@ -2,8 +2,6 @@
 
 #include <memory>
 
-#include "AnimationRegistry.h"
-#include "PhysicsFactory.h"
 #include "Renderer.h"
 #include "Window.h"
 #include "World.h"
@@ -17,7 +15,7 @@ class Engine {
         return instance;
     }
 
-    bool init(std::shared_ptr<IResourceFactory> resource_factory);
+    bool init();
 
     void run();
     void exit();
@@ -44,13 +42,12 @@ class Engine {
 
     bool should_exit;
 
-    std::shared_ptr<IResourceFactory> factory;
-    std::shared_ptr<PhysicsFactory> physics;
+    // std::shared_ptr<PhysicsFactory> physics;
 
     Renderer renderer;
 
     World world;
-    std::shared_ptr<AnimationRegistry> animation_registry;
+    // std::shared_ptr<AnimationRegistry> animation_registry;
 };
 
 };  // namespace Engine
