@@ -11,13 +11,15 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 add_subdirectory(src)
 # add_subdirectory(test)
 
+#Fake_Assets folder to force cmake to always copy data
 add_custom_command(
 	OUTPUT
+		${CMAKE_BINARY_DIR}/bin/Fake_Assets/
         ${CMAKE_BINARY_DIR}/bin/Assets/
 	COMMAND
 		${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Assets/ ${CMAKE_BINARY_DIR}/bin/Assets/
     DEPENDS ${EXECUTABLE_NAME}
 )
 add_custom_target(copy_assets ALL
-	DEPENDS ${CMAKE_BINARY_DIR}/bin/Assets/
+	DEPENDS ${CMAKE_BINARY_DIR}/bin/Fake_Assets/
 )
