@@ -9,7 +9,6 @@
 #include "Matrix.h"
 #include "MeshBuilder.h"
 #include "PixelShaderBuilder.h"
-#include "ShaderType.h"
 #include "Vector3.h"
 #include "VertexShaderBuilder.h"
 
@@ -46,17 +45,11 @@ Stars::Stars() {
             .create();
 
     auto vertex_shader =
-        VertexShaderBuilder(
-            "E:"
-            "\\repos\\X11Engine\\X11Engine\\Assets\\Shaders\\Stars\\Stars.hlsl",
-            "vertex_main")
+        VertexShaderBuilder("./Assets/Shaders/Stars/Stars.hlsl", "vertex_main")
             .create()
             .getResult();
     auto pixel_shader =
-        PixelShaderBuilder(
-            "E:"
-            "\\repos\\X11Engine\\X11Engine\\Assets\\Shaders\\Stars\\Stars.hlsl",
-            "pixel_main")
+        PixelShaderBuilder("./Assets/Shaders/Stars/Stars.hlsl", "pixel_main")
             .create()
             .getResult();
 

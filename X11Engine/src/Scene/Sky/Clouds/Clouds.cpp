@@ -40,20 +40,16 @@ Clouds::CloudsBaker::CloudsBaker() {
             .setIndexData(&screen_quad_indices[0], sizeof(screen_quad_indices))
             .create();
 
-    auto vertex_shader = VertexShaderBuilder(
-                             "E:"
-                             "\\repos\\X11Engine\\X11Engine\\Assets\\Shaders\\S"
-                             "ky\\SkyPrerender.hlsl",
-                             "vertex_main")
-                             .create()
-                             .getResult();
-    auto pixel_shader = PixelShaderBuilder(
-                            "E:"
-                            "\\repos\\X11Engine\\X11Engine\\Assets\\Shaders\\Sk"
-                            "y\\SkyPrerender.hlsl",
-                            "pixel_main")
-                            .create()
-                            .getResult();
+    auto vertex_shader =
+        VertexShaderBuilder("./Assets/Shaders/Sky/SkyPrerender.hlsl",
+                            "vertex_main")
+            .create()
+            .getResult();
+    auto pixel_shader =
+        PixelShaderBuilder("./Assets/Shaders/Sky/SkyPrerender.hlsl",
+                           "pixel_main")
+            .create()
+            .getResult();
 
     auto input_layout = InputLayoutBuilder(vertex_shader)
                             .addElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT)
@@ -151,20 +147,14 @@ Clouds::Clouds() {
             .setIndexData(&cloud_plane_indices[0], sizeof(cloud_plane_indices))
             .create();
 
-    auto vertex_shader = VertexShaderBuilder(
-                             "E:"
-                             "\\repos\\X11Engine\\X11Engine\\Assets\\Shaders\\S"
-                             "ky\\Sky.hlsl",
-                             "vertex_main")
-                             .create()
-                             .getResult();
-    auto pixel_shader = PixelShaderBuilder(
-                            "E:"
-                            "\\repos\\X11Engine\\X11Engine\\Assets\\Shaders\\Sk"
-                            "y\\Sky.hlsl",
-                            "pixel_main")
-                            .create()
-                            .getResult();
+    auto vertex_shader =
+        VertexShaderBuilder("./Assets/Shaders/Sky/Sky.hlsl", "vertex_main")
+            .create()
+            .getResult();
+    auto pixel_shader =
+        PixelShaderBuilder("./Assets/Shaders/Sky/Sky.hlsl", "pixel_main")
+            .create()
+            .getResult();
 
     auto input_layout = InputLayoutBuilder(vertex_shader)
                             .addElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT)
