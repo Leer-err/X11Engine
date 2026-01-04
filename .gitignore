@@ -363,5 +363,6 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-X11Engine/assets
+X11Engine/Assets/*
+!X11Engine/Assets/Shaders/
 /.vscode
