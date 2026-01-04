@@ -8,6 +8,7 @@
 #include "InputLayoutBuilder.h"
 #include "Matrix.h"
 #include "MeshBuilder.h"
+#include "Overlay.h"
 #include "PixelShaderBuilder.h"
 #include "Vector3.h"
 #include "VertexShaderBuilder.h"
@@ -24,13 +25,14 @@ struct CameraParameters {
 
 struct StarParameters {
     float time;
-
-    float padding[3];
+    float star_density;
+    float blinking_speed;
+    float blink_strength;
 };
 
 };  // namespace StarData
 
-Stars::Stars() {
+Stars::Stars() : star_density(30), blinking_speed(1), blink_strength(0.6) {
     constexpr Vector3 screen_quad_vertices[] = {
         Vector3(-1, -1, 1), Vector3(1, -1, 1), Vector3(-1, 1, 1),
         Vector3(1, 1, 1)};
@@ -84,7 +86,22 @@ Stars::Stars() {
     auto star_parameters = context.mapConstantBuffer<StarData::StarParameters>(
         star_parameters_buffer);
     star_parameters->time = 0;
+    star_parameters->star_density = star_density;
+    star_parameters->blink_strength = blink_strength;
+    star_parameters->blinking_speed = blinking_speed;
     context.unmapConstantBuffer(star_parameters_buffer);
+
+    Overlay::Overlay::get().add<Overlay::OverlayElements::SliderFloat>(
+        "Stars", "Density", [this](float value) { star_density = value; }, 0.f,
+        1000.f, star_density);
+    Overlay::Overlay::get().add<Overlay::OverlayElements::SliderFloat>(
+        "Stars", "Blinking strength",
+        [this](float value) { blink_strength = value; }, 0.f, 1.f,
+        blink_strength);
+    Overlay::Overlay::get().add<Overlay::OverlayElements::SliderFloat>(
+        "Stars", "Blinking speed",
+        [this](float value) { blinking_speed = value; }, 0.f, 10.f,
+        blinking_speed);
 }
 
 void Stars::draw() {
@@ -93,6 +110,9 @@ void Stars::draw() {
     auto star_parameters = context.mapConstantBuffer<StarData::StarParameters>(
         star_parameters_buffer);
     star_parameters->time = Engine::Engine::get().getTime();
+    star_parameters->star_density = star_density;
+    star_parameters->blink_strength = blink_strength;
+    star_parameters->blinking_speed = blinking_speed;
     context.unmapConstantBuffer(star_parameters_buffer);
 
     context.cleanPipeline();

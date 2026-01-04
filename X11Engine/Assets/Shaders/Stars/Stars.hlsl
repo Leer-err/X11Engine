@@ -3,11 +3,6 @@ cbuffer CameraData : register(b0)
     float4x4 inverse_projection;
 };
 
-cbuffer StarsData : register(b0)
-{
-    float time;
-}
-
 struct Vertex_Output{
     float4 viewport_position : SV_POSITION;
     float3 position : POSITION;
@@ -123,15 +118,19 @@ float remap(float value, float in_min, float in_max, float out_min, float out_ma
     return lerp(out_min, out_max, t);
 }
 
+cbuffer StarsData : register(b0)
+{
+    float time;
+    float star_density;
+    float blinking_speed;
+    float blink_strength;
+}
+
 float4 pixel_main(in Vertex_Output data) : SV_TARGET
 {    
-    const float star_density = 1;
-
     float noise = 1 - voronoi(data.position / star_density);
     float stars = step(0.95, noise);
 
-    const float blinking_speed = 1;
-    const float blink_strength = 0.4;
     float blink_offset = time * blinking_speed;
     float brightness_noise = fbm((data.position + blink_offset) / star_density, 0.5);
     float star_brightness = remap(brightness_noise, 0, 1, 1 - blink_strength, 1);

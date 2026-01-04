@@ -15,4 +15,8 @@ class Stars {
     GraphicsPipeline pipeline;
     Buffer camera_parameters_buffer;
     Buffer star_parameters_buffer;
+
+    float star_density;
+    float blinking_speed;
+    float blink_strength;
 };
