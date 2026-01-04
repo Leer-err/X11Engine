@@ -7,6 +7,7 @@
 #include <dxgiformat.h>
 
 #include "APIResources.h"
+#include "Sampler.h"
 #include "Texture.h"
 
 Context::Context() { context = APIResources::get().getContext(); }
@@ -107,6 +108,10 @@ void Context::bindConstantBuffer(const Buffer& buffer, const Binding& binding) {
     }
 }
 
+void Context::unbindConstantBuffer(const Binding& binding) {
+    bindConstantBuffer(Buffer(), binding);
+}
+
 void Context::bindShaderResource(const ShaderResource& resource,
                                  const Binding& binding) {
     auto view = resource.get().Get();
@@ -121,6 +126,10 @@ void Context::bindShaderResource(const ShaderResource& resource,
     }
 }
 
+void Context::unbindShaderResource(const Binding& binding) {
+    bindShaderResource(ShaderResource(), binding);
+}
+
 void Context::bindSampler(const Sampler& sampler, const Binding& binding) {
     auto sampler_state = sampler.get().Get();
 
@@ -132,6 +141,10 @@ void Context::bindSampler(const Sampler& sampler, const Binding& binding) {
             context->PSSetSamplers(binding.index, 1, &sampler_state);
             return;
     }
+}
+
+void Context::unbindSampler(const Binding& binding) {
+    bindSampler(Sampler(), binding);
 }
 
 void Context::clean(RenderTarget render_target) {

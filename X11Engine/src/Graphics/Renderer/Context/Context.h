@@ -34,9 +34,12 @@ class Context {
     void unmapConstantBuffer(const Buffer& buffer);
 
     void bindConstantBuffer(const Buffer& resource, const Binding& binding);
+    void unbindConstantBuffer(const Binding& binding);
     void bindShaderResource(const ShaderResource& resource,
                             const Binding& binding);
+    void unbindShaderResource(const Binding& binding);
     void bindSampler(const Sampler& sampler, const Binding& binding);
+    void unbindSampler(const Binding& binding);
 
     void clean(RenderTarget render_target);
 

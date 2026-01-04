@@ -97,13 +97,14 @@ void Clouds::CloudsBaker::draw() {
     cloud_parameters->time = Engine::Engine::get().getTime();
     context.unmapConstantBuffer(cloud_parameter_buffer);
 
-    context.clean(cloud_render_target);
-
-    context.cleanPipeline();
     context.setPipeline(bake_pipeline);
+    context.clean(cloud_render_target);
     context.bindConstantBuffer(cloud_parameter_buffer,
                                CloudBakeData::cloud_parameters);
+
     context.draw(screen_quad);
+
+    context.unbindConstantBuffer(CloudBakeData::cloud_parameters);
 }
 
 Texture Clouds::CloudsBaker::getCloudsTexture() const { return clouds_texture; }
@@ -217,15 +218,20 @@ void Clouds::draw() {
     cloud_baker.draw();
     cloud_texture = ShaderResource(cloud_baker.getCloudsTexture());
 
-    context.cleanPipeline();
-
     context.setPipeline(pipeline);
+
     context.bindShaderResource(cloud_texture, SkyPipelineData::cloud_texture);
     context.bindSampler(cloud_sampler, SkyPipelineData::cloud_sampler);
     context.bindConstantBuffer(camera_data_buffer,
                                SkyPipelineData::camera_data);
     context.bindConstantBuffer(clouds_data_buffer, SkyPipelineData::sky_data);
+
     context.draw(cloud_plane);
+
+    context.unbindShaderResource(SkyPipelineData::cloud_texture);
+    context.unbindSampler(SkyPipelineData::cloud_sampler);
+    context.unbindConstantBuffer(SkyPipelineData::camera_data);
+    context.unbindConstantBuffer(SkyPipelineData::sky_data);
 }
 
 void Clouds::updateCloudData() {

@@ -115,11 +115,13 @@ void Stars::draw() {
     star_parameters->blinking_speed = blinking_speed;
     context.unmapConstantBuffer(star_parameters_buffer);
 
-    context.cleanPipeline();
     context.setPipeline(pipeline);
     context.bindConstantBuffer(camera_parameters_buffer,
                                StarData::camera_parameters);
     context.bindConstantBuffer(star_parameters_buffer,
                                StarData::star_parameters);
     context.draw(screen_plane);
+
+    context.unbindConstantBuffer(StarData::camera_parameters);
+    context.unbindConstantBuffer(StarData::star_parameters);
 }
