@@ -8,24 +8,19 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Buffer.h"
 #include "IIndexBuffer.h"
 #include "IPixelShader.h"
 #include "ITexture.h"
 #include "IVertexBuffer.h"
 #include "IVertexShader.h"
+#include "InputLayout.h"
 #include "Matrix.h"
 
 struct BoneReference {
     std::string bone_name;
     size_t skeleton_node_index;
     Matrix offset_matrix;
-};
-
-struct Mesh {
-    std::shared_ptr<IIndexBuffer> index_buffer;
-    std::shared_ptr<IVertexBuffer> vertex_buffer;
-
-    std::vector<BoneReference> bones;
 };
 
 struct Material {
@@ -49,7 +44,7 @@ struct CurrentAnimation {
 
 struct Model {
     std::string name;
-    std::vector<Mesh> meshes;
+    // std::vector<Mesh> meshes;
     Material material;
     Skeleton skeleton;
 };

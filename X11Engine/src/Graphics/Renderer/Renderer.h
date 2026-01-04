@@ -1,29 +1,36 @@
 #pragma once
 
-#include <memory>
-
+#include "DepthStencil.h"
 #include "GraphicsConfig.h"
-#include "IDepthStencil.h"
-#include "IRasterizer.h"
-#include "IRenderContext.h"
-#include "IRenderTarget.h"
-#include "ISwapChain.h"
+#include "RenderTarget.h"
+#include "RenderTarget/RenderTarget.h"
+#include "SwapChain.h"
 
 class Renderer {
    public:
-    Renderer();
+    static Renderer& get() {
+        static Renderer instance;
+        return instance;
+    }
+
+    void initializeResources(const GraphicsConfig& config);
 
     void beginFrame();
     void endFrame();
 
+    RenderTarget getDefaultRenderTarget() const {
+        return default_render_target;
+    }
+    DepthStencil getDefaultDepthStencilBuffer() const {
+        return default_depth_stencil_buffer;
+    }
+
    private:
-    void initializeResources(const GraphicsConfig& config);
+    Renderer();
 
-    std::shared_ptr<ISwapChain> swap_chain;
-    std::shared_ptr<IRenderContext> context;
+    Texture render_target_texture;
+    RenderTarget default_render_target;
+    DepthStencil default_depth_stencil_buffer;
 
-    std::shared_ptr<IRenderTarget> render_target;
-    std::shared_ptr<IDepthStencil> depth_stencil;
-
-    std::shared_ptr<IRasterizer> rasterizer;
+    SwapChain swap_chain;
 };

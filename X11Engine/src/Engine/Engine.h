@@ -1,8 +1,10 @@
 #pragma once
 
+#include <chrono>
 #include <memory>
 
 #include "Renderer.h"
+#include "Scene.h"
 #include "Window.h"
 #include "World.h"
 
@@ -20,7 +22,7 @@ class Engine {
     void run();
     void exit();
 
-    World& getWorld();
+    float getTime() const;
 
    private:
     Engine();
@@ -42,11 +44,11 @@ class Engine {
 
     bool should_exit;
 
+    std::chrono::high_resolution_clock clock;
+    std::chrono::high_resolution_clock::time_point last_elapsed;
+    std::chrono::high_resolution_clock::time_point start;
+
     // std::shared_ptr<PhysicsFactory> physics;
-
-    Renderer renderer;
-
-    World world;
     // std::shared_ptr<AnimationRegistry> animation_registry;
 };
 

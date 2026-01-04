@@ -1,9 +1,16 @@
 #include "Renderer.h"
 
-#include <memory>
+#include <d3d11.h>
+#include <d3d11_1.h>
+#include <wrl/client.h>
+
 #include <tracy/Tracy.hpp>
 
-#include "ResourceFactory.h"
+#include "APIResources.h"
+#include "Context.h"
+#include "Format.h"
+#include "SwapChainBuilder.h"
+#include "TextureBuilder.h"
 
 Renderer::Renderer() {
     // auto factory = ResourceFactory::get();
@@ -16,6 +23,10 @@ Renderer::Renderer() {
 
 void Renderer::beginFrame() {
     ZoneScoped;
+    auto context = Context();
+
+    context.clean(default_render_target);
+
     // context->clearRenderTarget(render_target);
     // context->clearDepthStencil(depth_stencil);
 
@@ -24,10 +35,47 @@ void Renderer::beginFrame() {
 
 void Renderer::endFrame() {
     ZoneScoped;
-    // swap_chain->present();
+    auto context = Context();
+
+    auto backbuffer = swap_chain.getBackbuffer();
+    context.copy(render_target_texture, backbuffer);
+
+    swap_chain.present();
 }
 
 void Renderer::initializeResources(const GraphicsConfig& config) {
+    swap_chain = SwapChainBuilder(config.render_width, config.render_height)
+                     .windowed()
+                     .create();
+
+    render_target_texture =
+        TextureBuilder(ImageFormat::RGBA_32BPP, config.render_width,
+                       config.render_height)
+            .isGPUWritable()
+            .isRenderTarget()
+            .create()
+            .getResult();
+
+    default_render_target = RenderTarget(render_target_texture);
+
+    auto context = APIResources::get().getContext();
+    auto device = APIResources::get().getDevice();
+
+    D3D11_BLEND_DESC1 desc = {};
+    desc.RenderTarget[0].BlendEnable = TRUE;
+    desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+    desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+    desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+    Microsoft::WRL::ComPtr<ID3D11BlendState1> blend_state;
+    device->CreateBlendState1(&desc, &blend_state);
+
+    context->OMSetBlendState(blend_state.Get(), nullptr, 0xffffffff);
+
     // auto factory = ResourceFactory::get();
     // swap_chain = factory->createSwapChain(
     //     config.render_width, config.render_height,

@@ -6,13 +6,13 @@
 #include "Quaternion.h"
 
 struct Vector3 {
-    Vector3() {
+    constexpr Vector3() {
         vec.x = 0;
         vec.y = 0;
         vec.z = 0;
     }
 
-    Vector3(float x, float y, float z) {
+    constexpr Vector3(float x, float y, float z) {
         vec.x = x;
         vec.y = y;
         vec.z = z;

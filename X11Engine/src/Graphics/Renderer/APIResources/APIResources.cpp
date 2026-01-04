@@ -1,5 +1,6 @@
 #include "APIResources.h"
 
+#include <d3d11.h>
 #include <d3d11_1.h>
 #include <dxgi.h>
 #include <dxgi1_4.h>
@@ -43,6 +44,8 @@ APIResources::APIResources()
 
     ComPtr<IDXGIFactory> dxgifactory;
     result = adapter->GetParent(IID_PPV_ARGS(&factory));
+
+    device->GetImmediateContext1(&context);
 }
 
 ComPtr<ID3D11Device1> APIResources::getDevice() const { return device; }
@@ -50,3 +53,7 @@ ComPtr<ID3D11Device1> APIResources::getDevice() const { return device; }
 ComPtr<IDXGIFactory4> APIResources::getFactory() const { return factory; }
 
 ComPtr<IDXGIAdapter1> APIResources::getAdapter() const { return adapter; }
+
+Microsoft::WRL::ComPtr<ID3D11DeviceContext1> APIResources::getContext() const {
+    return context;
+}

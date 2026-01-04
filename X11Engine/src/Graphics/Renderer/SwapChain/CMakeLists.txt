@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
 target_sources(${TARGET_NAME} PRIVATE
-    Dx11SwapChain.cpp
     SwapChain.cpp
     SwapChainBuilder.cpp
 )

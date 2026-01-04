@@ -3,13 +3,18 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 
-class RenderTarget {
-    friend class RenderTargetBuilder;
+class DepthStencil {
+    friend class DepthStencilBuilder;
+    friend class Context;
 
    public:
+    DepthStencil() = default;
+
    protected:
-    RenderTarget(Microsoft::WRL::ComPtr<ID3D11RenderTargetView> render_target);
+    DepthStencil(Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depth_stencil);
+
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> get() const;
 
    private:
-    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> render_target;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depth_stencil;
 };

@@ -2,16 +2,16 @@
 
 #include <type_traits>
 
-#include "RenderTarget.h"
+#include "DepthStencil.h"
 #include "Resource.h"
 #include "Texture.h"
 
-class RenderTargetBuilder {
+class DepthStencilBuilder {
     enum class ResourceType { Texture };
 
    public:
     template <Resource T>
-    RenderTargetBuilder(T resource)
+    DepthStencilBuilder(T resource)
         : resource(resource.get()), format(resource.getFormat()) {
         if constexpr (std::is_same_v<T, Texture>)
             type = ResourceType::Texture;
@@ -19,7 +19,7 @@ class RenderTargetBuilder {
             throw;
     }
 
-    RenderTarget create();
+    DepthStencil create();
 
    private:
     Microsoft::WRL::ComPtr<ID3D11Resource> resource;

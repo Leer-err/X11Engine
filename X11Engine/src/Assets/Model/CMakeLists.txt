@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
 
 target_sources(${TARGET_NAME} PRIVATE
-    ModelRegistry.cpp
+    #ModelRegistry.cpp
+    Mesh.cpp
+    MeshBuilder.cpp
 )
 
 target_include_directories(${TARGET_NAME} PUBLIC

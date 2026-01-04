@@ -1,3 +1,3 @@
 #pragma once
 
-enum class ShaderError { CompileError };
+enum class ShaderError { CompileError, NotFound };

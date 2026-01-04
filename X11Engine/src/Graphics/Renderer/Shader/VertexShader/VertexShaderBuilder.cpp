@@ -18,7 +18,7 @@ Result<VertexShader, ShaderError> VertexShaderBuilder::create() {
 
     Microsoft::WRL::ComPtr<ID3DBlob> bytecode, error;
     HRESULT result = D3DCompileFromFile(
-        w_filename.c_str(), nullptr, nullptr, entrypoint.c_str(), "ps_5_0",
+        w_filename.c_str(), nullptr, nullptr, entrypoint.c_str(), "vs_5_0",
         D3DCOMPILE_ENABLE_STRICTNESS, NULL, bytecode.GetAddressOf(),
         error.GetAddressOf());
 
@@ -35,5 +35,5 @@ Result<VertexShader, ShaderError> VertexShaderBuilder::create() {
     device->CreateVertexShader(bytecode->GetBufferPointer(),
                                bytecode->GetBufferSize(), nullptr,
                                shader.GetAddressOf());
-    return VertexShader(shader);
+    return VertexShader(shader, bytecode);
 }

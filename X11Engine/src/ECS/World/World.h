@@ -64,7 +64,7 @@ class World {
         return QueryBuilder(entity_registry, component_registry);
     }
 
-    void progress(float delta_time) {
+    void update(float delta_time) {
         system_dispatcher.progress(*this, delta_time);
     }
 

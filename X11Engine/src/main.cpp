@@ -12,8 +12,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
     main_logger.info("Starting");
 
     WindowConfig config = {};
-    config.width = 800;
-    config.height = 600;
+    config.width = 1800;
+    config.height = 1000;
 
     Window::get().init(config);
 

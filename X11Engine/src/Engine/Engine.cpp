@@ -1,10 +1,10 @@
 #include "Engine.h"
 
 #include <chrono>
-#include <memory>
 #include <tracy/Tracy.hpp>
 
 #include "GameInputConfigReader.h"
+#include "GraphicsConfig.h"
 #include "PhysicalInput.h"
 #include "World.h"
 
@@ -25,6 +25,12 @@ bool Engine::init() {
     // }
 
     setupSystemPipeline();
+
+    GraphicsConfig config;
+    config.render_height = 600;
+    config.render_width = 800;
+    config.window_state = WindowState::Windowed;
+    Renderer::get().initializeResources(config);
 
     return true;
 }
@@ -95,13 +101,15 @@ void Engine::run() {
         "E:\\repos\\X11Engine\\X11Engine\\src\\Data\\Input\\Config.json",
         GameInputContext::get());
 
-    std::chrono::high_resolution_clock clock;
-    auto start = clock.now();
+    start = clock.now();
 
     while (should_exit == false) {
-        std::chrono::duration<float> elapsed = clock.now() - start;
-        float delta_time = elapsed.count();
-        start = clock.now();
+        auto elapsed = clock.now();
+        float delta_time =
+            std::chrono::duration_cast<std::chrono::duration<float>>(
+                elapsed - last_elapsed)
+                .count();
+        last_elapsed = elapsed;
 
         update(delta_time);
     }
@@ -111,15 +119,22 @@ void Engine::update(float delta_time) {
     ZoneScoped;
     PhysicalInput::get().saveState();
 
-    renderer.beginFrame();
+    Renderer::get().beginFrame();
 
-    world.progress(delta_time);
+    Scene::get().update(delta_time);
 
-    renderer.endFrame();
+    Renderer::get().endFrame();
     FrameMark;
 }
 
 void Engine::exit() { should_exit = true; }
+
+float Engine::getTime() const {
+    auto elapsed = clock.now();
+    return std::chrono::duration_cast<std::chrono::duration<float>>(elapsed -
+                                                                    start)
+        .count();
+}
 
 void Engine::setupSystemPipeline() {
     setupPreUpdateStep();
@@ -181,5 +196,5 @@ void Engine::setupRenderingStep() {
     // world.addSystem<OverlayRenderSystem>(factory).dependsOn<Rendering>();
 }
 
-World& Engine::getWorld() { return world; }
+// World& Engine::getWorld() { return world; }
 };  // namespace Engine

@@ -66,7 +66,7 @@ TextureBuilder& TextureBuilder::isGPUWritable() {
 
 Result<Texture, TextureError> TextureBuilder::create() {
     if (cpu_writable && gpu_writable) return TextureError::WriteFromGPUAndCPU;
-    if (!cpu_writable && !gpu_writable && data == nullptr)
+    if (!cpu_writable && !gpu_writable && !render_target && data == nullptr)
         return TextureError::NoDataForImmutableResource;
 
     auto dxgi_format_optional = imageFormatToDXGIFormat(format);
@@ -85,7 +85,6 @@ Result<Texture, TextureError> TextureBuilder::create() {
     if (shader_resource) desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
     if (render_target) desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
     if (depth_stencil) desc.BindFlags |= D3D11_BIND_DEPTH_STENCIL;
-    if (gpu_writable) desc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
 
     if (!cpu_writable && !gpu_writable)
         desc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -111,5 +110,5 @@ Result<Texture, TextureError> TextureBuilder::create() {
     Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
     auto result = device->CreateTexture2D(&desc, sub_data_ptr, &texture);
 
-    return Texture(texture);
+    return Texture(texture, width, height, dxgi_format);
 }

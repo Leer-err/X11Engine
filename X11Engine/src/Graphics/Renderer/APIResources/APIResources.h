@@ -16,6 +16,7 @@ class APIResources {
     Microsoft::WRL::ComPtr<ID3D11Device1> getDevice() const;
     Microsoft::WRL::ComPtr<IDXGIFactory4> getFactory() const;
     Microsoft::WRL::ComPtr<IDXGIAdapter1> getAdapter() const;
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext1> getContext() const;
 
    private:
     APIResources();
@@ -27,6 +28,7 @@ class APIResources {
     Microsoft::WRL::ComPtr<ID3D11Device1> device;
     Microsoft::WRL::ComPtr<IDXGIFactory4> factory;
     Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+    Microsoft::WRL::ComPtr<ID3D11DeviceContext1> context;
 
     Logger logger;
 };
