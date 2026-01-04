@@ -8,6 +8,7 @@
 #include "InputLayoutBuilder.h"
 #include "Matrix.h"
 #include "MeshBuilder.h"
+#include "Overlay.h"
 #include "PixelShaderBuilder.h"
 #include "SamplerBuilder.h"
 #include "ShaderResource.h"
@@ -131,7 +132,7 @@ struct Vertex {
     Vector2 uv;
 };
 
-Clouds::Clouds() {
+Clouds::Clouds() : cloud_height(100), cloud_plane_size(1000) {
     constexpr Vertex cloud_plane_vertices[] = {
         Vertex(Vector3(-1, 1, -1), Vector2(0, 1)),
         Vertex(Vector3(-1, 1, 1), Vector2(0, 0)),
@@ -192,6 +193,15 @@ Clouds::Clouds() {
     sky_data->height = 100;
     sky_data->cloud_plane_scale = 1000;
     context.unmapConstantBuffer(clouds_data_buffer);
+
+    Overlay::Overlay::get().add<Overlay::OverlayElements::SliderFloat>(
+        "Clouds", "Height", [this](float height) { updateHeight(height); }, 0.f,
+        300.f, cloud_height);
+
+    Overlay::Overlay::get().add<Overlay::OverlayElements::SliderFloat>(
+        "Clouds", "Cloud plane size",
+        [this](float value) { updateCloudPlaneSize(value); }, 0.f, 2000.f,
+        cloud_plane_size);
 }
 
 void Clouds::draw() {
@@ -209,4 +219,26 @@ void Clouds::draw() {
                                SkyPipelineData::camera_data);
     context.bindConstantBuffer(clouds_data_buffer, SkyPipelineData::sky_data);
     context.draw(cloud_plane);
+}
+
+void Clouds::updateCloudData() {
+    auto context = Context();
+
+    auto sky_data =
+        context.mapConstantBuffer<SkyPipelineData::SkyData>(clouds_data_buffer);
+    sky_data->height = cloud_height;
+    sky_data->cloud_plane_scale = cloud_plane_size;
+    context.unmapConstantBuffer(clouds_data_buffer);
+}
+
+void Clouds::updateHeight(float height) {
+    this->cloud_height = height;
+
+    updateCloudData();
+}
+
+void Clouds::updateCloudPlaneSize(float cloud_plane_size) {
+    this->cloud_plane_size = cloud_plane_size;
+
+    updateCloudData();
 }

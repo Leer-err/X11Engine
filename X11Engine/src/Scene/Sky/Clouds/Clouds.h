@@ -29,6 +29,11 @@ class Clouds {
     void draw();
 
    private:
+    void updateCloudData();
+
+    void updateHeight(float height);
+    void updateCloudPlaneSize(float cloud_plane_size);
+
     Mesh cloud_plane;
     GraphicsPipeline pipeline;
     Buffer camera_data_buffer;
@@ -37,4 +42,7 @@ class Clouds {
     ShaderResource cloud_texture;
 
     CloudsBaker cloud_baker;
+
+    float cloud_height;
+    float cloud_plane_size;
 };

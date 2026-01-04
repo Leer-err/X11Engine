@@ -5,6 +5,7 @@
 
 #include "GameInputConfigReader.h"
 #include "GraphicsConfig.h"
+#include "Overlay.h"
 #include "PhysicalInput.h"
 #include "World.h"
 
@@ -122,6 +123,8 @@ void Engine::update(float delta_time) {
     Renderer::get().beginFrame();
 
     Scene::get().update(delta_time);
+
+    Overlay::Overlay::get().draw();
 
     Renderer::get().endFrame();
     FrameMark;

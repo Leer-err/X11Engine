@@ -44,6 +44,9 @@ void Renderer::endFrame() {
 }
 
 void Renderer::initializeResources(const GraphicsConfig& config) {
+    width = config.render_width;
+    height = config.render_height;
+
     swap_chain = SwapChainBuilder(config.render_width, config.render_height)
                      .windowed()
                      .create();
@@ -86,3 +89,7 @@ void Renderer::initializeResources(const GraphicsConfig& config) {
 
     // context->setViewport(width, height);
 }
+
+uint32_t Renderer::getWidth() const { return width; }
+
+uint32_t Renderer::getHeight() const { return height; }

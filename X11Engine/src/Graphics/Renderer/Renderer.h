@@ -18,6 +18,9 @@ class Renderer {
     void beginFrame();
     void endFrame();
 
+    uint32_t getWidth() const;
+    uint32_t getHeight() const;
+
     RenderTarget getDefaultRenderTarget() const {
         return default_render_target;
     }
@@ -33,4 +36,7 @@ class Renderer {
     DepthStencil default_depth_stencil_buffer;
 
     SwapChain swap_chain;
+
+    uint32_t width;
+    uint32_t height;
 };
