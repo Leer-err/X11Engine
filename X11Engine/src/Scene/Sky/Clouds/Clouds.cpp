@@ -195,13 +195,20 @@ Clouds::Clouds() : cloud_height(100), cloud_plane_size(1000) {
     context.unmapConstantBuffer(clouds_data_buffer);
 
     Overlay::Overlay::get().add<Overlay::OverlayElements::SliderFloat>(
-        "Clouds", "Height", [this](float height) { updateHeight(height); }, 0.f,
-        300.f, cloud_height);
+        "Clouds", "Height",
+        [this](float height) {
+            cloud_height = height;
+            updateCloudData();
+        },
+        0.f, 300.f, cloud_height);
 
     Overlay::Overlay::get().add<Overlay::OverlayElements::SliderFloat>(
         "Clouds", "Cloud plane size",
-        [this](float value) { updateCloudPlaneSize(value); }, 0.f, 2000.f,
-        cloud_plane_size);
+        [this](float value) {
+            cloud_plane_size = value;
+            updateCloudData();
+        },
+        0.f, 2000.f, cloud_plane_size);
 }
 
 void Clouds::draw() {
@@ -229,16 +236,4 @@ void Clouds::updateCloudData() {
     sky_data->height = cloud_height;
     sky_data->cloud_plane_scale = cloud_plane_size;
     context.unmapConstantBuffer(clouds_data_buffer);
-}
-
-void Clouds::updateHeight(float height) {
-    this->cloud_height = height;
-
-    updateCloudData();
-}
-
-void Clouds::updateCloudPlaneSize(float cloud_plane_size) {
-    this->cloud_plane_size = cloud_plane_size;
-
-    updateCloudData();
 }
