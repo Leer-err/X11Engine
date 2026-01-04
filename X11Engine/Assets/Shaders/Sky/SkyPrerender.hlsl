@@ -91,7 +91,8 @@ cbuffer CloudData : register(b0)
 float4 pixel_main(in Vertex_Output data) : SV_TARGET
 {
     const float radius = 0.5;
-    float distance = radius - length(data.uv ) + 0.5;
+    float distance = radius - length(data.uv) + 0.5;
+    distance = clamp(distance, 0, 1);
 
     const float scale = 5; 
     float2 cloud_coords = data.uv * scale + time * 0.1;
