@@ -30,7 +30,8 @@ void ScriptSystem::update(World& world, float delta_time) {
     for (auto& entity : entities) {
         auto scripts = entity.get<Scripts>();
 
-        for (auto& script : scripts->scripts) script->update(world, delta_time);
+        for (auto& script : scripts->scripts)
+            script->update(entity, delta_time);
     }
 
     // sandbox.runFunction("Update", delta_time);

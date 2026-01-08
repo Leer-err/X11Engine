@@ -4,6 +4,5 @@
 
 class IScript {
    public:
-    virtual void prepare() = 0;
-    virtual void update(World& world, float delta_time) = 0;
+    virtual void update(Entity entity, float delta_time) = 0;
 };
