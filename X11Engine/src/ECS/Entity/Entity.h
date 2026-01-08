@@ -21,8 +21,9 @@ class Entity {
     void addChild(Entity child);
 
     template <typename ComponentType>
-    void set(const ComponentType& component) {
-        component_registry->set<ComponentType>(id, component);
+    void set(ComponentType&& component) {
+        component_registry->set<ComponentType>(
+            id, std::forward<ComponentType>(component));
     }
 
     template <typename ComponentType>

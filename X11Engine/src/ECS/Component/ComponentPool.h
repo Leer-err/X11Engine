@@ -43,11 +43,20 @@ class ComponentPool : public IComponentPool {
         return component;
     }
 
-    ComponentId set(EntityId entity, const ComponentType& component) {
+    // ComponentId set(EntityId entity, const ComponentType& component) {
+    //     ComponentId id = add(entity);
+
+    //     size_t index = component_ids[id.id];
+    //     components[index] = component;
+
+    //     return id;
+    // }
+
+    ComponentId set(EntityId entity, ComponentType&& component) {
         ComponentId id = add(entity);
 
         size_t index = component_ids[id.id];
-        components[index] = component;
+        components[index] = std::forward<ComponentType>(component);
 
         return id;
     }

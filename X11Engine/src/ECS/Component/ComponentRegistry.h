@@ -21,21 +21,21 @@ class ComponentRegistry {
     }
 
     template <typename ComponentType>
-    void set(EntityId entity, const ComponentType& component) {
+    void set(EntityId entity, ComponentType&& component) {
         ZoneScoped;
         ComponentPool<ComponentType>* pool = getOrCreatePool<ComponentType>();
 
-        pool->set(entity, component);
+        pool->set(entity, std::forward<ComponentType>(component));
 
         size_t type_id = TypeIdHelper::getTypeId<ComponentType>();
     }
 
     template <typename ComponentType>
-    void set(ComponentId id, const ComponentType& component) {
+    void set(ComponentId id, ComponentType&& component) {
         ZoneScoped;
         ComponentPool<ComponentType>* pool = getOrCreatePool<ComponentType>();
 
-        pool->set(id, component);
+        pool->set(id, std::forward<ComponentType>(component));
     }
 
     template <typename ComponentType>
