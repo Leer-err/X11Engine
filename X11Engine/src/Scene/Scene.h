@@ -13,9 +13,12 @@ class Scene {
     void update(float deltaTime);
 
    private:
-    Scene() = default;
+    Scene();
+
+    void setupSystems();
 
     Sky sky;
 
     World world;
+    Entity player;
 };

@@ -1,10 +1,13 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+#include <memory>
 #include <tracy/Tracy.hpp>
 
 #include "ComponentRegistry.h"
 #include "EntityId.h"
+
+class IScript;
 
 class Entity {
    public:
@@ -19,6 +22,7 @@ class Entity {
     }
 
     void addChild(Entity child);
+    void addScript(std::unique_ptr<IScript>&& script);
 
     template <typename ComponentType>
     void set(ComponentType&& component) {
