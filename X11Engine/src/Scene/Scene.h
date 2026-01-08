@@ -5,7 +5,7 @@
 
 class Scene {
    public:
-    static Scene get() {
+    static Scene& get() {
         static Scene instance;
         return instance;
     }
@@ -17,5 +17,5 @@ class Scene {
 
     Sky sky;
 
-    // World world;
+    World world;
 };

@@ -2,7 +2,7 @@
 #define SCRIPT_SYSTEM_H
 
 #include "ISystem.h"
-#include "ScriptSandbox.h"
+// #include "ScriptSandbox.h"
 
 class ScriptSystem : public ISystem {
    public:
@@ -11,7 +11,7 @@ class ScriptSystem : public ISystem {
     void update(World& world, float delta_time) override;
 
    private:
-    Engine::Script::ScriptSandbox sandbox;
+    // Engine::Script::ScriptSandbox sandbox;
 };
 
 #endif  // SCRIPT_SYSTEM_H

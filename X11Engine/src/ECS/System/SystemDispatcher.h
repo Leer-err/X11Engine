@@ -66,7 +66,7 @@ class SystemDispatcher {
         systems.emplace(id, std::move(system));
         system_dependencies.emplace(id, std::vector<TypeId>{});
 
-        auto callback = [=](std::vector<TypeId>&& dependencies) {
+        auto callback = [this, id](std::vector<TypeId>&& dependencies) {
             system_dependencies[id] = dependencies;
             sortSystems();
         };
@@ -107,7 +107,7 @@ class SystemDispatcher {
 
                 if (std::any_of(
                         dependencies.begin(), dependencies.end(),
-                        [=, &generations](TypeId dependency) {
+                        [this, &generations](TypeId dependency) {
                             if (systems.find(dependency) == systems.end())
                                 return true;
                             return generations[dependency] == NO_GENERATION;
@@ -141,6 +141,11 @@ class SystemDispatcher {
             execution_order.push_back(generation);
         }
     }
+
+    SystemDispatcher(const SystemDispatcher&) = delete;
+    SystemDispatcher& operator=(const SystemDispatcher&) = delete;
+    SystemDispatcher(SystemDispatcher&&) = delete;
+    SystemDispatcher& operator=(SystemDispatcher&&) = delete;
 
     World& world;
 

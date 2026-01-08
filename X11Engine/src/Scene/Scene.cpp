@@ -2,5 +2,5 @@
 
 void Scene::update(float deltaTime) {
     sky.draw();
-    // world.update(deltaTime);
+    world.update(deltaTime);
 }

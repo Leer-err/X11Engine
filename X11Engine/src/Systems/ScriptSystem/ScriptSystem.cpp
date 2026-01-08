@@ -1,19 +1,23 @@
 #include "ScriptSystem.h"
 
 #include <tracy/Tracy.hpp>
+#include <vector>
 
-#include "Bindings.h"
-#include "ScriptLoader.h"
+// #include "Bindings.h"
+#include "Entity.h"
+// #include "ScriptLoader.h"
+#include "Scripts.h"
+#include "World.h"
 
-using namespace Engine::Script;
+// using namespace Engine::Script;
 
 bool ScriptSystem::prepare(World& world) {
-    sandbox.initBindings();
+    // sandbox.initBindings();
 
-    ScriptLoader(sandbox).loadFromDirectory(
-        "E:\\repos\\X11Engine\\X11Engine\\Scripts");
+    // ScriptLoader(sandbox).loadFromDirectory(
+    //     "E:\\repos\\X11Engine\\X11Engine\\Scripts");
 
-    sandbox.runFunction("Init");
+    // sandbox.runFunction("Init");
 
     return true;
 }
@@ -21,5 +25,13 @@ bool ScriptSystem::prepare(World& world) {
 void ScriptSystem::update(World& world, float delta_time) {
     ZoneScoped;
 
-    sandbox.runFunction("Update", delta_time);
+    std::vector<Entity> entities = world.query().with<Scripts>().execute();
+
+    for (auto& entity : entities) {
+        auto scripts = entity.get<Scripts>();
+
+        for (auto& script : scripts->scripts) script->update(world, delta_time);
+    }
+
+    // sandbox.runFunction("Update", delta_time);
 }
