@@ -127,6 +127,30 @@ struct Matrix {
 
         return {scale.x, scale.y, scale.z};
     };
+
+    void decompose(Vector3& position, Vector3& scale,
+                   Quaternion& orientation) const {
+        DirectX::XMVECTOR translation_vector = {};
+        DirectX::XMVECTOR rotation_vector = {};
+        DirectX::XMVECTOR scale_vector = {};
+        DirectX::XMMATRIX mat = DirectX::XMLoadFloat4x4(&matrix);
+
+        DirectX::XMMatrixDecompose(&scale_vector, &rotation_vector,
+                                   &translation_vector, mat);
+
+        DirectX::XMFLOAT3 offloaded_scale;
+        DirectX::XMFLOAT3 offloaded_position;
+        DirectX::XMFLOAT4 offloaded_orientation;
+        DirectX::XMStoreFloat3(&offloaded_scale, scale_vector);
+        DirectX::XMStoreFloat3(&offloaded_position, translation_vector);
+        DirectX::XMStoreFloat4(&offloaded_orientation, rotation_vector);
+
+        scale = {offloaded_scale.x, offloaded_scale.y, offloaded_scale.z};
+        position = {offloaded_position.x, offloaded_position.y,
+                    offloaded_position.z};
+        orientation = {offloaded_orientation.w, offloaded_orientation.x,
+                       offloaded_orientation.y, offloaded_orientation.z};
+    }
 };
 
 inline Matrix operator*(const Matrix& a, const Matrix& b) {

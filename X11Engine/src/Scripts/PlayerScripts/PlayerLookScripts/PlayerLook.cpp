@@ -12,7 +12,7 @@ void PlayerLookX::update(Entity entity, float delta_time) {
     auto yaw = GameInputContext::get().getAxis(LOOK_X);
     auto rotation = transform->getOrientation() * Quaternion(0, yaw, 0);
 
-    transform->setOrientation(rotation);
+    transform->setLocalOrientation(rotation);
 }
 
 void CameraLookY::update(Entity entity, float delta_time) {
@@ -21,7 +21,7 @@ void CameraLookY::update(Entity entity, float delta_time) {
     auto pitch = GameInputContext::get().getAxis(LOOK_Y);
     auto rotation = transform->getOrientation() * Quaternion(pitch, 0, 0);
 
-    transform->setOrientation(rotation);
+    transform->setLocalOrientation(rotation);
 }
 
 };  // namespace Scripts::Player
