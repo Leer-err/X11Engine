@@ -1,6 +1,7 @@
 cbuffer CameraData : register(b0)
 {
-    float4x4 inverse_projection;
+    Matrix view_projection;
+    Matrix inverse_view_projection;
 };
 
 struct Vertex_Output{
@@ -17,7 +18,7 @@ Vertex_Output vertex_main(in Vertex_input vertex)
     Vertex_Output output;
 
     output.viewport_position = float4(vertex.position, 1);
-    float4 position = mul(inverse_projection, output.viewport_position);
+    float4 position = mul(inverse_view_projection, output.viewport_position);
     position = position / position.w;
     output.position = position.xyz;
 
@@ -128,13 +129,18 @@ cbuffer StarsData : register(b0)
 
 float4 pixel_main(in Vertex_Output data) : SV_TARGET
 {    
-    float noise = 1 - voronoi(data.position / star_density);
+    float2 noise_coords = float2(atan2(data.position.y, data.position.z), atan2(data.position.x, data.position.z));
+
+    float3 noise_position = normalize(data.position);
+
+    float noise = 1 - voronoi(noise_coords);
     float stars = step(0.95, noise);
 
     float blink_offset = time * blinking_speed;
-    float brightness_noise = fbm((data.position + blink_offset) / star_density, 0.5);
+    float brightness_noise = fbm((noise_position * 10 + blink_offset) , 0.5);
     float star_brightness = remap(brightness_noise, 0, 1, 1 - blink_strength, 1);
 
     stars = stars * star_brightness;
-    return float4(stars.xxx, 1);
+
+    return stars;
 }

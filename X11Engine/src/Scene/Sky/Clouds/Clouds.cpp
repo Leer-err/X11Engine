@@ -1,6 +1,7 @@
 #include "Clouds.h"
 
 #include "BufferBuilder.h"
+#include "CameraManager.h"
 #include "Context.h"
 #include "Engine.h"
 #include "Format.h"
@@ -183,12 +184,6 @@ Clouds::Clouds() : cloud_height(100), cloud_plane_size(1000) {
 
     auto context = Context();
 
-    auto camera_data = context.mapConstantBuffer<SkyPipelineData::CameraData>(
-        camera_data_buffer);
-    camera_data->projection_matrix =
-        Matrix::projection(60, 16.f / 9, 1000, 0.01);
-    context.unmapConstantBuffer(camera_data_buffer);
-
     auto sky_data =
         context.mapConstantBuffer<SkyPipelineData::SkyData>(clouds_data_buffer);
     sky_data->height = 100;
@@ -222,7 +217,7 @@ void Clouds::draw() {
 
     context.bindShaderResource(cloud_texture, SkyPipelineData::cloud_texture);
     context.bindSampler(cloud_sampler, SkyPipelineData::cloud_sampler);
-    context.bindConstantBuffer(camera_data_buffer,
+    context.bindConstantBuffer(CameraManager::get().getCameraData(),
                                SkyPipelineData::camera_data);
     context.bindConstantBuffer(clouds_data_buffer, SkyPipelineData::sky_data);
 

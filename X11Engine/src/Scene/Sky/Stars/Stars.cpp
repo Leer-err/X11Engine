@@ -2,6 +2,7 @@
 
 #include "Binding.h"
 #include "BufferBuilder.h"
+#include "CameraManager.h"
 #include "Context.h"
 #include "Engine.h"
 #include "GraphicsPipelineBuilder.h"
@@ -76,13 +77,6 @@ Stars::Stars() : star_density(30), blinking_speed(1), blink_strength(0.6) {
 
     auto context = Context();
 
-    auto camera_parameters =
-        context.mapConstantBuffer<StarData::CameraParameters>(
-            camera_parameters_buffer);
-    camera_parameters->inverse_projection =
-        Matrix::projection(60, 16.f / 9, 1000, 0.01).inverse();
-    context.unmapConstantBuffer(camera_parameters_buffer);
-
     auto star_parameters = context.mapConstantBuffer<StarData::StarParameters>(
         star_parameters_buffer);
     star_parameters->time = 0;
@@ -116,7 +110,7 @@ void Stars::draw() {
     context.unmapConstantBuffer(star_parameters_buffer);
 
     context.setPipeline(pipeline);
-    context.bindConstantBuffer(camera_parameters_buffer,
+    context.bindConstantBuffer(CameraManager::get().getCameraData(),
                                StarData::camera_parameters);
     context.bindConstantBuffer(star_parameters_buffer,
                                StarData::star_parameters);

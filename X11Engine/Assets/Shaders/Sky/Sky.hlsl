@@ -1,6 +1,7 @@
 cbuffer CameraData : register(b0)
 {
-    float4x4 projection;
+    matrix view_projection;
+    matrix inverse_view_projection;
 };
 
 cbuffer SkyData : register(b1)
@@ -26,7 +27,7 @@ Vertex_Output vertex_main(in Vertex_input vertex)
     float4 vertex_position = float4(vertex.position, 1);
     vertex_position.xz = vertex_position.xz * cloud_plane_scale;
     vertex_position.y = height;
-    output.viewport_position = mul(projection, vertex_position);
+    output.viewport_position = mul(view_projection, vertex_position);
     output.uv = vertex.uv;
 
     return output;
