@@ -69,8 +69,8 @@ class World {
     }
 
     template <typename System, typename... Args>
-    SystemDispatcher::SystemDescription addSystem(Args&&... args) {
-        return system_dispatcher.add<System>(std::forward<Args>(args)...);
+    void add(Args&&... args) {
+        system_dispatcher.add<System>(std::forward<Args>(args)...);
     }
 
    private:
