@@ -7,98 +7,68 @@
 #include "Entity.h"
 #include "Matrix.h"
 #include "Parent.h"
-#include "PhysicsComponents.h"
-#include "PositionComponents.h"
-#include "Quaternion.h"
-#include "StaticRigidBody.h"
 #include "Transform.h"
 #include "World.h"
+#include "WorldMatrix.h"
 
-TransformSystem::TransformSystem(World& world) {
-    auto transform_ditry_marker = [](Entity entity) {
-        entity.add<DirtyTransform>();
+void TransformSystem::preSimulate(World& world) { updateTransforms(world); }
+
+void TransformSystem::preRender(World& world) { updateTransforms(world); }
+
+void TransformSystem::updateTransforms(World& world) {
+    auto dirty_filter = [](Entity entity) {
+        return entity.get<Transform>()->isDirty();
     };
 
-    auto child_dirty_marker = [](Entity entity) {
-        if (entity.has<Children>() == false) return;
+    auto dirty_entities =
+        world.query().with<Transform>().filter(dirty_filter).execute();
+    for (auto& entity : dirty_entities) markChildrenDirty(entity);
 
-        Children children = *entity.get<Children>();
+    dirty_entities =
+        world.query().with<Transform>().filter(dirty_filter).execute();
 
-        for (auto& child : children.children) {
-            child.add<DirtyTransform>();
+    bool has_dirty = true;
+    while (has_dirty) {
+        has_dirty = false;
+
+        for (auto& entity : dirty_entities) {
+            updateSingleTransform(entity);
+            has_dirty |= entity.get<Transform>()->isDirty();
         }
-    };
+    }
 }
 
-bool TransformSystem::prepare(World& world) { return true; }
+void TransformSystem::updateSingleTransform(Entity entity) {
+    auto transform = entity.get<Transform>();
+    auto position = Matrix::translation(transform->getPosition());
+    auto orientation = Matrix::rotation(transform->getOrientation());
+    auto scale = Matrix::scale(transform->getScale());
+    auto world_matrix = scale * orientation * position;
 
-void TransformSystem::update(World& world, float delta_time) {
-    ZoneScoped;
-
-    std::vector<Entity> top_level_entities = world.query()
-                                                 .with<Transform>()
-                                                 .with<DirtyTransform>()
-                                                 .without<Parent>()
-                                                 .execute();
-
-    for (auto& entity : top_level_entities) {
-        Transform transform = *entity.get<Transform>();
-
-        Matrix matrix = transform.getLocalMatrix();
-        entity.set<LocalMatrix>({matrix});
-        entity.set<GlobalMatrix>({matrix});
-
-        entity.remove<DirtyTransform>();
+    auto parent = entity.get<Parent>();
+    if (parent == nullptr) {
+        transform->markClean();
+        entity.set<WorldMatrix>({world_matrix});
+        return;
     }
 
-    while (true) {
-        std::vector<Entity> entities = world.query()
-                                           .with<Transform>()
-                                           .with<DirtyTransform>()
-                                           .with<Parent>()
-                                           .execute();
+    auto parent_transform = parent->parent.get<Transform>();
+    if (parent_transform->isDirty()) return;
 
-        if (entities.size() == 0) break;
+    auto parent_world = parent->parent.get<WorldMatrix>();
+    auto parent_matrix = parent_world->matrix;
 
-        for (auto& entity : entities) {
-            const Parent* parent = entity.get<Parent>();
+    world_matrix = world_matrix * parent_matrix;
+    entity.set<WorldMatrix>({world_matrix});
+    transform->markClean();
+}
 
-            if (parent->parent.has<DirtyTransform>() == true) return;
+void TransformSystem::markChildrenDirty(Entity parent) {
+    auto children = parent.get<Children>();
+    if (children == nullptr) return;
 
-            entity.remove<DirtyTransform>();
-
-            const GlobalMatrix* parent_matrix_component =
-                parent->parent.get<GlobalMatrix>();
-            Transform transform = *entity.get<Transform>();
-
-            Matrix parent_matrix = parent_matrix_component->matrix;
-            Matrix matrix = transform.getLocalMatrix();
-            Matrix global_matrix = parent_matrix * matrix;
-            entity.set<LocalMatrix>({matrix});
-            entity.set<GlobalMatrix>({global_matrix});
-
-            const StaticRigidBodyComponent* static_rigid =
-                entity.get<StaticRigidBodyComponent>();
-            if (static_rigid != nullptr) {
-                Vector3 global_position = global_matrix.getTranslation();
-                Quaternion global_rotation = global_matrix.getRotation();
-
-                static_rigid->body->setTransform(global_position,
-                                                 global_rotation);
-            }
-
-            const DynamicRigidBodyComponent* dynamic_rigid =
-                entity.get<DynamicRigidBodyComponent>();
-            if (dynamic_rigid != nullptr) {
-                Vector3 global_position = global_matrix.getTranslation();
-                Quaternion global_rotation = global_matrix.getRotation();
-
-                const Velocity* velocity = entity.get<Velocity>();
-
-                dynamic_rigid->body->setVelocity(velocity->velocity);
-                dynamic_rigid->body->setTransform(global_position,
-                                                  global_rotation);
-            }
-        }
+    for (auto child : children->children) {
+        child.get<Transform>()->markDirty();
+        markChildrenDirty(child);
     }
 }

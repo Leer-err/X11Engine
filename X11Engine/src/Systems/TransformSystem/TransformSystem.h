@@ -3,13 +3,18 @@
 
 #include "ISystem.h"
 
+class Entity;
+
 class TransformSystem : public ISystem {
    public:
-    TransformSystem(World& world);
+    void preSimulate(World& world) override;
+    void preRender(World& world) override;
 
-    bool prepare(World& world) override;
+   private:
+    void updateTransforms(World& world);
+    void updateSingleTransform(Entity entity);
 
-    void update(World& world, float delta_time) override;
+    void markChildrenDirty(Entity parent);
 };
 
 #endif  // TRANSFORM_SYSTEM_H

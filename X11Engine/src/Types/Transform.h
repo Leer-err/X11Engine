@@ -11,13 +11,9 @@ class Transform {
    public:
     Transform();
 
-    void setLocalPosition(const Vector3& position);
-    void setLocalOrientation(const Quaternion& orientation);
-    void setLocalScale(const Vector3& scale);
-
-    Vector3 getLocalPosition();
-    Quaternion getLocalOrientation();
-    Vector3 getLocalScale();
+    void setPosition(const Vector3& position);
+    void setOrientation(const Quaternion& orientation);
+    void setScale(const Vector3& scale);
 
     Vector3 getPosition();
     Quaternion getOrientation();
@@ -27,31 +23,19 @@ class Transform {
     Vector3 getRight();
     Vector3 getUp();
 
-    Matrix getLocalMatrix();
-    Matrix getGlobalMatrix();
+    void markClean();
+    void markDirty();
 
-    void setParentTransformMatrix(const Matrix& global_matrix);
+    bool isDirty() const;
 
     std::string serialize() const;
 
    private:
-    void updateGlobals();
-    void updateLocalMatrix();
-
-    Vector3 local_position;
-    Quaternion local_orientation;
-    Vector3 local_scale;
-
     Vector3 position;
     Quaternion orientation;
     Vector3 scale;
 
-    Matrix local_matrix;
-    Matrix global_matrix;
-    Matrix parent_matrix;
-
-    bool dirty_local_matrix;
-    bool dirty_globals;
+    bool is_dirty;
 };
 
 #endif  // TRANSFORM_H
