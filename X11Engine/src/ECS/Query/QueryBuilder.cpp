@@ -62,3 +62,8 @@ QueryBuilder& QueryBuilder::childOf(Entity parent) {
 
     return *this;
 }
+
+QueryBuilder& QueryBuilder::filter(const FilterFunction& filter) {
+    filters.push_back(filter);
+    return *this;
+}

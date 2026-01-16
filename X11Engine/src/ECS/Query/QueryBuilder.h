@@ -1,6 +1,7 @@
 #ifndef QUERY_BUILDER_H
 #define QUERY_BUILDER_H
 
+#include <functional>
 #include <vector>
 
 #include "ComponentRegistry.h"
@@ -16,6 +17,8 @@ class QueryBuilder {
     // TODO: Query caching
 
     friend class World;
+
+    using FilterFunction = std::function<bool(Entity)>;
 
    protected:
     QueryBuilder(const EntityRegistry& entity_registry,
@@ -40,6 +43,8 @@ class QueryBuilder {
         return *this;
     }
 
+    QueryBuilder& filter(const FilterFunction& filter);
+
     QueryBuilder& childOf(Entity parent);
 
     std::vector<Entity> execute() const;
@@ -47,6 +52,8 @@ class QueryBuilder {
    private:
     std::vector<TypeId> required;
     std::vector<TypeId> excluded;
+
+    std::vector<FilterFunction> filters;
 
     bool search_parent;
     EntityId parent_id;
