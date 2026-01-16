@@ -1,13 +1,14 @@
 #include "CameraManager.h"
 
-#include <cstddef>
-
 #include "Buffer.h"
 #include "BufferBuilder.h"
 #include "CameraData.h"
 #include "Context.h"
 #include "Matrix.h"
+#include "Quaternion.h"
 #include "Transform.h"
+#include "Vector3.h"
+#include "WorldMatrix.h"
 
 CameraManager::CameraManager() {
     camera_buffer = BufferBuilder(sizeof(CameraData))
@@ -32,9 +33,17 @@ void CameraManager::setMainCameraEntity(Entity entity) {
 Entity CameraManager::getMainCameraEntity() const { return main_camera_entity; }
 
 void CameraManager::updateCameraData() {
-    auto transform = main_camera_entity.get<Transform>();
-    Matrix view = Matrix::view(transform->getPosition(),
-                               transform->getForward(), transform->getUp());
+    auto world_matrix = main_camera_entity.get<WorldMatrix>();
+
+    Vector3 position;
+    Quaternion orientation;
+    Vector3 scale;
+    world_matrix->matrix.decompose(position, scale, orientation);
+
+    auto up = Vector3(0, 1, 0).rotate(orientation);
+    auto forward = Vector3(0, 0, 1).rotate(orientation);
+
+    Matrix view = Matrix::view(position, forward, up);
     Matrix projection = main_camera->getProjectionMatrix();
 
     Matrix view_projection = view * projection;

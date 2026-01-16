@@ -8,6 +8,7 @@
 #include "ScriptSystem.h"
 #include "StaticProjectionCamera.h"
 #include "Transform.h"
+#include "TransformSystem.h"
 
 Scene::Scene() {
     auto cam = std::make_shared<StaticProjectionCamera>(60, (float)4 / 3, 0.1f,
@@ -31,10 +32,13 @@ Scene::Scene() {
 }
 
 void Scene::update(float deltaTime) {
-    CameraManager::get().updateCameraData();
-
     sky.draw();
     world.update(deltaTime);
+
+    CameraManager::get().updateCameraData();
 }
 
-void Scene::setupSystems() { world.addSystem<ScriptSystem>(); }
+void Scene::setupSystems() {
+    world.add<ScriptSystem>();
+    world.add<TransformSystem>();
+}

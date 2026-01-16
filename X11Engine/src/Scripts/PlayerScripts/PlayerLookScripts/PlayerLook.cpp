@@ -6,22 +6,24 @@
 
 namespace Scripts::Player {
 
+constexpr float sensetivity = 10.f;
+
 void PlayerLookX::update(Entity entity, float delta_time) {
     Transform* transform = entity.get<Transform>();
 
-    auto yaw = GameInputContext::get().getAxis(LOOK_X);
+    auto yaw = GameInputContext::get().getAxis(LOOK_X) * sensetivity;
     auto rotation = transform->getOrientation() * Quaternion(0, yaw, 0);
 
-    transform->setLocalOrientation(rotation);
+    transform->setOrientation(rotation);
 }
 
 void CameraLookY::update(Entity entity, float delta_time) {
     Transform* transform = entity.get<Transform>();
 
-    auto pitch = GameInputContext::get().getAxis(LOOK_Y);
+    auto pitch = GameInputContext::get().getAxis(LOOK_Y) * sensetivity;
     auto rotation = transform->getOrientation() * Quaternion(pitch, 0, 0);
 
-    transform->setLocalOrientation(rotation);
+    transform->setOrientation(rotation);
 }
 
 };  // namespace Scripts::Player
