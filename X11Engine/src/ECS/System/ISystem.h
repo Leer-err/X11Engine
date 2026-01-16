@@ -5,9 +5,12 @@ class World;
 
 class ISystem {
    public:
-    virtual bool prepare(World& world) = 0;
+    virtual void update(World& world, float delta_time) {}
 
-    virtual void update(World& world, float delta_time) = 0;
+    virtual void preSimulate(World& world) {}
+    virtual void simulate(World& world) {}
+    virtual void preRender(World& world) {}
+    virtual void render(World& world) {}
 };
 
 #endif  // I_SYSTEM_H

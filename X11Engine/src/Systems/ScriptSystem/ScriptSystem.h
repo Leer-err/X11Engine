@@ -6,8 +6,6 @@
 
 class ScriptSystem : public ISystem {
    public:
-    bool prepare(World& world) override;
-
     void update(World& world, float delta_time) override;
 
    private:
