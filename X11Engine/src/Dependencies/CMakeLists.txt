@@ -77,16 +77,16 @@ target_link_libraries(${TARGET_NAME} PUBLIC
     assimp-vc143-mtd
 )
 
-add_custom_command(
-	OUTPUT
-        ${CMAKE_BINARY_DIR}/bin/assimp-vc143-mtd.dll
-	COMMAND
-		${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/assimp/bin/Debug/assimp-vc143-mtd.dll ${CMAKE_BINARY_DIR}/bin
-    DEPENDS ${EXECUTABLE_NAME}
-)
-add_custom_target(copy_assimp_libs ALL
-	DEPENDS ${CMAKE_BINARY_DIR}/bin/assimp-vc143-mtd.dll
-)
+	add_custom_command(
+		OUTPUT
+	        ${CMAKE_BINARY_DIR}/bin/$<IF:$<CONFIG:Debug>,assimp-vc143-mtd.dll,assimp-vc143-mt.dll>
+		COMMAND
+			${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/assimp/bin/${CMAKE_BUILD_TYPE}/$<IF:$<CONFIG:Debug>,assimp-vc143-mtd.dll,assimp-vc143-mt.dll> ${CMAKE_BINARY_DIR}/bin
+	    DEPENDS ${EXECUTABLE_NAME}
+	)
+	add_custom_target(copy_assimp_libs ALL
+		DEPENDS ${CMAKE_BINARY_DIR}/bin/$<IF:$<CONFIG:Debug>,assimp-vc143-mtd.dll,assimp-vc143-mt.dll>
+	)
 
 # ImGui
 
