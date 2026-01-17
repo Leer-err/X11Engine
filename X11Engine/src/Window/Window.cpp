@@ -112,6 +112,8 @@ LRESULT Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         return true;
     }
 
+    Button button;
+
     switch (msg) {
         case WM_MOUSEACTIVATE:
             return MA_ACTIVATEANDEAT;  // ignore activation click
@@ -129,6 +131,7 @@ LRESULT Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         case WM_SYSKEYDOWN:
             if (PhysicalInput::get().getMouseMode() == MouseMode::Absolute) {
                 PhysicalInput::get().setMouseMode(MouseMode::Relative);
+                window->centerCursor();
             } else {
                 PhysicalInput::get().setMouseMode(MouseMode::Absolute);
             }
@@ -136,7 +139,7 @@ LRESULT Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         case WM_LBUTTONDOWN: {
             Button button = Button::MOUSE_LB;
 
-            PhysicalInput::get().buttonPressed(button);
+            PhysicalInput::get().buttonPressed(Button::MOUSE_LB);
             break;
         }
         case WM_RBUTTONDOWN: {
@@ -182,11 +185,14 @@ LRESULT Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             break;
         }
         case WM_MOUSEMOVE: {
+            if (PhysicalInput::get().getMouseMode() == MouseMode::Absolute)
+                break;
+
             int xPos = GET_X_LPARAM(lParam);
             int yPos = GET_Y_LPARAM(lParam);
 
-            int center_x_offset = window->width * 0.5f;
-            int center_y_offset = window->height * 0.5f;
+            int center_x_offset = window->width / 2;
+            int center_y_offset = window->height / 2;
 
             float relative_x_position =
                 static_cast<float>(xPos - center_x_offset) / window->width;
@@ -198,11 +204,7 @@ LRESULT Window::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             PhysicalInput::get().axisUpdated(Axis::MOUSE_Y,
                                              relative_y_position);
 
-            if (PhysicalInput::get().getMouseMode() == MouseMode::Relative) {
-                POINT point = {center_x_offset, center_y_offset};
-                ClientToScreen(hWnd, &point);
-                SetCursorPos(point.x, point.y);
-            }
+            window->centerCursor();
         } break;
         case WM_SIZE:
             break;
@@ -273,4 +275,13 @@ void Window::init(const WindowConfig& config) {
     SetWindowLongPtr(handle, GWLP_USERDATA, (LONG_PTR)this);
 
     ShowWindow(handle, SW_SHOW);
+}
+
+void Window::centerCursor() {
+    int center_x = width / 2;
+    int center_y = height / 2;
+
+    POINT point = {center_x, center_y};
+    ClientToScreen(handle, &point);
+    SetCursorPos(point.x, point.y);
 }

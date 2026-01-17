@@ -40,6 +40,8 @@ class Window {
     void registerWindowClass();
     RECT createWindowRect(DWORD style);
 
+    void centerCursor();
+
     HWND handle;
     int width;
     int height;
