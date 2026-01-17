@@ -25,13 +25,11 @@ Vertex_Output vertex_main(in Vertex_input vertex)
     return output;
 }
 
-float3 hash( float3 p ) 
-{
-	p = float3( dot(p,float3(127.1,311.7, 74.7)),
-			  dot(p,float3(269.5,183.3,246.1)),
-			  dot(p,float3(113.5,271.9,124.6)));
-
-	return -1.0 + 2.0*frac(sin(p)*43758.5453123);
+float3 hash(float3 p) {
+  return frac(
+      sin(float3(dot(p, float3(1.0, 57.0, 113.0)), dot(p, float3(57.0, 113.0, 1.0)),
+               dot(p, float3(113.0, 1.0, 57.0)))) *
+      43758.5453);
 }
 
 float noise( in float3 x )
@@ -91,25 +89,43 @@ float fbm( in float3 x, in float H)
     return t;
 }
 
-float2 hash2f( float2 p ) {
-    return frac(sin(float2(dot(p,float2(127.1,311.7)),dot(p,float2(269.5,183.3))))*43758.5453);
+static const float2x2 myt = float2x2(.12121212, .13131313, -.13131313, .12121212);
+static const float2 mys = float2(1e4, 1e6);
+
+float2 rhash(float2 uv) {
+  uv = mul(myt, uv);
+  uv = uv * mys;
+  return frac(frac(uv / mys) * uv);
 }
 
-float voronoi( in float2 x )
-{
-    int2 p = floor( x );
-    float2  f = frac( x );
+float3 voronoi3d(const in float3 x) {
+  float3 p = floor(x);
+  float3 f = frac(x);
 
-    float res = 8.0;
-    for( int j=-1; j<=1; j++ )
-    for( int i=-1; i<=1; i++ )
-    {
-        int2 b = int2( i, j );
-        float2  r = float2( b ) - f + hash2f( p + b );
-        float d = dot( r, r );
-        res = min( res, d );
+  float id = 0.0;
+  float2 res = float2(100, 100);
+  for (int k = -1; k <= 1; k++) {
+    for (int j = -1; j <= 1; j++) {
+      for (int i = -1; i <= 1; i++) {
+        float3 b = float3(float(i), float(j), float(k));
+        float3 r = float3(b) - f + hash(p + b);
+        float d = dot(r, r);
+
+        float cond = max(sign(res.x - d), 0.0);
+        float nCond = 1.0 - cond;
+
+        float cond2 = nCond * max(sign(res.y - d), 0.0);
+        float nCond2 = 1.0 - cond2;
+
+        id = (dot(p + b, float3(1.0, 57.0, 113.0)) * cond) + (id * nCond);
+        res = float2(d, res.x) * cond + res * nCond;
+
+        res.y = cond2 * d + nCond2 * res.y;
+      }
     }
-    return sqrt( res );
+  }
+
+  return float3(sqrt(res), abs(id));
 }
 
 float remap(float value, float in_min, float in_max, float out_min, float out_max)
@@ -128,12 +144,9 @@ cbuffer StarsData : register(b0)
 }
 
 float4 pixel_main(in Vertex_Output data) : SV_TARGET
-{    
-    float2 noise_coords = float2(atan2(data.position.y, data.position.z), atan2(data.position.x, data.position.z));
-
+{
     float3 noise_position = normalize(data.position);
-
-    float noise = 1 - voronoi(noise_coords);
+    float noise = 1 - voronoi3d(noise_position * star_density);
     float stars = step(0.95, noise);
 
     float blink_offset = time * blinking_speed;
