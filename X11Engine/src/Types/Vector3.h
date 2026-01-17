@@ -106,4 +106,17 @@ inline Vector3 operator*(const Vector3& a, float b) {
     return result;
 }
 
+inline Vector3 operator/(const Vector3& a, float b) {
+    DirectX::XMVECTOR a_loaded = DirectX::XMLoadFloat3(&a.vec);
+
+    DirectX::XMVECTOR b_loaded = DirectX::XMVectorSet(b, b, b, b);
+
+    DirectX::XMVECTOR result_loaded =
+        DirectX::XMVectorDivide(a_loaded, b_loaded);
+
+    Vector3 result;
+    DirectX::XMStoreFloat3(&result.vec, result_loaded);
+    return result;
+}
+
 #endif
