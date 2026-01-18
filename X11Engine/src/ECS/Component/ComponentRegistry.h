@@ -77,9 +77,25 @@ class ComponentRegistry {
         return pool->getId(entity);
     }
 
+    ComponentId getComponentId(EntityId entity, TypeId component_type) const {
+        const IComponentPool* pool = getPoolById(component_type);
+
+        if (pool == nullptr) return INVALID_COMPONENT_ID;
+
+        return pool->getId(entity);
+    }
+
     template <typename ComponentType>
     void remove(EntityId entity) {
         ComponentPool<ComponentType>* pool = getPool<ComponentType>();
+
+        if (pool == nullptr) return;
+
+        pool->remove(entity);
+    }
+
+    void remove(EntityId entity, TypeId component_type) {
+        IComponentPool* pool = getPoolById(component_type);
 
         if (pool == nullptr) return;
 
@@ -101,8 +117,8 @@ class ComponentRegistry {
         return pool->has(entity);
     }
 
-    bool has(EntityId entity, TypeId component_id) const {
-        const IComponentPool* pool = getPoolById(component_id);
+    bool has(EntityId entity, TypeId component_type) const {
+        const IComponentPool* pool = getPoolById(component_type);
 
         if (pool == nullptr) return false;
 

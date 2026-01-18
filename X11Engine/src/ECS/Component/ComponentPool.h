@@ -20,6 +20,8 @@ class IComponentPool {
     virtual ComponentId add(EntityId entity) = 0;
     virtual bool has(EntityId entity) const = 0;
     virtual void remove(EntityId entity) = 0;
+
+    virtual ComponentId getId(EntityId entity) const = 0;
 };
 
 template <typename ComponentType>

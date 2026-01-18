@@ -12,6 +12,8 @@ class Scene {
 
     void update(float deltaTime);
 
+    World& getWorld();
+
    private:
     Scene();
 

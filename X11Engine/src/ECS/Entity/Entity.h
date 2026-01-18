@@ -35,9 +35,17 @@ class Entity {
         return component_registry->has<ComponentType>(id);
     }
 
+    bool has(TypeId component_type) const {
+        return component_registry->has(id, component_type);
+    }
+
     template <typename ComponentType>
     void remove() {
         component_registry->remove<ComponentType>(id);
+    }
+
+    void remove(TypeId component_type) {
+        component_registry->remove(id, component_type);
     }
 
     template <typename ComponentType>
@@ -53,6 +61,10 @@ class Entity {
     template <typename ComponentType>
     ComponentId getComponentId() const {
         return component_registry->getComponentId<ComponentType>(id);
+    }
+
+    ComponentId getComponentId(TypeId component_type) const {
+        return component_registry->getComponentId(id, component_type);
     }
 
     bool isValid() const { return id != INVALID_ENTITY_ID; }

@@ -6,6 +6,7 @@
 #include "Name.h"
 #include "PlayerLook.h"
 #include "ScriptSystem.h"
+#include "StaticMeshRenderSystem.h"
 #include "StaticProjectionCamera.h"
 #include "Transform.h"
 #include "TransformSystem.h"
@@ -41,4 +42,7 @@ void Scene::update(float deltaTime) {
 void Scene::setupSystems() {
     world.add<ScriptSystem>();
     world.add<TransformSystem>();
+    world.add<StaticMeshRenderSystem>();
 }
+
+World& Scene::getWorld() { return world; }
