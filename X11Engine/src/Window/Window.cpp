@@ -275,6 +275,8 @@ void Window::init(const WindowConfig& config) {
     SetWindowLongPtr(handle, GWLP_USERDATA, (LONG_PTR)this);
 
     ShowWindow(handle, SW_SHOW);
+
+    centerCursor();
 }
 
 void Window::centerCursor() {
