@@ -9,12 +9,9 @@ namespace Engine::Script {
 
 class ScriptLoader {
    public:
-    ScriptLoader(const ScriptSandbox& sandbox);
-
     void loadFromDirectory(std::string_view directory);
 
    private:
-    ScriptSandbox sandbox;
 };
 
 };  // namespace Engine::Script

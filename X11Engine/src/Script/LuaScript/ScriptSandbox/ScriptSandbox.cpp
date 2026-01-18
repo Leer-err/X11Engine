@@ -1,12 +1,10 @@
 #include "ScriptSandbox.h"
 
-#include <memory>
 #include <optional>
 
 #include "Bindings.h"
 #include "LoggerFactory.h"
 #include "LuaUtility.h"
-#include "World.h"
 #include "lua.h"
 
 using namespace Engine::Script;
@@ -19,11 +17,10 @@ ScriptSandbox::ScriptSandbox()
     : wrapper(std::make_shared<StateWrapper>()),
       logger(LoggerFactory::getLogger("ScriptSandbox")) {
     luaL_openlibs(wrapper->state);
+    initBindings();
 }
 
 ScriptSandbox::~ScriptSandbox() {}
-
-void ScriptSandbox::initBindings() { Binding::initBindings(wrapper->state); }
 
 std::optional<ScriptError> ScriptSandbox::runFile(const std::string& filename) {
     int result = luaL_loadfile(wrapper->state, filename.c_str());
@@ -91,3 +88,5 @@ ScriptError ScriptSandbox::translateExecutionError(int error) {
 
     throw;
 }
+
+void ScriptSandbox::initBindings() { Binding::initBindings(wrapper->state); }

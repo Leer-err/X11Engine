@@ -8,8 +8,6 @@
 using namespace Engine::Script;
 namespace fs = std::filesystem;
 
-ScriptLoader::ScriptLoader(const ScriptSandbox& sandbox) : sandbox(sandbox) {}
-
 void ScriptLoader::loadFromDirectory(std::string_view directory) {
     auto path = fs::path(directory);
 
@@ -20,6 +18,6 @@ void ScriptLoader::loadFromDirectory(std::string_view directory) {
     for (const auto& entry : fs::directory_iterator(path)) {
         auto script_path = entry.path().string();
 
-        sandbox.runFile(script_path);
+        ScriptSandbox::get().runFile(script_path);
     }
 }

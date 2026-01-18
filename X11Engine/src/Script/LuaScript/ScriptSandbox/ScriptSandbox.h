@@ -1,6 +1,8 @@
 #ifndef SCRIPT_SANDBOX_H
 #define SCRIPT_SANDBOX_H
 
+#include <sys/stat.h>
+
 #include <lua.hpp>
 #include <memory>
 #include <optional>
@@ -33,10 +35,10 @@ class ScriptSandbox {
     };
 
    public:
-    ScriptSandbox();
-    ~ScriptSandbox();
-
-    void initBindings();
+    static ScriptSandbox& get() {
+        static ScriptSandbox instance;
+        return instance;
+    }
 
     std::optional<ScriptError> runFile(const std::string& filename);
     std::optional<ScriptError> runString(const std::string& script);
@@ -75,8 +77,13 @@ class ScriptSandbox {
     NumberResult getNumber(const std::string& variable_name);
 
    private:
+    ScriptSandbox();
+    ~ScriptSandbox();
+
     ScriptError translateExecutionError(int error);
     ScriptError translateValueError(int error);
+
+    void initBindings();
 
     std::shared_ptr<StateWrapper> wrapper;
 

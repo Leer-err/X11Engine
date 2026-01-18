@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include "ComponentMetatables.h"
 #include "Engine.h"
 #include "Entity.h"
 #include "EntityBindings.h"
@@ -15,7 +16,7 @@
 namespace Utility = Engine::Script::Utility;
 
 extern "C" int createEntity(lua_State* state) {
-    World& world = Engine::Engine::get().getWorld();
+    World& world = Scene::get().getWorld();
     auto entity = world.createEntity();
 
     lua_createtable(state, 0, 1);
@@ -26,7 +27,7 @@ extern "C" int createEntity(lua_State* state) {
 }
 
 extern "C" int destroyEntity(lua_State* state) {
-    World& world = Engine::Engine::get().getWorld();
+    World& world = Scene::get().getWorld();
 
     Utility::getMemberByName(state, "id", 1);
 
@@ -50,4 +51,6 @@ void Engine::Script::Binding::ECS::initBindings(lua_State* state) {
     createWorldTable(state);
 
     initEntityBindings(state);
+    createComponentTable(state);
+    initComponentBindings(state);
 }

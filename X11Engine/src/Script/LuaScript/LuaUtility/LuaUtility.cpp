@@ -26,6 +26,9 @@ void setMetatable(lua_State* state, const std::string& name, int table_index) {
     lua_setmetatable(state, table_index - 1);
 }
 
-void pushNil(lua_State* state) { lua_pushnil(state); }
+int pushNil(lua_State* state) {
+    lua_pushnil(state);
+    return 1;
+}
 
 };  // namespace Engine::Script::Utility

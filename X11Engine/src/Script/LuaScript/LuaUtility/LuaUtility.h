@@ -23,7 +23,7 @@ void getMemberByName(lua_State* state, const std::string& name,
 void setMetatable(lua_State* state, const std::string& name,
                   int table_index = -1);
 
-void pushNil(lua_State* state);
+int pushNil(lua_State* state);
 
 template <typename T>
 void pushArgument(lua_State* state, T&& argument) {

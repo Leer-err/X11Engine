@@ -14,7 +14,7 @@ namespace Utility = Engine::Script::Utility;
 
 extern "C" int getPosition(lua_State* state) {
     ZoneScoped;
-    World& world = Engine::Engine::get().getWorld();
+    World& world = Scene::get().getWorld();
 
     ComponentId* id = Utility::getUserData<ComponentId>(state, 1);
     auto transform = world.get<Transform>(*id);
@@ -31,7 +31,7 @@ extern "C" int getPosition(lua_State* state) {
 
 extern "C" int setPosition(lua_State* state) {
     ZoneScoped;
-    World& world = Engine::Engine::get().getWorld();
+    World& world = Scene::get().getWorld();
 
     ComponentId* id = Utility::getUserData<ComponentId>(state, 1);
     auto transform = world.get<Transform>(*id);
@@ -45,7 +45,7 @@ extern "C" int setPosition(lua_State* state) {
 
 extern "C" int getForward(lua_State* state) {
     ZoneScoped;
-    World& world = Engine::Engine::get().getWorld();
+    World& world = Scene::get().getWorld();
 
     ComponentId* id = Utility::getUserData<ComponentId>(state, 1);
     auto transform = world.get<Transform>(*id);
@@ -62,7 +62,7 @@ extern "C" int getForward(lua_State* state) {
 
 extern "C" int getRight(lua_State* state) {
     ZoneScoped;
-    World& world = Engine::Engine::get().getWorld();
+    World& world = Scene::get().getWorld();
 
     ComponentId* id = Utility::getUserData<ComponentId>(state, 1);
     auto transform = world.get<Transform>(*id);
@@ -79,7 +79,7 @@ extern "C" int getRight(lua_State* state) {
 
 extern "C" int getUp(lua_State* state) {
     ZoneScoped;
-    World& world = Engine::Engine::get().getWorld();
+    World& world = Scene::get().getWorld();
 
     ComponentId* id = Utility::getUserData<ComponentId>(state, 1);
     auto transform = world.get<Transform>(*id);
