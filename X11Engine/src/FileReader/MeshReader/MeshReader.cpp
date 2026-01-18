@@ -68,7 +68,7 @@ std::vector<StaticVertex> MeshReader::readStaticVertices(
         StaticVertex vertex;
 
         aiVector3D position = mesh->mVertices[i];
-        vertex.position = Vector3(position.x, position.y, position.z) / 100;
+        vertex.position = Vector3(position.x, position.y, position.z);
 
         aiVector3D normal = mesh->mNormals[i];
         vertex.normal = Vector3(normal.x, normal.y, normal.z);

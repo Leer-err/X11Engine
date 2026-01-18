@@ -7,6 +7,8 @@
 #include "GraphicsConfig.h"
 #include "Overlay.h"
 #include "PhysicalInput.h"
+#include "ScriptLoader.h"
+#include "ScriptSandbox.h"
 #include "World.h"
 
 namespace Engine {
@@ -33,77 +35,21 @@ bool Engine::init() {
     config.window_state = WindowState::Windowed;
     Renderer::get().initializeResources(config);
 
+    Scene::get();
+    ::Engine::Script::ScriptLoader().loadFromDirectory(
+        "E:\\repos\\X11Engine\\X11Engine\\Scripts");
+    Script::ScriptSandbox::get().runFunction("Init");
+
     return true;
 }
 
 void Engine::run() {
-    // auto cam = StaticProjectionCamera(60, (float)4 / 3, 0.1f, 1000.f);
-
-    // // auto model_reader = AssimpModelReader(factory);
-    // // auto model =
-    // //
-    // model_reader.read("E:\\repos\\X11Engine\\X11Engine\\Assets\\Taunt.fbx");
-
-    // // Entity player = world.createEntity();
-    // // player.set<Name>({"Player"});
-    // // player.add<Player>();
-    // // Transform player_transform = {};
-    // // player_transform.setPosition({0, 0, -5});
-    // // player.set(player_transform);
-
-    // // Entity camera = world.createEntity();
-    // // camera.set<Name>({"Camera"});
-    // // camera.set<Parent>({player});
-    // // camera.set(cam);
-    // // Transform camera_transform = {};
-    // // camera_transform.setPosition({0, 5, 0});
-    // // camera.set(camera_transform);
-
-    // // player.set<Children>({{camera}});
-
-    // // Shape plane = physics->createPlaneShape(false);
-    // // auto plane_body = physics->createRigidStatic(Vector3(0, 0, 0),
-    // //                                              Quaternion(0, 0, 1.57),
-    // //                                              plane);
-
-    // // Entity vampire = world.createEntity();
-    // // vampire.set<Name>({"Vampire"});
-    // // Shape shape = physics->createCapsuleShape(0.6, 0.25, false);
-    // // {
-    // //     auto body = physics->createRigidDynamic(shape, 1, &vampire);
-    // //     body->setCCD(true);
-    // //     body->lock(DynamicRigidBody::LockRotationX |
-    // //                DynamicRigidBody::LockRotationZ);
-    // //     vampire.set<DynamicRigidBodyComponent>({body});
-    // // }
-    // // vampire.set<AnimatedMesh>({model.value()});
-    // // vampire.set<CurrentAnimation>({0, "mixamo.com"});
-
-    // // Transform vampire_transform = {};
-    // // vampire_transform.setPosition({0, 0, 0});
-    // // vampire.set(vampire_transform);
-
-    // // Entity projectile = world.createEntity();
-    // // projectile.set<Name>({"Projectile"});
-    // // Shape projectile_shape = physics->createSphereShape(0.5, true);
-    // // auto projetile_body =
-    // //     physics->createRigidDynamic(projectile_shape, 1, &projectile);
-    // // projetile_body->setGravity(false);
-    // // projectile.set<DynamicRigidBodyComponent>({projetile_body});
-    // // projectile.set<Velocity>({Vector3(0, 0, 2)});
-    // // projectile.add<DeleteProjectile>();
-
-    // // Transform projectile_transform = {};
-    // // projectile_transform.setPosition({0, 0.5, -4});
-    // // projectile.set<Transform>(projectile_transform);
-
     GameInputConfigReader input_config_reader;
     input_config_reader.read(
         "E:\\repos\\X11Engine\\X11Engine\\src\\Data\\Input\\Config.json",
         GameInputContext::get());
 
     start = clock.now();
-
     while (should_exit == false) {
         auto elapsed = clock.now();
         float delta_time =

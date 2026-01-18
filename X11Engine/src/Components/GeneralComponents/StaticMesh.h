@@ -1,10 +1,10 @@
 #ifndef STATIC_MESH_H
 #define STATIC_MESH_H
 
-#include "Model.h"
+#include "Mesh.h"
 
 struct StaticMesh {
-    Model model;
+    Mesh mesh;
 };
 
 #endif  // STATIC_MESH_H

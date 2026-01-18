@@ -9,7 +9,6 @@ class ScriptSystem : public ISystem {
     void update(World& world, float delta_time) override;
 
    private:
-    // Engine::Script::ScriptSandbox sandbox;
 };
 
 #endif  // SCRIPT_SYSTEM_H

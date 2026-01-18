@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-# add_subdirectory(StaticMeshRenderSystem)
+add_subdirectory(StaticMeshRenderSystem)
 # add_subdirectory(AnimatedMeshRenderSystem)
 # add_subdirectory(PlayerMovementSystem)
 add_subdirectory(TransformSystem)
