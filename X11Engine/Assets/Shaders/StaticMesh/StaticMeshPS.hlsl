@@ -4,7 +4,10 @@ struct Input{
     float4 viewport_position : SV_POSITION;
 };
 
+Texture2D albedo : register(t0);
+SamplerState albedo_sampler : register(s0);
+
 float4 main(in Input data) : SV_TARGET
 {    
-    return float4(1.0,1.0,1.0,1.0);
+    return albedo.Sample(albedo_sampler, data.uv);
 }
