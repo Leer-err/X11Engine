@@ -136,3 +136,15 @@ add_custom_command(
 add_custom_target(copy_lua_libs ALL
 	DEPENDS ${CMAKE_BINARY_DIR}/bin/lua54.dll
 )
+
+# DirectXMath
+
+FetchContent_Declare(DXmath
+    GIT_REPOSITORY    https://github.com/microsoft/DirectXMath.git
+    GIT_TAG apr2025
+)
+FetchContent_MakeAvailable(DXmath)
+
+target_include_directories(${TARGET_NAME} PUBLIC
+    ${dxmath_INCLUDE_DIRECTORIES}
+)
