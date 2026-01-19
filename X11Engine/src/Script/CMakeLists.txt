@@ -8,3 +8,4 @@ target_include_directories(${TARGET_NAME} PUBLIC
 )
 
 add_subdirectory(LuaScript)
+add_subdirectory(Scripts)
