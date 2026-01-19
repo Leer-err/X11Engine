@@ -48,3 +48,14 @@ bool Quaternion::operator==(const Quaternion& b) const {
     DirectX::XMVECTOR b_loaded = DirectX::XMLoadFloat4(&b.quat);
     return DirectX::XMQuaternionEqual(a_loaded, b_loaded);
 }
+
+Quaternion operator*(const Quaternion& a, const Quaternion& b) {
+    DirectX::XMVECTOR a_loaded = DirectX::XMLoadFloat4(&a.quat);
+    DirectX::XMVECTOR b_loaded = DirectX::XMLoadFloat4(&b.quat);
+    Quaternion quat;
+
+    DirectX::XMStoreFloat4(&quat.quat,
+                           DirectX::XMQuaternionMultiply(a_loaded, b_loaded));
+
+    return quat;
+}

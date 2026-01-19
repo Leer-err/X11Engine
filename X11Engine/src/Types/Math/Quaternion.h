@@ -25,15 +25,6 @@ struct Quaternion {
     bool operator==(const Quaternion& b) const;
 };
 
-inline Quaternion operator*(const Quaternion& a, const Quaternion& b) {
-    DirectX::XMVECTOR a_loaded = DirectX::XMLoadFloat4(&a.quat);
-    DirectX::XMVECTOR b_loaded = DirectX::XMLoadFloat4(&b.quat);
-    Quaternion quat;
-
-    DirectX::XMStoreFloat4(&quat.quat,
-                           DirectX::XMQuaternionMultiply(a_loaded, b_loaded));
-
-    return quat;
-}
+Quaternion operator*(const Quaternion& a, const Quaternion& b);
 
 #endif
