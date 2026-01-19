@@ -48,6 +48,8 @@ class Engine {
     std::chrono::high_resolution_clock::time_point last_elapsed;
     std::chrono::high_resolution_clock::time_point start;
 
+    float fps;
+
     // std::shared_ptr<PhysicsFactory> physics;
     // std::shared_ptr<AnimationRegistry> animation_registry;
 };

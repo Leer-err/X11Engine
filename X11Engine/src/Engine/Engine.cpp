@@ -16,19 +16,6 @@ namespace Engine {
 Engine::Engine() : should_exit(false) {}
 
 bool Engine::init() {
-    // physics = std::make_shared<PhysicsFactory>();
-    // physics->init();
-
-    // animation_registry = std::make_shared<AnimationRegistry>();
-    // auto animation_reader = AssimpAnimationReader();
-    // auto animations = animation_reader.readAll(
-    //     "E:\\repos\\X11Engine\\X11Engine\\Assets\\Taunt.fbx");
-    // for (auto animation : animations) {
-    //     animation_registry->add(animation);
-    // }
-
-    setupSystemPipeline();
-
     GraphicsConfig config;
     config.render_height = 600;
     config.render_width = 800;
@@ -39,6 +26,8 @@ bool Engine::init() {
     ::Engine::Script::ScriptLoader().loadFromDirectory(
         "E:\\repos\\X11Engine\\X11Engine\\Scripts");
     Script::ScriptSandbox::get().runFunction("Init");
+
+    Overlay::Overlay::get().add<Overlay::OverlayElements::Text>("General", "Performance", [](){ return std::format("FPS is {}", fps);});
 
     return true;
 }
@@ -64,6 +53,9 @@ void Engine::run() {
 
 void Engine::update(float delta_time) {
     ZoneScoped;
+
+    fps = 1.f / delta_time;
+
     PhysicalInput::get().saveState();
 
     Renderer::get().beginFrame();
@@ -85,65 +77,4 @@ float Engine::getTime() const {
         .count();
 }
 
-void Engine::setupSystemPipeline() {
-    setupPreUpdateStep();
-    setupUpdateStep();
-    setupPostUpdateStep();
-    setupPreSimulateStep();
-    setupSimulateStep();
-    setupPostSimulateStep();
-    setupRenderingStep();
-}
-
-void Engine::setupPreUpdateStep() {
-    // world.addSystem<PreUpdate>();
-}
-
-void Engine::setupUpdateStep() {
-    // world.addSystem<Update>().dependsOn<PreUpdate>();
-
-    // world.addSystem<ScriptSystem>().dependsOn<Update>();
-    // world.addSystem<DeleteProjectileSystem>().dependsOn<Update>();
-}
-
-void Engine::setupPostUpdateStep() {
-    // world.addSystem<PostUpdate>().dependsOn<Update>();
-}
-
-void Engine::setupPreSimulateStep() {
-    // world.addSystem<PreSimulation>().dependsOn<PostUpdate>();
-
-    // world.addSystem<PreSimulateUpdateSystem>().dependsOn<PreSimulation>();
-}
-
-void Engine::setupSimulateStep() {
-    // world.addSystem<Simulation>().dependsOn<PreSimulation>();
-
-    // world.addSystem<PhysicsSystem>(physics, world, 1.f / 60)
-    //     .dependsOn<Simulation>();
-}
-
-void Engine::setupPostSimulateStep() {
-    // world.addSystem<PostSimulation>().dependsOn<Simulation>();
-
-    // world.addSystem<PostSimulateUpdateSystem>(world)
-    //     .dependsOn<PostSimulation>();
-}
-
-void Engine::setupRenderingStep() {
-    // world.addSystem<Rendering>().dependsOn<PostSimulation>();
-
-    // std::shared_ptr<IShaderReader> shader_reader =
-    //     std::make_shared<D3DShaderReader>();
-
-    // world.addSystem<StaticMeshRenderSystem>(factory, shader_reader)
-    //     .dependsOn<Rendering>();
-    // world
-    //     .addSystem<AnimatedMeshRenderSystem>(factory, shader_reader,
-    //                                          animation_registry)
-    //     .dependsOn<Rendering>();
-    // world.addSystem<OverlayRenderSystem>(factory).dependsOn<Rendering>();
-}
-
-// World& Engine::getWorld() { return world; }
 };  // namespace Engine

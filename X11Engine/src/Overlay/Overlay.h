@@ -16,6 +16,16 @@ concept OverlayElement = requires(T el) {
     { el.draw() } -> std::same_as<void>;
 };
 
+class Text {
+   public:
+    Text(std::function<std::string()> text_callback);
+
+    void draw();
+
+   private:
+    std::function<std::string()> text_callback;
+};
+
 class SliderFloat {
    public:
     SliderFloat(const std::string& label, std::function<void(float)> callback,

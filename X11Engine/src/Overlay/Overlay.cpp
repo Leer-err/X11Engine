@@ -13,6 +13,13 @@
 #include "Renderer.h"
 #include "Window.h"
 
+Overlay::OverlayElements::Text::Text(std::function<std::string()> text_callback)
+    : text_callback(text_callback) {}
+
+void Overlay::OverlayElements::Text::draw() {
+    ImGui::Text(text_callback());
+}
+
 Overlay::OverlayElements::Header::Header(const std::string& label)
     : label(label) {}
 
