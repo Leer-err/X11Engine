@@ -48,7 +48,8 @@ class SliderFloat {
 class Header;
 
 using AnyElement =
-    std::variant<OverlayElements::Header, OverlayElements::SliderFloat>;
+    std::variant<OverlayElements::Header, OverlayElements::SliderFloat,
+                 OverlayElements::Text>;
 
 class Header {
    public:

@@ -17,7 +17,7 @@ Overlay::OverlayElements::Text::Text(std::function<std::string()> text_callback)
     : text_callback(text_callback) {}
 
 void Overlay::OverlayElements::Text::draw() {
-    ImGui::Text(text_callback());
+    ImGui::Text(text_callback().c_str());
 }
 
 Overlay::OverlayElements::Header::Header(const std::string& label)

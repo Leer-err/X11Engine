@@ -13,13 +13,16 @@
 #include "LoggerFactory.h"
 #include "Matrix.h"
 #include "PixelShaderBuilder.h"
+#include "SamplerBuilder.h"
 #include "StaticMaterial.h"
 #include "StaticMesh.h"
 #include "VertexShaderBuilder.h"
 #include "World.h"
 #include "WorldMatrix.h"
 
-using namespace Asset::StaticModel;
+namespace Data = Asset::StaticModel::Data;
+
+using Asset::StaticModel::Material;
 
 StaticMeshRenderSystem::StaticMeshRenderSystem()
     : logger(LoggerFactory::getLogger("StaticMeshRenderSystem")) {
@@ -60,14 +63,17 @@ void StaticMeshRenderSystem::render(World& world) {
     context.bindConstantBuffer(CameraManager::get().getCameraData(),
                                Data::camera_parameters);
 
-    std::vector<Entity> entities =
-        world.query().with<StaticMesh>().with<Material>.with<WorldMatrix>().execute();
+    std::vector<Entity> entities = world.query()
+                                       .with<StaticMesh>()
+                                       .with<Material>()
+                                       .with<WorldMatrix>()
+                                       .execute();
 
     for (auto& entity : entities) {
         auto mesh = entity.get<StaticMesh>()->mesh;
         auto world_matrix = entity.get<WorldMatrix>()->matrix;
         auto materal = entity.get<Material>();
-        auto albedo_texture = ShaderResource(materal.albedo_texture);
+        auto albedo_texture = ShaderResource(materal->albedo_texture);
 
         auto world_matrix_ptr =
             context.mapConstantBuffer<Data::WorldMatrixBuffer>(
@@ -77,6 +83,8 @@ void StaticMeshRenderSystem::render(World& world) {
 
         context.bindConstantBuffer(world_matrix_buffer, Data::world_matrix);
         context.bindShaderResource(albedo_texture, Data::albedo_texture);
+
+        auto albedo_sampler = SamplerBuilder(Filter::Linear).create();
         context.bindSampler(albedo_sampler, Data::albedo_sampler);
 
         context.draw(mesh);

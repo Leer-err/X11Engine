@@ -4,10 +4,6 @@
 
 #include "Quaternion.h"
 
-constexpr Vector3::Vector3() : Vector3(0, 0, 0) {}
-
-constexpr Vector3::Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
-
 Vector3 Vector3::lerp(const Vector3& a, const Vector3& b, float factor) {
     DirectX::XMVECTOR a_loaded = DirectX::XMLoadFloat3(&a.vec);
     DirectX::XMVECTOR b_loaded = DirectX::XMLoadFloat3(&b.vec);
