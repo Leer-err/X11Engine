@@ -82,5 +82,7 @@ void StaticMeshRenderSystem::render(World& world) {
         context.draw(mesh);
 
         context.unbindConstantBuffer(Data::world_matrix);
+        context.unbindShaderResource(Data::albedo_texture);
+        context.unbindSampler(Data::albedo_sampler);
     }
 }
