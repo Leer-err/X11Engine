@@ -26,11 +26,10 @@ class SystemDispatcher {
     }
 
     void progress(World& world, float delta_time) {
-        for (const auto& system : systems) system->update(world, delta_time);
-
         for (const auto& system : systems) system->preSimulate(world);
         for (const auto& system : systems) system->simulate(world);
-
+        for (const auto& system : systems) system->preUpdate(world);
+        for (const auto& system : systems) system->update(world, delta_time);
         for (const auto& system : systems) system->preRender(world);
         for (const auto& system : systems) system->render(world);
     }

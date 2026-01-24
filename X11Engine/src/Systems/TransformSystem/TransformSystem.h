@@ -7,7 +7,7 @@ class Entity;
 
 class TransformSystem : public ISystem {
    public:
-    void preSimulate(World& world) override;
+    void preUpdate(World& world) override;
     void preRender(World& world) override;
 
    private:

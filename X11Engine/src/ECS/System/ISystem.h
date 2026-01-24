@@ -5,10 +5,10 @@ class World;
 
 class ISystem {
    public:
-    virtual void update(World& world, float delta_time) {}
-
     virtual void preSimulate(World& world) {}
     virtual void simulate(World& world) {}
+    virtual void preUpdate(World& world) {}
+    virtual void update(World& world, float delta_time) {}
     virtual void preRender(World& world) {}
     virtual void render(World& world) {}
 };
