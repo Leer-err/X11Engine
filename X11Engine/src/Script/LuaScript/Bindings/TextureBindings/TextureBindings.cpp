@@ -15,7 +15,7 @@ constexpr char TEXTURE_METATABLE[] = "Texture";
 extern "C" int fromFile(lua_State* state) {
     ZoneScoped;
 
-    std::string filename = Utility::getArgument<std::string>(state);
+    std::string filename = Utility::getArgument<std::string>(state, 2);
 
     auto reader = ImageReaderFactory::get().getReaderByFileExtension(filename);
     auto image = reader->readFromFile(filename);
