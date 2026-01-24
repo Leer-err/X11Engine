@@ -5,13 +5,16 @@
 #include "APIResources.h"
 #include "Rasterizer.h"
 
+Engine::Graphics::RasterizerBuilder::RasterizerBuilder()
+    : fill(Fill::Solid), cull(Cull::Back), depth_clip(true) {}
+
 Engine::Graphics::Rasterizer Engine::Graphics::RasterizerBuilder::create() {
     D3D11_RASTERIZER_DESC1 desc = {};
     desc.FrontCounterClockwise = true;
     desc.DepthBias = 0;
     desc.SlopeScaledDepthBias = 0.0f;
     desc.DepthBiasClamp = 0.0f;
-    desc.DepthClipEnable = TRUE;
+    desc.DepthClipEnable = depth_clip;
     desc.ScissorEnable = FALSE;
     desc.MultisampleEnable = FALSE;
     desc.AntialiasedLineEnable = FALSE;
@@ -56,6 +59,13 @@ Engine::Graphics::RasterizerBuilder::fillMode(Fill fill_mode) {
 Engine::Graphics::RasterizerBuilder&
 Engine::Graphics::RasterizerBuilder::cullMode(Cull cull_mode) {
     cull = cull_mode;
+
+    return *this;
+}
+
+Engine::Graphics::RasterizerBuilder&
+Engine::Graphics::RasterizerBuilder::depthClip(bool depth_clip) {
+    this->depth_clip = depth_clip;
 
     return *this;
 }

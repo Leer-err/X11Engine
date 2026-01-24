@@ -12,6 +12,8 @@
 #include "MeshBuilder.h"
 #include "Overlay.h"
 #include "PixelShaderBuilder.h"
+#include "Rasterizer.h"
+#include "RasterizerBuilder.h"
 #include "ShaderResource.h"
 #include "TextureBuilder.h"
 #include "Vector2.h"
@@ -168,8 +170,15 @@ Clouds::Clouds() : cloud_height(100), cloud_plane_size(1000) {
                             .addElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT)
                             .create();
 
+    auto rasterizer = Engine::Graphics::RasterizerBuilder()
+                          .fillMode(Engine::Graphics::Fill::Solid)
+                          .cullMode(Engine::Graphics::Cull::Back)
+                          .depthClip(false)
+                          .create();
+
     pipeline =
         GraphicsPipelineBuilder(input_layout, vertex_shader, pixel_shader)
+            .setRasterizerState(rasterizer)
             .create();
 
     camera_data_buffer = BufferBuilder(sizeof(SkyPipelineData::CameraData))
