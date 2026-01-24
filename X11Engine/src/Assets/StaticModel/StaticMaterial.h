@@ -25,7 +25,7 @@ struct WorldMatrixBuffer {
 };  // namespace Data
 
 struct Material {
-    Texture albedo_texture;
+    Texture albedo;
 };
 
 };  // namespace StaticModel

@@ -73,7 +73,7 @@ void StaticMeshRenderSystem::render(World& world) {
         auto mesh = entity.get<StaticMesh>()->mesh;
         auto world_matrix = entity.get<WorldMatrix>()->matrix;
         auto materal = entity.get<Material>();
-        auto albedo_texture = ShaderResource(materal->albedo_texture);
+        auto albedo_texture = ShaderResource(materal->albedo);
 
         auto world_matrix_ptr =
             context.mapConstantBuffer<Data::WorldMatrixBuffer>(
