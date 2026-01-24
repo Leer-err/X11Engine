@@ -99,6 +99,8 @@ Stars::Stars() : star_density(30), blinking_speed(1), blink_strength(0.6) {
 }
 
 void Stars::draw() {
+    ZoneScoped;
+
     auto context = Context();
 
     auto star_parameters = context.mapConstantBuffer<StarData::StarParameters>(

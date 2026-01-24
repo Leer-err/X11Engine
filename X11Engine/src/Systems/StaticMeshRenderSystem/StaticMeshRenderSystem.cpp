@@ -1,6 +1,5 @@
 #include "StaticMeshRenderSystem.h"
 
-#include <memory>
 #include <tracy/Tracy.hpp>
 #include <vector>
 

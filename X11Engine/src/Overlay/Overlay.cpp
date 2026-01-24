@@ -8,6 +8,7 @@
 
 #include <ranges>
 #include <string>
+#include <tracy/Tracy.hpp>
 
 #include "APIResources.h"
 #include "Renderer.h"
@@ -86,6 +87,8 @@ Overlay::Overlay::~Overlay() {
 }
 
 void Overlay::Overlay::draw() {
+    ZoneScoped;
+
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();

@@ -91,6 +91,8 @@ Clouds::CloudsBaker::CloudsBaker() {
 }
 
 void Clouds::CloudsBaker::draw() {
+    ZoneScoped;
+
     auto context = Context();
 
     auto cloud_parameters =
@@ -208,6 +210,8 @@ Clouds::Clouds() : cloud_height(100), cloud_plane_size(1000) {
 }
 
 void Clouds::draw() {
+    ZoneScoped;
+
     auto context = Context();
 
     cloud_baker.draw();
