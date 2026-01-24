@@ -6,6 +6,7 @@
 
 #include "BufferBuilder.h"
 #include "CameraManager.h"
+#include "CommonSamplers.h"
 #include "Context.h"
 #include "Entity.h"
 #include "GraphicsPipelineBuilder.h"
@@ -13,7 +14,6 @@
 #include "LoggerFactory.h"
 #include "Matrix.h"
 #include "PixelShaderBuilder.h"
-#include "SamplerBuilder.h"
 #include "StaticMaterial.h"
 #include "StaticMesh.h"
 #include "VertexShaderBuilder.h"
@@ -23,6 +23,7 @@
 namespace Data = Asset::StaticModel::Data;
 
 using Asset::StaticModel::Material;
+using Engine::Graphics::CommonSamplers;
 
 StaticMeshRenderSystem::StaticMeshRenderSystem()
     : logger(LoggerFactory::getLogger("StaticMeshRenderSystem")) {
@@ -84,8 +85,7 @@ void StaticMeshRenderSystem::render(World& world) {
         context.bindConstantBuffer(world_matrix_buffer, Data::world_matrix);
         context.bindShaderResource(albedo_texture, Data::albedo_texture);
 
-        auto albedo_sampler = SamplerBuilder(Filter::Linear).create();
-        context.bindSampler(albedo_sampler, Data::albedo_sampler);
+        context.bindSampler(CommonSamplers::linear(), Data::albedo_sampler);
 
         context.draw(mesh);
 

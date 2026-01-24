@@ -18,6 +18,8 @@
 #include "Vector3.h"
 #include "VertexShaderBuilder.h"
 
+using Engine::Graphics::CommonSamplers;
+
 namespace CloudBakeData {
 static constexpr Binding cloud_parameters{Binding::ShaderType::Pixel, 0};
 
@@ -216,7 +218,8 @@ void Clouds::draw() {
     context.setPipeline(pipeline);
 
     context.bindShaderResource(cloud_texture, SkyPipelineData::cloud_texture);
-    context.bindSampler(cloud_sampler, SkyPipelineData::cloud_sampler);
+    context.bindSampler(CommonSamplers::linear(),
+                        SkyPipelineData::cloud_sampler);
     context.bindConstantBuffer(CameraManager::get().getCameraData(),
                                SkyPipelineData::camera_data);
     context.bindConstantBuffer(clouds_data_buffer, SkyPipelineData::sky_data);

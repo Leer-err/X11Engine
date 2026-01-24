@@ -35,7 +35,6 @@ class Clouds {
     GraphicsPipeline pipeline;
     Buffer camera_data_buffer;
     Buffer clouds_data_buffer;
-    Sampler cloud_sampler;
     ShaderResource cloud_texture;
 
     CloudsBaker cloud_baker;
