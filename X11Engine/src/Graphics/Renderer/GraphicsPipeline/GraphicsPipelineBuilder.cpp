@@ -1,5 +1,6 @@
 #include "GraphicsPipelineBuilder.h"
 
+#include "CommonRasterizers.h"
 #include "GraphicsPipeline.h"
 #include "InputLayout.h"
 #include "PixelShader.h"
@@ -11,6 +12,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder(InputLayout input_layout,
     : input_layout(input_layout),
       vertex_shader(vertex_shader),
       pixel_shader(pixel_shader),
+      rasterizer(Engine::Graphics::CommonRasterizers::fill()),
       default_render_target(true),
       has_depth_stencil(false) {}
 
@@ -29,9 +31,16 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::setDepthStencilBuffer(
     return *this;
 }
 
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::setRasterizerState(
+    Engine::Graphics::Rasterizer rasterizer) {
+    this->rasterizer = rasterizer;
+
+    return *this;
+}
+
 GraphicsPipeline GraphicsPipelineBuilder::create() {
     if (default_render_target) render_target = RenderTarget::getDefault();
 
     return GraphicsPipeline(input_layout, vertex_shader, pixel_shader,
-                            render_target, depth_stencil_buffer);
+                            render_target, depth_stencil_buffer, rasterizer);
 }

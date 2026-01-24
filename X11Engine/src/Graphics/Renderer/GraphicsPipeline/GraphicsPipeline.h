@@ -3,8 +3,11 @@
 #include "DepthStencil.h"
 #include "InputLayout.h"
 #include "PixelShader.h"
+#include "Rasterizer.h"
 #include "RenderTarget.h"
 #include "VertexShader.h"
+
+namespace Graphics = Engine::Graphics;
 
 class GraphicsPipeline {
     friend class GraphicsPipelineBuilder;
@@ -18,16 +21,19 @@ class GraphicsPipeline {
     PixelShader getPixelShader() const { return pixel_shader; }
     RenderTarget getRenderTarget() const { return render_target; }
     DepthStencil getDepthStencil() const { return depth_stencil; }
+    Graphics::Rasterizer getRasterizer() const { return rasterizer; }
 
    protected:
     GraphicsPipeline(InputLayout input_layout, VertexShader vertex_shader,
                      PixelShader pixel_shader, RenderTarget render_target,
-                     DepthStencil depth_stencil)
+                     DepthStencil depth_stencil,
+                     Graphics::Rasterizer rasterizer)
         : vertex_shader(vertex_shader),
           pixel_shader(pixel_shader),
           input_layout(input_layout),
           render_target(render_target),
-          depth_stencil(depth_stencil) {}
+          depth_stencil(depth_stencil),
+          rasterizer(rasterizer) {}
 
    private:
     VertexShader vertex_shader;
@@ -37,4 +43,6 @@ class GraphicsPipeline {
 
     RenderTarget render_target;
     DepthStencil depth_stencil;
+
+    Graphics::Rasterizer rasterizer;
 };
