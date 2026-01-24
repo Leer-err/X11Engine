@@ -22,7 +22,6 @@ class ComponentRegistry {
 
     template <typename ComponentType>
     void set(EntityId entity, ComponentType&& component) {
-        ZoneScoped;
         ComponentPool<ComponentType>* pool = getOrCreatePool<ComponentType>();
 
         pool->set(entity, std::forward<ComponentType>(component));
@@ -32,7 +31,6 @@ class ComponentRegistry {
 
     template <typename ComponentType>
     void set(ComponentId id, ComponentType&& component) {
-        ZoneScoped;
         ComponentPool<ComponentType>* pool = getOrCreatePool<ComponentType>();
 
         pool->set(id, std::forward<ComponentType>(component));
