@@ -30,4 +30,8 @@ void StaticRigidBody::setTransform(const Vector3& position,
     body->setGlobalPose(physx::PxTransform(px_position, px_rotation));
 }
 
+void StaticRigidBody::addShape(const Shape& shape) {
+    body->attachShape(shape.get());
+}
+
 physx::PxRigidStatic* StaticRigidBody::get() const { return body; }

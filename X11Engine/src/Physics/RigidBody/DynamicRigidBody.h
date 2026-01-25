@@ -1,6 +1,7 @@
 #ifndef DYNAMIC_RIGID_BODY_H
 #define DYNAMIC_RIGID_BODY_H
 
+#include "Actor.h"
 #include "Quaternion.h"
 #include "Vector3.h"
 
@@ -8,7 +9,9 @@ namespace physx {
 class PxRigidDynamic;
 };
 
-class DynamicRigidBody {
+namespace Physics {
+
+class DynamicRigidBody : public Actor {
    public:
     enum Lock {
         LockRotationX = (1 << 0),
@@ -22,6 +25,7 @@ class DynamicRigidBody {
 
     Vector3 getPosition() const;
     Quaternion getRotation() const;
+
     Vector3 getVelocity() const;
 
     void setVelocity(const Vector3& velocity);
@@ -35,5 +39,7 @@ class DynamicRigidBody {
    private:
     physx::PxRigidDynamic* body;
 };
+
+};  // namespace Physics
 
 #endif  // DYNAMIC_RIGID_BODY_H
