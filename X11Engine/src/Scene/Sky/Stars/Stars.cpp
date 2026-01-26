@@ -38,7 +38,7 @@ Stars::Stars() : star_density(30), blinking_speed(1), blink_strength(0.6) {
         Vector3(-1, -1, 1), Vector3(1, -1, 1), Vector3(-1, 1, 1),
         Vector3(1, 1, 1)};
 
-    constexpr uint32_t screen_quad_indices[] = {0, 2, 1, 1, 2, 3};
+    constexpr uint32_t screen_quad_indices[] = {0, 1, 2, 1, 3, 2};
 
     screen_plane =
         MeshBuilder()
@@ -99,6 +99,8 @@ Stars::Stars() : star_density(30), blinking_speed(1), blink_strength(0.6) {
 }
 
 void Stars::draw() {
+    ZoneScoped;
+
     auto context = Context();
 
     auto star_parameters = context.mapConstantBuffer<StarData::StarParameters>(

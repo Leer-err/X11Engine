@@ -11,9 +11,15 @@
 #include "World.h"
 #include "WorldMatrix.h"
 
-void TransformSystem::preSimulate(World& world) { updateTransforms(world); }
+void TransformSystem::preUpdate(World& world) {
+    ZoneScoped;
+    updateTransforms(world);
+}
 
-void TransformSystem::preRender(World& world) { updateTransforms(world); }
+void TransformSystem::preRender(World& world) {
+    ZoneScoped;
+    updateTransforms(world);
+}
 
 void TransformSystem::updateTransforms(World& world) {
     auto dirty_filter = [](Entity entity) {

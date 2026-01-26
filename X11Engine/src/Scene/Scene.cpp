@@ -1,6 +1,7 @@
 #include "Scene.h"
 
 #include <memory>
+#include <tracy/Tracy.hpp>
 
 #include "CameraManager.h"
 #include "Name.h"
@@ -33,6 +34,8 @@ Scene::Scene() {
 }
 
 void Scene::update(float deltaTime) {
+    ZoneScoped;
+
     sky.draw();
     world.update(deltaTime);
 

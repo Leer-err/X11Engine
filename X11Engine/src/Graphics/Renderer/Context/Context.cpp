@@ -29,6 +29,9 @@ void Context::setPipeline(const GraphicsPipeline& pipeline) {
     auto pixel_shader = pipeline.getPixelShader().get();
     context->VSSetShader(vertex_shader.Get(), nullptr, 0);
     context->PSSetShader(pixel_shader.Get(), nullptr, 0);
+
+    auto rasterizer = pipeline.getRasterizer().get();
+    context->RSSetState(rasterizer.Get());
 }
 
 void Context::cleanPipeline() {

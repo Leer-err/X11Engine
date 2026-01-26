@@ -18,7 +18,8 @@ extern "C" int setMesh(lua_State* state) {
     auto component = world.get<StaticMesh>(*id);
     if (component == nullptr) return Utility::pushNil(state);
 
-    auto mesh = MeshRegistry().get("./Assets/Gem.fbx");
+    std::string filename = Utility::getArgument<std::string>(state, 2);
+    auto mesh = MeshRegistry().get(filename);
 
     component->mesh = mesh;
 

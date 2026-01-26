@@ -10,3 +10,4 @@ target_include_directories(${TARGET_NAME} PUBLIC
 )
 
 add_subdirectory(MeshBindings)
+add_subdirectory(StaticMaterialBindings)

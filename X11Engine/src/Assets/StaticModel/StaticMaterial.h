@@ -1,6 +1,11 @@
 #pragma once
 
-namespace Asset::StaticModel {
+#include "Binding.h"
+#include "Matrix.h"
+#include "Texture.h"
+
+namespace Asset {
+namespace StaticModel {
 
 namespace Data {
 
@@ -20,7 +25,8 @@ struct WorldMatrixBuffer {
 };  // namespace Data
 
 struct Material {
-    Texture albedo_texture;
+    Texture albedo;
 };
 
-};  // namespace Asset::StaticModel
+};  // namespace StaticModel
+};  // namespace Asset

@@ -3,17 +3,12 @@
 #include <optional>
 #include <tracy/Tracy.hpp>
 
-#include "ComponentBindings/ComponentMetatables.h"
 #include "ComponentMetatables.h"
 #include "ComponentPool.h"
 #include "EntityId.h"
 #include "LuaUtility.h"
 #include "Scene.h"
-#include "StaticMesh.h"
-#include "Transform.h"
-#include "TransformBindings.h"
 #include "TypeId.h"
-#include "TypeIdHelper.h"
 
 namespace Utility = Engine::Script::Utility;
 namespace ECS = Engine::Script::Binding::ECS;
@@ -30,10 +25,7 @@ extern "C" int entityAddComponent(lua_State* state) {
 
     TypeId type = Utility::getArgument<TypeId>(state, 2);
 
-    if (type == TypeIdHelper::getTypeId<Transform>())
-        entity->add<Transform>();
-    else if (type == TypeIdHelper::getTypeId<StaticMesh>())
-        entity->add<StaticMesh>();
+    ECS::addComponent(state, *entity, type);
 
     return 0;
 }
@@ -69,18 +61,7 @@ extern "C" int entityGetComponent(lua_State* state) {
 
     TypeId type = Utility::getArgument<TypeId>(state, 2);
 
-    const char* metatable_name;
-    if (type == TypeIdHelper::getTypeId<Transform>())
-        metatable_name = TRANSFORM_METATABLE;
-    else if (type == TypeIdHelper::getTypeId<StaticMesh>())
-        metatable_name = STATIC_MESH_METATABLE;
-    else
-        return Utility::pushNil(state);
-
-    ComponentId component = entity->getComponentId(type);
-    Utility::pushUserData(state, metatable_name, component);
-
-    return 1;
+    return ECS::getComponent(state, *entity, type);
 }
 
 extern "C" int entityAddChild(lua_State* state) {

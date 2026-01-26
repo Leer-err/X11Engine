@@ -96,7 +96,7 @@ struct Matrix {
         DirectX::XMStoreFloat3(&translation, translation_vector);
 
         return {translation.x, translation.y, translation.z};
-    };
+    }
 
     Quaternion getRotation() const {
         DirectX::XMVECTOR translation_vector = {};
@@ -111,7 +111,7 @@ struct Matrix {
         DirectX::XMStoreFloat4(&rotation, rotation_vector);
 
         return {rotation.w, rotation.x, rotation.y, rotation.z};
-    };
+    }
 
     Vector3 getScale() const {
         DirectX::XMVECTOR translation_vector = {};
@@ -126,7 +126,7 @@ struct Matrix {
         DirectX::XMStoreFloat3(&scale, scale_vector);
 
         return {scale.x, scale.y, scale.z};
-    };
+    }
 
     void decompose(Vector3& position, Vector3& scale,
                    Quaternion& orientation) const {

@@ -27,7 +27,8 @@ bool Engine::init() {
         "E:\\repos\\X11Engine\\X11Engine\\Scripts");
     Script::ScriptSandbox::get().runFunction("Init");
 
-    Overlay::Overlay::get().add<Overlay::OverlayElements::Text>("General", "Performance", [](){ return std::format("FPS is {}", fps);});
+    Overlay::Overlay::get().add<Overlay::OverlayElements::Text>(
+        "General", [this]() { return std::format("FPS is {}", fps); });
 
     return true;
 }

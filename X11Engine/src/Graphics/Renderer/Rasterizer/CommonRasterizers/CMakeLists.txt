@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 target_sources(${TARGET_NAME} PRIVATE
-    SystemDispatcher.cpp
+    CommonRasterizers.cpp
 )
 
 target_include_directories(${TARGET_NAME} PUBLIC

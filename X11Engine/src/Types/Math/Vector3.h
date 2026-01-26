@@ -6,9 +6,8 @@
 struct Quaternion;
 
 struct Vector3 {
-    constexpr Vector3();
-
-    constexpr Vector3(float x, float y, float z);
+    constexpr Vector3() : Vector3(0, 0, 0) {}
+    constexpr Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
 
     static Vector3 lerp(const Vector3& a, const Vector3& b, float factor);
 

@@ -59,15 +59,17 @@ void pushArgument(lua_State* state, T&& argument) {
 
 template <typename T>
 void pushUserData(lua_State* state, const std::string& metatable_name,
-                  T userdata) {
-    T* ptr = (T*)lua_newuserdata(state, sizeof(T));
-    *ptr = userdata;
+                  T&& userdata) {
+    using DataType = std::remove_reference_t<T>;
+
+    DataType* ptr = (DataType*)lua_newuserdata(state, sizeof(DataType));
+    std::construct_at(ptr, std::forward<T>(userdata));
     Utility::setMetatable(state, metatable_name);
 }
 
 template <typename T>
 T* getUserData(lua_State* state, int index = -1) {
-    return static_cast<T*>(lua_touserdata(state, 1));
+    return static_cast<T*>(lua_touserdata(state, index));
 }
 
 template <typename T>

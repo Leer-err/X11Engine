@@ -6,6 +6,7 @@
 #include "PixelShader.h"
 #include "RenderTarget.h"
 #include "VertexShader.h"
+
 class GraphicsPipelineBuilder {
    public:
     GraphicsPipelineBuilder(InputLayout input_layout,
@@ -15,6 +16,9 @@ class GraphicsPipelineBuilder {
     GraphicsPipelineBuilder& setRenderTarget(RenderTarget render_target);
     GraphicsPipelineBuilder& setDepthStencilBuffer(
         DepthStencil depth_stencil_buffer);
+
+    GraphicsPipelineBuilder& setRasterizerState(
+        Engine::Graphics::Rasterizer rasterizer);
 
     GraphicsPipeline create();
 
@@ -29,4 +33,6 @@ class GraphicsPipelineBuilder {
 
     VertexShader vertex_shader;
     PixelShader pixel_shader;
+
+    Engine::Graphics::Rasterizer rasterizer;
 };

@@ -8,6 +8,7 @@
 
 #include <ranges>
 #include <string>
+#include <tracy/Tracy.hpp>
 
 #include "APIResources.h"
 #include "Renderer.h"
@@ -17,7 +18,7 @@ Overlay::OverlayElements::Text::Text(std::function<std::string()> text_callback)
     : text_callback(text_callback) {}
 
 void Overlay::OverlayElements::Text::draw() {
-    ImGui::Text(text_callback());
+    ImGui::Text(text_callback().c_str());
 }
 
 Overlay::OverlayElements::Header::Header(const std::string& label)
@@ -86,6 +87,8 @@ Overlay::Overlay::~Overlay() {
 }
 
 void Overlay::Overlay::draw() {
+    ZoneScoped;
+
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();

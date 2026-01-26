@@ -25,21 +25,20 @@ class SystemDispatcher {
         systems.emplace_back(std::move(system));
     }
 
-    void progress(World& world, float delta_time) {
-        for (const auto& system : systems) system->update(world, delta_time);
-
-        for (const auto& system : systems) system->preSimulate(world);
-        for (const auto& system : systems) system->simulate(world);
-
-        for (const auto& system : systems) system->preRender(world);
-        for (const auto& system : systems) system->render(world);
-    }
+    void progress(World& world, float delta_time);
 
    private:
     SystemDispatcher(const SystemDispatcher&) = delete;
     SystemDispatcher& operator=(const SystemDispatcher&) = delete;
     SystemDispatcher(SystemDispatcher&&) = delete;
     SystemDispatcher& operator=(SystemDispatcher&&) = delete;
+
+    void preSimulate(World& world);
+    void simulate(World& world);
+    void preUpdate(World& world);
+    void update(World& world, float delta_time);
+    void preRender(World& world);
+    void render(World& world);
 
     World& world;
 

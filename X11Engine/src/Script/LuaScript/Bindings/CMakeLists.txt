@@ -11,3 +11,4 @@ target_include_directories(${TARGET_NAME} PUBLIC
 
 add_subdirectory(ECSBindings)
 add_subdirectory(TypeBindings)
+add_subdirectory(TextureBindings)

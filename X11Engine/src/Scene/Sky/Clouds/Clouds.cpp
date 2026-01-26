@@ -2,6 +2,7 @@
 
 #include "BufferBuilder.h"
 #include "CameraManager.h"
+#include "CommonSamplers.h"
 #include "Context.h"
 #include "Engine.h"
 #include "Format.h"
@@ -11,12 +12,15 @@
 #include "MeshBuilder.h"
 #include "Overlay.h"
 #include "PixelShaderBuilder.h"
-#include "SamplerBuilder.h"
+#include "Rasterizer.h"
+#include "RasterizerBuilder.h"
 #include "ShaderResource.h"
 #include "TextureBuilder.h"
 #include "Vector2.h"
 #include "Vector3.h"
 #include "VertexShaderBuilder.h"
+
+using Engine::Graphics::CommonSamplers;
 
 namespace CloudBakeData {
 static constexpr Binding cloud_parameters{Binding::ShaderType::Pixel, 0};
@@ -33,7 +37,7 @@ Clouds::CloudsBaker::CloudsBaker() {
         Vector3(-1, -1, 1), Vector3(1, -1, 1), Vector3(-1, 1, 1),
         Vector3(1, 1, 1)};
 
-    constexpr uint32_t screen_quad_indices[] = {0, 2, 1, 1, 2, 3};
+    constexpr uint32_t screen_quad_indices[] = {0, 1, 2, 1, 3, 2};
 
     screen_quad =
         MeshBuilder()
@@ -89,6 +93,8 @@ Clouds::CloudsBaker::CloudsBaker() {
 }
 
 void Clouds::CloudsBaker::draw() {
+    ZoneScoped;
+
     auto context = Context();
 
     auto cloud_parameters =
@@ -141,7 +147,7 @@ Clouds::Clouds() : cloud_height(100), cloud_plane_size(1000) {
         Vertex(Vector3(1, 1, -1), Vector2(1, 1)),
         Vertex(Vector3(1, 1, 1), Vector2(1, 0))};
 
-    constexpr uint32_t cloud_plane_indices[] = {0, 2, 1, 1, 2, 3};
+    constexpr uint32_t cloud_plane_indices[] = {0, 1, 2, 1, 3, 2};
 
     cloud_plane =
         MeshBuilder()
@@ -164,11 +170,16 @@ Clouds::Clouds() : cloud_height(100), cloud_plane_size(1000) {
                             .addElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT)
                             .create();
 
+    auto rasterizer = Engine::Graphics::RasterizerBuilder()
+                          .fillMode(Engine::Graphics::Fill::Solid)
+                          .cullMode(Engine::Graphics::Cull::Back)
+                          .depthClip(false)
+                          .create();
+
     pipeline =
         GraphicsPipelineBuilder(input_layout, vertex_shader, pixel_shader)
+            .setRasterizerState(rasterizer)
             .create();
-
-    cloud_sampler = SamplerBuilder(Filter::Linear).create();
 
     camera_data_buffer = BufferBuilder(sizeof(SkyPipelineData::CameraData))
                              .isConstantBuffer()
@@ -208,6 +219,8 @@ Clouds::Clouds() : cloud_height(100), cloud_plane_size(1000) {
 }
 
 void Clouds::draw() {
+    ZoneScoped;
+
     auto context = Context();
 
     cloud_baker.draw();
@@ -216,7 +229,8 @@ void Clouds::draw() {
     context.setPipeline(pipeline);
 
     context.bindShaderResource(cloud_texture, SkyPipelineData::cloud_texture);
-    context.bindSampler(cloud_sampler, SkyPipelineData::cloud_sampler);
+    context.bindSampler(CommonSamplers::linear(),
+                        SkyPipelineData::cloud_sampler);
     context.bindConstantBuffer(CameraManager::get().getCameraData(),
                                SkyPipelineData::camera_data);
     context.bindConstantBuffer(clouds_data_buffer, SkyPipelineData::sky_data);
