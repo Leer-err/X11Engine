@@ -1,5 +1,10 @@
 #pragma once
 
+namespace physx {
+class PxFoundation;
+class PxPhysics;
+}  // namespace physx
+
 namespace Physics {
 
 class Resources {
@@ -11,11 +16,8 @@ class Resources {
 
     static Resources& get();
 
-    physx::PxPvd* pvd;
-
     physx::PxFoundation* foundation;
     physx::PxPhysics* physics;
-    physx::PxScene* scene;
 };
 
 };  // namespace Physics

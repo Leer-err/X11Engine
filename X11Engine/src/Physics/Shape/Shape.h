@@ -33,7 +33,7 @@ class Shape {
     physx::PxShape* get() const;
 
    private:
-    Shape(physx::PxGeometry& geometry);
+    Shape(const physx::PxGeometry& geometry);
 
     physx::PxShape* shape;
 };

@@ -7,6 +7,8 @@
 #include "foundation/PxQuat.h"
 #include "foundation/PxTransform.h"
 
+namespace Physics {
+
 StaticRigidBody::StaticRigidBody(physx::PxRigidStatic* body) : body(body) {}
 
 StaticRigidBody::StaticRigidBody(StaticRigidBody&& other) {
@@ -31,7 +33,9 @@ void StaticRigidBody::setTransform(const Vector3& position,
 }
 
 void StaticRigidBody::addShape(const Shape& shape) {
-    body->attachShape(shape.get());
+    body->attachShape(*shape.get());
 }
 
 physx::PxRigidStatic* StaticRigidBody::get() const { return body; }
+
+};  // namespace Physics

@@ -8,6 +8,8 @@ namespace physx {
 class PxRigidStatic;
 }
 
+namespace Physics {
+
 class StaticRigidBody : public Actor {
    public:
     StaticRigidBody(physx::PxRigidStatic* body);
@@ -23,5 +25,7 @@ class StaticRigidBody : public Actor {
    private:
     physx::PxRigidStatic* body;
 };
+
+};  // namespace Physics
 
 #endif  // STATIC_RIGID_BODY_H

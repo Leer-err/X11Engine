@@ -1,27 +1,37 @@
 #include "Shape.h"
 
-#include "PxShape.h"
+#include <PxPhysics.h>
+#include <PxShape.h>
+#include <geometry/PxPlaneGeometry.h>
+
 #include "Resources.h"
-#include "geometry/PxPlaneGeometry.h"
 
 namespace Physics {
 
-Shape Shape::sphere(float radius) { return Shape(physx::PxPlaneGeometry()); }
+Shape Shape::sphere(float radius) {
+    auto geometry = physx::PxSphereGeometry(radius);
+    return Shape(geometry);
+}
 
 Shape Shape::box(Vector3 half_extents) {
-    return Shape(
-        physx::PxBoxGeometry(half_extents.x, half_extents.y, half_extents.z));
+    auto geometry =
+        physx::PxBoxGeometry(half_extents.x, half_extents.y, half_extents.z);
+    return Shape(geometry);
 }
 
 Shape Shape::capsule(float radius, float half_height) {
-    return Shape(physx::PxCapsuleGeometry(radius, half_height));
+    auto geometry = physx::PxCapsuleGeometry(radius, half_height);
+    return Shape(geometry);
 }
 
-Shape Shape::plane() { return Shape(physx::PxPlaneGeometry()); }
+Shape Shape::plane() {
+    auto geometry = physx::PxPlaneGeometry();
+    return Shape(geometry);
+}
 
 Shape::Shape() : shape(nullptr) {}
 
-Shape::Shape(physx::PxGeometry& geometry) {
+Shape::Shape(const physx::PxGeometry& geometry) {
     auto physics = Resources::getPhysics();
 
     auto material = physics->createMaterial(0.5f, 0.5f, 0.1f);

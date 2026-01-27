@@ -6,6 +6,8 @@
 #include "Quaternion.h"
 #include "foundation/PxTransform.h"
 
+namespace Physics {
+
 DynamicRigidBody::DynamicRigidBody(physx::PxRigidDynamic* body) : body(body) {}
 
 DynamicRigidBody::DynamicRigidBody(DynamicRigidBody&& other) {
@@ -77,3 +79,5 @@ void DynamicRigidBody::lock(uint32_t lock) {
 }
 
 physx::PxRigidDynamic* DynamicRigidBody::get() const { return body; }
+
+};  // namespace Physics
