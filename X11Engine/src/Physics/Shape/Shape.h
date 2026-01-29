@@ -1,10 +1,11 @@
 #ifndef SHAPE_H
 #define SHAPE_H
 
-#include "PxMaterial.h"
+#include <geometry/PxGeometry.h>
+
 #include "Transform.h"
 #include "Vector3.h"
-#include "geometry/PxGeometry.h"
+
 namespace physx {
 class PxShape;
 };
@@ -13,6 +14,7 @@ namespace Physics {
 
 class Shape {
     friend class StaticRigidBody;
+    friend class DynamicRigidBody;
 
    public:
     Shape();

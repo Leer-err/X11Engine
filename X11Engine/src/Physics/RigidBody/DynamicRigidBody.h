@@ -38,6 +38,8 @@ class DynamicRigidBody : public Actor {
     void setCCD(bool ccd);
     void lock(Lock lock);
 
+    void addShape(const Shape& shape) override;
+
     physx::PxRigidDynamic* get() const;
 
    private:

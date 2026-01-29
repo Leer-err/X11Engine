@@ -10,13 +10,13 @@
 #include "StaticRigidBody.h"
 
 struct StaticRigidBodyComponent {
-    std::shared_ptr<StaticRigidBody> body;
+    Physics::StaticRigidBody body;
 
     std::string serialize() const;
 };
 
 struct DynamicRigidBodyComponent {
-    std::shared_ptr<DynamicRigidBody> body;
+    Physics::DynamicRigidBody body;
 
     std::string serialize() const;
 };

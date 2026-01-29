@@ -79,6 +79,10 @@ void DynamicRigidBody::lock(Lock lock) {
     }
 }
 
+void DynamicRigidBody::addShape(const Shape& shape) {
+    body->attachShape(*shape.get());
+}
+
 physx::PxRigidDynamic* DynamicRigidBody::get() const { return body; }
 
 };  // namespace Physics

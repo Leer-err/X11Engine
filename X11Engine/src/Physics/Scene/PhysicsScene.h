@@ -1,5 +1,11 @@
 #pragma once
 
+namespace physx {
+class PxScene;
+}
+
+class Actor;
+
 namespace Physics {
 
 class Scene {

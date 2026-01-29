@@ -1,7 +1,4 @@
-
-
 target_sources(${TARGET_NAME} PRIVATE
-    #PhysicsFactory.cpp
 )
 
 target_include_directories(${TARGET_NAME} PUBLIC
@@ -12,3 +9,4 @@ add_subdirectory(Resources)
 add_subdirectory(Shape)
 add_subdirectory(Actor)
 add_subdirectory(RigidBody)
+add_subdirectory(Scene)

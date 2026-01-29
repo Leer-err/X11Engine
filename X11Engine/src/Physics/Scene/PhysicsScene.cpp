@@ -1,4 +1,8 @@
-#include "Scene.h"
+#include "PhysicsScene.h"
+
+#include <PxPhysicsAPI.h>
+
+#include "Resources.h"
 
 namespace Physics {
 
@@ -11,10 +15,9 @@ Scene::Scene() {
     desc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f);
     desc.cpuDispatcher = dispatcher;
     desc.filterShader = physx::PxDefaultSimulationFilterShader;
-    desc.simulationEventCallback = &gCollisionCallback;  // Register callback
-    scene = physics->createScene(sceneDesc);
+    scene = physics->createScene(desc);
 
-    dispatcher.release();
+    dispatcher->release();
 }
 
 void Scene::addActor(const Actor& actor) {}

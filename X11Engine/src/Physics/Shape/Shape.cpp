@@ -1,5 +1,6 @@
 #include "Shape.h"
 
+#include <PxMaterial.h>
 #include <PxPhysics.h>
 #include <PxShape.h>
 #include <geometry/PxPlaneGeometry.h>
