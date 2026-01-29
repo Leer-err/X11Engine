@@ -13,14 +13,18 @@ namespace Physics {
 
 class DynamicRigidBody : public Actor {
    public:
-    enum Lock {
-        LockRotationX = (1 << 0),
-        LockRotationY = (1 << 1),
-        LockRotationZ = (1 << 2),
+    enum class Lock {
+        LockRotationX,
+        LockRotationY,
+        LockRotationZ,
+        LockRotationXY,
+        LockRotationXZ,
+        LockRotationYZ,
+        LockRotationXYZ
     };
 
+    DynamicRigidBody();
     DynamicRigidBody(physx::PxRigidDynamic* body);
-    DynamicRigidBody(DynamicRigidBody&& other);
     ~DynamicRigidBody();
 
     Vector3 getPosition() const;
@@ -32,7 +36,7 @@ class DynamicRigidBody : public Actor {
     void setTransform(const Vector3& position, const Quaternion& quaternion);
     void setGravity(bool gravity);
     void setCCD(bool ccd);
-    void lock(uint32_t lock);
+    void lock(Lock lock);
 
     physx::PxRigidDynamic* get() const;
 

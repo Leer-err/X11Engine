@@ -11,12 +11,6 @@ namespace Physics {
 
 StaticRigidBody::StaticRigidBody(physx::PxRigidStatic* body) : body(body) {}
 
-StaticRigidBody::StaticRigidBody(StaticRigidBody&& other) {
-    this->body = nullptr;
-
-    std::swap(other.body, this->body);
-}
-
 StaticRigidBody::~StaticRigidBody() {
     if (body == nullptr) return;
 

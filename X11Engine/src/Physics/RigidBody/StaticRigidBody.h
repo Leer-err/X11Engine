@@ -13,7 +13,6 @@ namespace Physics {
 class StaticRigidBody : public Actor {
    public:
     StaticRigidBody(physx::PxRigidStatic* body);
-    StaticRigidBody(StaticRigidBody&& other);
     ~StaticRigidBody();
 
     physx::PxRigidStatic* get() const;

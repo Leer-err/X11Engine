@@ -1,20 +1,15 @@
 #include "DynamicRigidBody.h"
 
-#include <utility>
+#include <PxRigidDynamic.h>
+#include <foundation/PxTransform.h>
 
-#include "PxRigidDynamic.h"
 #include "Quaternion.h"
-#include "foundation/PxTransform.h"
 
 namespace Physics {
 
+DynamicRigidBody::DynamicRigidBody() : body(nullptr) {}
+
 DynamicRigidBody::DynamicRigidBody(physx::PxRigidDynamic* body) : body(body) {}
-
-DynamicRigidBody::DynamicRigidBody(DynamicRigidBody&& other) {
-    this->body = nullptr;
-
-    std::swap(other.body, this->body);
-}
 
 DynamicRigidBody::~DynamicRigidBody() {
     if (body == nullptr) return;
@@ -64,18 +59,24 @@ void DynamicRigidBody::setGravity(bool gravity) {
     body->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !gravity);
 }
 
-void DynamicRigidBody::lock(uint32_t lock) {
-    if (lock & Lock::LockRotationX)
+void DynamicRigidBody::lock(Lock lock) {
+    if (lock == Lock::LockRotationX || lock == Lock::LockRotationXY ||
+        lock == Lock::LockRotationXYZ) {
         body->setRigidDynamicLockFlag(
             physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, true);
+    }
 
-    if (lock & Lock::LockRotationY)
+    if (lock == Lock::LockRotationY || lock == Lock::LockRotationXY ||
+        lock == Lock::LockRotationXYZ) {
         body->setRigidDynamicLockFlag(
             physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, true);
+    }
 
-    if (lock & Lock::LockRotationZ)
+    if (lock == Lock::LockRotationZ || lock == Lock::LockRotationYZ ||
+        lock == Lock::LockRotationXYZ) {
         body->setRigidDynamicLockFlag(
             physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, true);
+    }
 }
 
 physx::PxRigidDynamic* DynamicRigidBody::get() const { return body; }
