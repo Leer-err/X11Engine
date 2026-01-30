@@ -3,9 +3,17 @@
 
 #include <cstdint>
 
-struct WindowConfig {
+namespace Config {
+
+struct Window {
+    enum class State { Windowed, Borderless, Fullscreen };
+
     uint32_t width;
     uint32_t height;
+
+    State state;
 };
+
+};  // namespace Config
 
 #endif  // WINDOW_CONFIG_H

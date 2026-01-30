@@ -13,7 +13,7 @@ set(TARGET_NAME "X11Engine_lib")
 
 add_library(${TARGET_NAME} STATIC)
 
-target_link_libraries(${TARGET_NAME} PUBLIC TracyClient)
+target_link_libraries(${TARGET_NAME} PUBLIC TracyClient Config)
 
 target_include_directories(${TARGET_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

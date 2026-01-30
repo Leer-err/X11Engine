@@ -3,13 +3,13 @@
 
 #include <cstdint>
 
-enum class WindowState { Windowed, Borderless, Fullscreen };
+namespace Config {
 
-struct GraphicsConfig {
+struct Graphics {
     uint32_t render_width;
     uint32_t render_height;
-
-    WindowState window_state;
 };
+
+};  // namespace Config
 
 #endif  // GRAPHICS_CONFIG_H
