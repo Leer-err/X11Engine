@@ -19,8 +19,8 @@ target_link_libraries(Core PUBLIC
 	File
 	ECS
 	Event
+	Script
 	# Physics
-	# Script
 )
 
 add_subdirectory(Logger)
@@ -34,4 +34,4 @@ add_subdirectory(File)
 add_subdirectory(ECS)
 add_subdirectory(Event)
 # add_subdirectory(Physics)
-# add_subdirectory(Script)
+add_subdirectory(Script)

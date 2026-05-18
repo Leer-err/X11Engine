@@ -1,6 +1,8 @@
 add_library(ECS STATIC)
 
 target_link_libraries(ECS
+    PUBLIC
+        Script
     PRIVATE
         Utility
         Tracy::TracyClient

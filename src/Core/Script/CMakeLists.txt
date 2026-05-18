@@ -1,11 +1,8 @@
-add_library(Script STATIC)
+add_library(Script INTERFACE)
 
-target_sources(Script PRIVATE
-    ScriptResources.cpp
+target_sources(Script INTERFACE
 )
 
-target_include_directories(Script PUBLIC
+target_include_directories(Script INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
-
-add_subdirectory(Bindings)
