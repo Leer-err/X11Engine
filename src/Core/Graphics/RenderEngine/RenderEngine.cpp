@@ -213,7 +213,7 @@ TextureHandle RenderEngine::addTexture(void* data, uint32_t width,
                                        uint32_t height) {
     // TODO: image lifetime tracking
 
-    auto image = ImageBuilder(VK_FORMAT_R8G8B8A8_UNORM, width, height)
+    auto image = ImageBuilder(VK_FORMAT_R8G8B8A8_SRGB, width, height)
                      .isShaderResource()
                      .isCopyDestination()
                      .create(device)
