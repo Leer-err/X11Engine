@@ -2,26 +2,22 @@
 
 #include <stb_image.h>
 
-#include <memory>
 #include <tracy/Tracy.hpp>
 
-#include "CameraManager.h"
 #include "Graphics.h"
 #include "GraphicsCommunicationManager.h"
 #include "ModelReader.h"
 #include "Quaternion.h"
 #include "StaticModelData.h"
-#include "StaticProjectionCamera.h"
+#include "Camera.h"
 #include "Vector3.h"
 
 StaticModelData model_data = {};
 
 Scene::Scene() {
-    auto cam = std::make_shared<StaticProjectionCamera>(60.f, (float)4 / 3,
-                                                        0.1f, 1000.f);
-    CameraManager::get().setMainCamera(cam);
+    camera = Camera::create(110, 16.f / 9, 1, 1000);
 
-    File::ModelReader reader("./Assets/Gem.fbx");
+    File::ModelReader reader("./Assets/gem2.fbx");
     auto vertices = reader.readVertices();
     auto indices = reader.readIndices();
 
@@ -35,18 +31,19 @@ Scene::Scene() {
     int height;
     int channels;
     unsigned char* data =
-        stbi_load("./Assets/Gem.png", &width, &height, &channels, 0);
+        stbi_load("./Assets/gem2.png", &width, &height, &channels, 0);
 
     model_data.albedo = renderer->addTexture(data, width, height);
 }
 
 void Scene::update(float deltaTime) {
     ZoneScoped;
+    auto& graphics_communicator = GraphicsCommunicationManager::get();
 
     sky.draw();
     world.update(deltaTime);
 
-    GraphicsCommunicationManager::get().send(model_data);
+    graphics_communicator.send(model_data);
 }
 
 void Scene::setupSystems() {}

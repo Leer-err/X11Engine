@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Camera/Camera.h"
 #include "IScene.h"
 #include "Sky.h"
 #include "World.h"
@@ -14,6 +15,8 @@ class Scene : public IScene {
     void setupSystems();
 
     Sky sky;
+
+    Camera camera;
 
     World world;
 };
