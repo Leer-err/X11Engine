@@ -29,9 +29,6 @@ set_target_properties(${TARGET_NAME} PROPERTIES
 	CXX_EXTENSIONS OFF
 )
 
-# add_subdirectory(FileReader)
-# add_subdirectory(Graphics)
-add_subdirectory(Engine)
 add_subdirectory(Camera)
 # add_subdirectory(Systems)
 add_subdirectory(Components)
