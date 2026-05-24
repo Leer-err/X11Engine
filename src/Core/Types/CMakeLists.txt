@@ -14,7 +14,7 @@ target_link_libraries(Types
         glm::glm
 )
 
-target_compile_definitions(Types PUBLIC GLM_FORCE_LEFT_HANDED GLM_FORCE_DEPTH_ZERO_TO_ONE)
+target_compile_definitions(Types PUBLIC GLM_FORCE_DEPTH_ZERO_TO_ONE GLM_ENABLE_EXPERIMENTAL GLM_FORCE_LEFT_HANDED)
 
 add_subdirectory(Result)
 add_subdirectory(Math)

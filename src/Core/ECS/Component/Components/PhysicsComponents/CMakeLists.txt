@@ -1,11 +1,9 @@
 
 
 target_sources(ECS PRIVATE
-    SystemDispatcher.cpp
+    PhysicsComponents.cpp
 )
 
 target_include_directories(ECS PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
-
-add_subdirectory(Systems)

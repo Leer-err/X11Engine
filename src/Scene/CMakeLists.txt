@@ -7,3 +7,6 @@ target_include_directories(${TARGET_NAME} PUBLIC
 )
 
 add_subdirectory(Sky)
+add_subdirectory(Camera)
+add_subdirectory(Scripts)
+add_subdirectory(GameInputContext)

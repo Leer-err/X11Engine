@@ -60,16 +60,16 @@ class Header {
 
     template <typename T, typename... ARGS>
     void add(const std::string& path, ARGS&&... args) {
-        auto index = std::find(path.begin(), path.end(), '/');
-
         if (path.empty()) {
             elements.emplace_back(T(std::forward<ARGS>(args)...));
             return;
         }
 
+        auto index = std::find(path.begin() + 1, path.end(), '/');
+
         std::string header_name;
         if (index == path.end())
-            header_name = path;
+            header_name = std::string(path.begin() + 1, path.end());
         else
             header_name = std::string(path.begin(), index);
 

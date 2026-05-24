@@ -59,3 +59,5 @@ Vector3 operator/(const Vector3& a, float b) {
     auto result = get(a) / b;
     return Vector3(result.x, result.y, result.z);
 }
+
+bool operator==(const Vector3& a, const Vector3& b) { return get(a) == get(b); }

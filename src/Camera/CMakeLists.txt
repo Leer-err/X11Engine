@@ -1,7 +1,6 @@
 
 
 target_sources(${TARGET_NAME} PRIVATE
-    StaticProjectionCamera.cpp
     CameraManager.cpp
 )
 

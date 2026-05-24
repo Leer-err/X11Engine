@@ -6,6 +6,7 @@
 namespace Input {
 
 enum Button {
+    INVALID_BUTTON,
     MOUSE_LB,
     MOUSE_RB,
     MOUSE_MB,
@@ -45,10 +46,15 @@ enum Button {
     KEYBOARD_X,
     KEYBOARD_Y,
     KEYBOARD_Z,
-    INVALID_BUTTON,
+    KEYBOARD_LSHIFT,
+    KEYBOARD_RSHIFT,
+    KEYBOARD_RCTRL,
+    KEYBOARD_LCTRL,
+    KEYBOARD_LALT,
+    KEYBOARD_RALT,
 };
 constexpr auto KEY_COUNT =
-    static_cast<std::underlying_type_t<Button>>(Button::KEYBOARD_Z) + 1;
+    static_cast<std::underlying_type_t<Button>>(Button::KEYBOARD_RALT) + 1;
 
 enum Axis { MOUSE_X, MOUSE_Y, INVALID_AXIS };
 constexpr auto AXES_COUNT =

@@ -70,17 +70,12 @@ void RenderPass::endPass(const FrameData& frame_data) {
 }
 
 void RenderPass::updateCameraBuffer(const FrameData& frame_data) {
-    // auto camera_data =
-    //     GraphicsCommunicationManager::get().recieve<CameraData>();
+    auto camera_data =
+        GraphicsCommunicationManager::get().recieve<CameraData>();
 
-    // if (!camera_data) return;
+    if (!camera_data) return;
 
-    CameraData data = {};
-    data.view_projection = Matrix::projection(1.04, 16.f / 9, 1000, 1);
-    data.view_projection.m[1][1] *= -1;
-    data.inverse_view_projection = data.view_projection.inverse();
-
-    camera_data_buffer.update(frame_data, data);
+    camera_data_buffer.update(frame_data, *camera_data);
 }
 
 }  // namespace Graphics

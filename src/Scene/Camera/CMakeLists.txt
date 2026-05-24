@@ -1,6 +1,5 @@
-
-
 target_sources(${TARGET_NAME} PRIVATE
+    Camera.cpp
 )
 
 target_include_directories(${TARGET_NAME} PUBLIC

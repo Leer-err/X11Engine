@@ -17,9 +17,18 @@ void ScriptSystem::update(World& world, float delta_time) {
     for (auto& entity : entities) {
         auto scripts = entity.get<Scripts>();
 
-        for (auto& script : scripts->scripts)
-            script->update(entity, delta_time);
+        for (auto& script : scripts->scripts) script->update(delta_time);
     }
+}
 
-    // sandbox.runFunction("Update", delta_time);
+void ScriptSystem::preRender(World& world) {
+    ZoneScoped;
+
+    std::vector<Entity> entities = world.query().with<Scripts>().execute();
+
+    for (auto& entity : entities) {
+        auto scripts = entity.get<Scripts>();
+
+        for (auto& script : scripts->scripts) script->preRender();
+    }
 }

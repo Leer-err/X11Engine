@@ -7,6 +7,7 @@
 class ScriptSystem : public ISystem {
    public:
     void update(World& world, float delta_time) override;
+    void preRender(World& world) override;
 
    private:
 };

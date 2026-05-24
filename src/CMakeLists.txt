@@ -30,8 +30,6 @@ set_target_properties(${TARGET_NAME} PROPERTIES
 )
 
 add_subdirectory(Camera)
-# add_subdirectory(Systems)
-add_subdirectory(Components)
 # add_subdirectory(Script)
 add_subdirectory(Scene)
 add_subdirectory(Core)

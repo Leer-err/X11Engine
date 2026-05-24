@@ -17,22 +17,93 @@ using Input::Button;
 using Input::MouseMode;
 using Input::PhysicalInput;
 
-constexpr Button button_mapping[] = {
-    Button::INVALID_BUTTON, Button::INVALID_BUTTON, Button::INVALID_BUTTON,
-    Button::INVALID_BUTTON, Button::KEYBOARD_A,     Button::KEYBOARD_B,
-    Button::KEYBOARD_C,     Button::KEYBOARD_D,     Button::KEYBOARD_E,
-    Button::KEYBOARD_F,     Button::KEYBOARD_G,     Button::KEYBOARD_H,
-    Button::KEYBOARD_I,     Button::KEYBOARD_J,     Button::KEYBOARD_K,
-    Button::KEYBOARD_L,     Button::KEYBOARD_M,     Button::KEYBOARD_N,
-    Button::KEYBOARD_O,     Button::KEYBOARD_P,     Button::KEYBOARD_Q,
-    Button::KEYBOARD_R,     Button::KEYBOARD_S,     Button::KEYBOARD_T,
-    Button::KEYBOARD_U,     Button::KEYBOARD_V,     Button::KEYBOARD_W,
-    Button::KEYBOARD_X,     Button::KEYBOARD_Y,     Button::KEYBOARD_Z,
-    Button::KEYBOARD_1,     Button::KEYBOARD_2,     Button::KEYBOARD_3,
-    Button::KEYBOARD_4,     Button::KEYBOARD_5,     Button::KEYBOARD_6,
-    Button::KEYBOARD_7,     Button::KEYBOARD_8,     Button::KEYBOARD_9,
-    Button::KEYBOARD_0,
-};
+constexpr Button BUTTON_MAPPING_TABLE[] = {
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::KEYBOARD_A,      Button::KEYBOARD_B,
+    Button::KEYBOARD_C,      Button::KEYBOARD_D,      Button::KEYBOARD_E,
+    Button::KEYBOARD_F,      Button::KEYBOARD_G,      Button::KEYBOARD_H,
+    Button::KEYBOARD_I,      Button::KEYBOARD_J,      Button::KEYBOARD_K,
+    Button::KEYBOARD_L,      Button::KEYBOARD_M,      Button::KEYBOARD_N,
+    Button::KEYBOARD_O,      Button::KEYBOARD_P,      Button::KEYBOARD_Q,
+    Button::KEYBOARD_R,      Button::KEYBOARD_S,      Button::KEYBOARD_T,
+    Button::KEYBOARD_U,      Button::KEYBOARD_V,      Button::KEYBOARD_W,
+    Button::KEYBOARD_X,      Button::KEYBOARD_Y,      Button::KEYBOARD_Z,
+    Button::KEYBOARD_1,      Button::KEYBOARD_2,      Button::KEYBOARD_3,
+    Button::KEYBOARD_4,      Button::KEYBOARD_5,      Button::KEYBOARD_6,
+    Button::KEYBOARD_7,      Button::KEYBOARD_8,      Button::KEYBOARD_9,
+    Button::KEYBOARD_0,      Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::KEYBOARD_LCTRL,
+    Button::KEYBOARD_LSHIFT, Button::KEYBOARD_LALT,   Button::INVALID_BUTTON,
+    Button::KEYBOARD_RCTRL,  Button::KEYBOARD_RSHIFT, Button::KEYBOARD_RALT,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON,  Button::INVALID_BUTTON,
+    Button::INVALID_BUTTON,  Button::INVALID_BUTTON};
 
 Window::Window() : logger(LoggerFactory::getLogger("Window")) {}
 
@@ -118,9 +189,9 @@ void Window::processKeyDown(const SDL_Event* event) {
         return;
     }
 
-    if (scancode > SDL_SCANCODE_0) return;
+    if (scancode >= SDL_SCANCODE_MODE) return;
 
-    auto button = button_mapping[scancode];
+    auto button = BUTTON_MAPPING_TABLE[scancode];
     PhysicalInput::get().buttonPressed(button);
 
     logger.debug("{} was pressed", SDL_GetKeyName(event->key.key));
@@ -129,9 +200,9 @@ void Window::processKeyDown(const SDL_Event* event) {
 void Window::processKeyUp(const SDL_Event* event) {
     auto scancode = event->key.scancode;
 
-    if (scancode > SDL_SCANCODE_0) return;
+    if (scancode >= SDL_SCANCODE_MODE) return;
 
-    auto button = button_mapping[scancode];
+    auto button = BUTTON_MAPPING_TABLE[scancode];
     PhysicalInput::get().buttonReleased(button);
 
     logger.debug("{} was released", SDL_GetKeyName(event->key.key));

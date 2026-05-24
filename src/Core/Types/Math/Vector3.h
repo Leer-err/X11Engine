@@ -32,5 +32,6 @@ Vector3 operator+(const Vector3& a, const Vector3& b);
 Vector3 operator-(const Vector3& a, const Vector3& b);
 Vector3 operator*(const Vector3& a, float b);
 Vector3 operator/(const Vector3& a, float b);
+bool operator==(const Vector3& a, const Vector3& b);
 
 #endif

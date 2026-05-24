@@ -5,6 +5,7 @@ target_link_libraries(ECS
         Script
     PRIVATE
         Utility
+        Types
         Tracy::TracyClient
 )
 

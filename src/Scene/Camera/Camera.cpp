@@ -4,8 +4,8 @@
 
 constexpr float PI = 3.14156535;
 
-Camera Camera::create(float fov, float aspect_ratio,
-                      float near_clip, float far_clip) {
+Camera Camera::create(float fov, float aspect_ratio, float near_clip,
+                      float far_clip) {
     Camera camera = {};
     camera.fov = fov / 180 * PI;
     camera.aspect_ratio = aspect_ratio;
@@ -16,7 +16,8 @@ Camera Camera::create(float fov, float aspect_ratio,
 }
 
 Matrix Camera::getProjectionMatrix() const {
-    auto projection = Matrix::projection(fov, aspect_ratio, far_clip, near_clip);
+    auto projection =
+        Matrix::projection(fov, aspect_ratio, far_clip, near_clip);
     projection.m[1][1] *= -1;
 
     return projection;

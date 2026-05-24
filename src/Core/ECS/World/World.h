@@ -80,7 +80,7 @@ class World {
     }
 
     template <typename System, typename... Args>
-    void add(Args&&... args) {
+    void addSystem(Args&&... args) {
         system_dispatcher.add<System>(std::forward<Args>(args)...);
     }
 

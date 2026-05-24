@@ -2,20 +2,31 @@
 
 #include <stb_image.h>
 
+#include <memory>
 #include <tracy/Tracy.hpp>
 
+#include "Camera.h"
+#include "Entity.h"
+#include "GameInputContext/GameInputContext.h"
 #include "Graphics.h"
 #include "GraphicsCommunicationManager.h"
+#include "LookScript.h"
 #include "ModelReader.h"
+#include "PhysicalInput.h"
 #include "Quaternion.h"
+#include "ScriptSystem.h"
+#include "Scripts/MoveScript.h"
 #include "StaticModelData.h"
-#include "Camera.h"
+#include "Transform.h"
+#include "TransformSystem.h"
 #include "Vector3.h"
 
 StaticModelData model_data = {};
 
 Scene::Scene() {
-    camera = Camera::create(110, 16.f / 9, 1, 1000);
+    setupSystems();
+
+    camera = Camera::create(60, 16.f / 9, 1, 1000);
 
     File::ModelReader reader("./Assets/gem2.fbx");
     auto vertices = reader.readVertices();
@@ -34,6 +45,31 @@ Scene::Scene() {
         stbi_load("./Assets/gem2.png", &width, &height, &channels, 0);
 
     model_data.albedo = renderer->addTexture(data, width, height);
+
+    std::shared_ptr<Input::GameInputContext> input =
+        std::make_shared<Input::GameInputContext>();
+    input->addBinding(Input::GameAxes::LookYaw, Input::Axis::MOUSE_X);
+    input->addBinding(Input::GameAxes::LookPitch, Input::Axis::MOUSE_Y);
+    input->addBinding(Input::GameAxes::MoveForwardBackward,
+                      Input::Button::KEYBOARD_W, 1);
+    input->addBinding(Input::GameAxes::MoveForwardBackward,
+                      Input::Button::KEYBOARD_S, -1);
+    input->addBinding(Input::GameAxes::MoveLeftRight, Input::Button::KEYBOARD_D,
+                      1);
+    input->addBinding(Input::GameAxes::MoveLeftRight, Input::Button::KEYBOARD_A,
+                      -1);
+    input->addBinding(Input::GameAxes::MoveUpDown,
+                      Input::Button::KEYBOARD_LSHIFT, 1);
+    input->addBinding(Input::GameAxes::MoveUpDown,
+                      Input::Button::KEYBOARD_LCTRL, -1);
+
+    Entity player = world.createEntity();
+    Entity head = world.createEntity();
+    head.set<Transform>({});
+    player.addChild(head);
+    player.set<Transform>({});
+    player.addScript(std::make_unique<LookScript>(head, player, camera, input));
+    player.addScript(std::make_unique<MoveScript>(player, input));
 }
 
 void Scene::update(float deltaTime) {
@@ -46,4 +82,7 @@ void Scene::update(float deltaTime) {
     graphics_communicator.send(model_data);
 }
 
-void Scene::setupSystems() {}
+void Scene::setupSystems() {
+    world.addSystem<TransformSystem>();
+    world.addSystem<ScriptSystem>();
+}

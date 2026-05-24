@@ -1,6 +1,7 @@
 #ifndef INPUT_CONTEXT_H
 #define INPUT_CONTEXT_H
 
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -13,13 +14,13 @@ class InputContext {
     class IButtonBinding {
        public:
         virtual ButtonState evaluate(const PhysicalInput& input) const = 0;
-        virtual ~IButtonBinding(){};
+        virtual ~IButtonBinding() {};
     };
 
     class IAxisBinding {
        public:
         virtual float evaluate(const PhysicalInput& input) const = 0;
-        virtual ~IAxisBinding(){};
+        virtual ~IAxisBinding() {};
     };
 
     class ButtonBinding : public IButtonBinding {

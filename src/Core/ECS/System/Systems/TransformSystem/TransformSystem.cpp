@@ -49,7 +49,7 @@ void TransformSystem::updateSingleTransform(Entity entity) {
     auto position = Matrix::translation(transform->getPosition());
     auto orientation = Matrix::rotation(transform->getOrientation());
     auto scale = Matrix::scale(transform->getScale());
-    auto world_matrix = scale * orientation * position;
+    auto world_matrix = position * orientation * scale;
 
     auto parent = entity.get<Parent>();
     if (parent == nullptr) {
@@ -64,7 +64,7 @@ void TransformSystem::updateSingleTransform(Entity entity) {
     auto parent_world = parent->parent.get<WorldMatrix>();
     auto parent_matrix = parent_world->matrix;
 
-    world_matrix = world_matrix * parent_matrix;
+    world_matrix = parent_matrix * world_matrix;
     entity.set<WorldMatrix>({world_matrix});
     transform->markClean();
 }
