@@ -19,10 +19,12 @@ Mesh MeshBuilder::create(const EngineData& engine_data) {
     Mesh mesh = {};
     mesh.vertex_buffer = BufferBuilder(vertex_data_size)
                              .isVertexBuffer()
+                             .isCopyDestination()
                              .create(engine_data)
                              .getResult();
     mesh.index_buffer = BufferBuilder(index_data_size)
                             .isIndexBuffer()
+                            .isCopyDestination()
                             .create(engine_data)
                             .getResult();
 
