@@ -40,7 +40,7 @@ void StarRenderer::render(const FrameData& frame_data,
     auto command_buffer = frame_data.cmd;
 
     stars_data_buffer.update(frame_data, stars_data);
-    push_constants.stars_data = stars_data_buffer.getAddress(frame_data);
+    push_constants.stars_data = stars_data_buffer.getDeviceAddress(frame_data);
 
     command_buffer.setPipeline(pipeline);
 

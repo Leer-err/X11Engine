@@ -1,9 +1,11 @@
 #pragma once
 
+#include <sys/types.h>
 #include <vulkan/vulkan_core.h>
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 
 #include "Buffer.h"
 #include "EngineConstants.h"
@@ -18,8 +20,10 @@ class BufferedUniformBase {
 
     void update(const FrameData& frame, const void* data);
 
+    uint8_t* getHostAddress(const FrameData& frame) const;
+
     const Buffer& getBuffer(const FrameData& frame);
-    VkDeviceAddress getAddress(const FrameData& frame);
+    VkDeviceAddress getDeviceAddress(const FrameData& frame);
 
    private:
     EngineData& engine_data;
@@ -41,8 +45,12 @@ class BufferedUniform {
         return base.getBuffer(frame);
     }
 
-    VkDeviceAddress getAddress(const FrameData& frame) {
-        return base.getAddress(frame);
+    T* getHostAddress(const FrameData& frame) const {
+        return std::bit_cast<T*>(base.getHostAddress(frame));
+    }
+
+    VkDeviceAddress getDeviceAddress(const FrameData& frame) {
+        return base.getDeviceAddress(frame);
     }
 
    private:

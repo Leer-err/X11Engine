@@ -24,7 +24,7 @@ RenderPass::RenderPass(EngineData engine_data)
 void RenderPass::render(const FrameData& frame_data) {
     ZoneScoped;
 
-    auto camera_data_address = camera_data_buffer.getAddress(frame_data);
+    auto camera_data_address = camera_data_buffer.getDeviceAddress(frame_data);
 
     clouds_renderer.setCameraData(camera_data_address);
     star_renderer.setCameraData(camera_data_address);
@@ -53,8 +53,9 @@ void RenderPass::render(const FrameData& frame_data) {
     }
 
     while (auto model = manager.recieve<StaticModelData>()) {
-        static_mesh_renderer.render(frame_data, model.value());
+        static_mesh_renderer.queueMeshForRender(frame_data, model.value());
     }
+    static_mesh_renderer.render(frame_data);
 
     overlay_renderer.render(frame_data);
 

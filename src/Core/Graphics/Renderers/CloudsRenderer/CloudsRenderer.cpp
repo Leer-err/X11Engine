@@ -78,7 +78,8 @@ void CloudsRenderer::render(const FrameData& frame_data,
 
     auto command_buffer = frame_data.cmd;
 
-    push_constants.clouds_address = clouds_data_buffer.getAddress(frame_data);
+    push_constants.clouds_address =
+        clouds_data_buffer.getDeviceAddress(frame_data);
 
     command_buffer.setPipeline(cloud_pipeline);
     command_buffer.bindDescriptorSet(cloud_pipeline, frame_data.descriptor_set);
@@ -110,7 +111,8 @@ void CloudsRenderer::preRender(const FrameData& frame_data,
     command_buffer.bindDescriptorSet(cloud_texture_pipeline,
                                      frame_data.descriptor_set);
 
-    auto clouds_device_address = clouds_data_buffer.getAddress(frame_data);
+    auto clouds_device_address =
+        clouds_data_buffer.getDeviceAddress(frame_data);
     command_buffer.pushConstants(cloud_texture_pipeline,
                                  &clouds_device_address);
 

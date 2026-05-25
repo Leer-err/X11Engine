@@ -25,11 +25,16 @@ void BufferedUniformBase::update(const FrameData& frame, const void* data) {
     memcpy(ptr, data, size);
 }
 
+uint8_t* BufferedUniformBase::getHostAddress(const FrameData& frame) const {
+    return reinterpret_cast<uint8_t*>(
+        buffers[frame.frame_in_flight_index].mapped_address);
+}
+
 const Buffer& BufferedUniformBase::getBuffer(const FrameData& frame) {
     return buffers[frame.frame_in_flight_index];
 }
 
-VkDeviceAddress BufferedUniformBase::getAddress(const FrameData& frame) {
+VkDeviceAddress BufferedUniformBase::getDeviceAddress(const FrameData& frame) {
     return buffers[frame.frame_in_flight_index].device_address;
 }
 

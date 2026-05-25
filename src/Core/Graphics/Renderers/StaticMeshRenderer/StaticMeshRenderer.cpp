@@ -6,12 +6,15 @@
 #include "GraphicsPipelineBuilder.h"
 #include "Matrix.h"
 #include "MeshHandle.h"
+#include "StaticModelData.h"
 #include "TextureHandle.h"
 
 namespace Graphics {
 
 StaticMeshRenderer::StaticMeshRenderer(const EngineData& engine_data)
-    : engine_data(engine_data), model_data_buffer(this->engine_data) {
+    : engine_data(engine_data),
+      model_data_buffer(this->engine_data),
+      next_object_index(0) {
     pipeline =
         GraphicsPipelineBuilder(
             "./Assets/Shaders/StaticModel/StaticModel.spv", "vertex_main",
@@ -20,26 +23,41 @@ StaticMeshRenderer::StaticMeshRenderer(const EngineData& engine_data)
             .getResult();
 }
 
-void StaticMeshRenderer::render(const FrameData& frame_data,
-                                const StaticModelData& model_data) {
+void StaticMeshRenderer::queueMeshForRender(const FrameData& frame_data,
+                                            const StaticModelData& model_data) {
+    models.at(next_object_index) = model_data;
+    next_object_index++;
+}
+
+void StaticMeshRenderer::render(const FrameData& frame_data) {
     TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Static mesh");
 
     auto command_buffer = frame_data.cmd;
 
-    StaticModelBuffer buffer = {};
-    buffer.model = Matrix::translation(model_data.position);
-    buffer.albedo_descriptor = model_data.albedo;
+    for (int i = 0; i < next_object_index; i++) {
+        StaticModelData model_data = models.at(i);
 
-    model_data_buffer.update(frame_data, buffer);
-    push_constants.model_data = model_data_buffer.getAddress(frame_data);
+        StaticModelBuffer buffer = {};
+        buffer.model = Matrix::translation(model_data.position);
+        buffer.albedo_descriptor = model_data.albedo;
 
-    command_buffer.setPipeline(pipeline);
+        auto buffer_ptr = model_data_buffer.getHostAddress(frame_data);
+        buffer_ptr->at(next_object_index) = buffer;
 
-    command_buffer.pushConstants(pipeline, &push_constants);
-    auto mesh = engine_data.mesh_registry.getMesh(model_data.mesh);
-    if (mesh) {
-        command_buffer.draw(*mesh);
+        push_constants.model_data =
+            model_data_buffer.getDeviceAddress(frame_data) +
+            sizeof(StaticModelBuffer) * next_object_index;
+
+        command_buffer.setPipeline(pipeline);
+
+        command_buffer.pushConstants(pipeline, &push_constants);
+        auto mesh = engine_data.mesh_registry.getMesh(model_data.mesh);
+        if (mesh) {
+            command_buffer.draw(*mesh);
+        }
     }
+
+    next_object_index = 0;
 }
 
 void StaticMeshRenderer::setCameraData(const VkDeviceAddress camera_data) {
