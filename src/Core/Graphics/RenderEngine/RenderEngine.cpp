@@ -85,7 +85,7 @@ void RenderEngine::render() {
 
     render_pass->render(data);
 
-    if (trace_dump_counter++ % 100 == 0) {
+    if (trace_dump_counter++ % 10 == 0) {
         TracyVkCollect(trace_ctx, cmd.buffer);
     }
 
@@ -150,6 +150,13 @@ void RenderEngine::reinitWindowDependentResources() {
             .create(device)
             .getResult();
 
+    depth_stencil_texture =
+        ImageBuilder(VK_FORMAT_D24_UNORM_S8_UINT, config.render_width,
+                     config.render_height)
+            .isDepthStencil()
+            .create(device)
+            .getResult();
+
     render_enviroment = RenderEnviroment{};
     render_enviroment.width = width;
     render_enviroment.height = height;
@@ -158,6 +165,11 @@ void RenderEngine::reinitWindowDependentResources() {
     render_enviroment.clear_render_target = true;
     render_enviroment.render_target_clear_value =
         VkClearValue{.color = {0, 0, 0, 1}};
+    render_enviroment.depth_stencil =
+        device.createDepthStencil(depth_stencil_texture);
+    render_enviroment.clear_depth_stencil = true;
+    render_enviroment.clear_depth = 1;
+    render_enviroment.clear_stencil = 0;
 }
 
 void RenderEngine::waitRenderFinished() {
@@ -171,13 +183,23 @@ void RenderEngine::waitRenderFinished() {
 
 void RenderEngine::prepareRenderTargetForRendering(const CommandBuffer& cmd) {
     ZoneScoped;
-    auto barrier = render_target_texture.createBarrier(
+    VkImageMemoryBarrier2 barriers[2] = {};
+
+    barriers[0] = render_target_texture.createBarrier(
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_NONE,
         VK_ACCESS_2_NONE, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
         VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT |
             VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
 
-    cmd.barrier(&barrier, 1, nullptr, 0);
+    barriers[1] = depth_stencil_texture.createBarrier(
+        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        VK_PIPELINE_STAGE_2_NONE, VK_ACCESS_2_NONE,
+        VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT |
+            VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
+        VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+        VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+
+    cmd.barrier(barriers, 2, nullptr, 0);
 }
 
 void RenderEngine::copyToBackbuffer(const CommandBuffer& cmd,

@@ -1,6 +1,7 @@
 #include "GraphicsPipelineBuilder.h"
 
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 #include <array>
 
@@ -118,9 +119,10 @@ GraphicsPipelineBuilder::create(const EngineData& engine_data) {
 
     VkPipelineRenderingCreateInfo rendering = {};
     rendering.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    rendering.depthAttachmentFormat = VK_FORMAT_D24_UNORM_S8_UINT;
+    rendering.stencilAttachmentFormat = VK_FORMAT_D24_UNORM_S8_UINT;
     rendering.colorAttachmentCount = 1;
     rendering.pColorAttachmentFormats = &render_target_format;
-    rendering.depthAttachmentFormat = VK_FORMAT_UNDEFINED;
 
     VkPipelineColorBlendAttachmentState blendAttachment = {};
     blendAttachment.colorWriteMask =

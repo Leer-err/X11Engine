@@ -2,6 +2,7 @@
 
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 #include <cstddef>
 
@@ -14,11 +15,11 @@ enum class ImageError {
 };
 
 struct Image {
-    VkImageMemoryBarrier2 createBarrier(VkImageLayout new_layout,
-                                        VkPipelineStageFlags2 src_stages,
-                                        VkAccessFlags2 src_access,
-                                        VkPipelineStageFlags2 dst_stages,
-                                        VkAccessFlags2 dst_access);
+    VkImageMemoryBarrier2 createBarrier(
+        VkImageLayout new_layout, VkPipelineStageFlags2 src_stages,
+        VkAccessFlags2 src_access, VkPipelineStageFlags2 dst_stages,
+        VkAccessFlags2 dst_access,
+        VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT);
 
     VkImage image;
     VmaAllocation allocation;

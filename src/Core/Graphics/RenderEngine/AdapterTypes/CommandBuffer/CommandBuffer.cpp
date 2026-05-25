@@ -128,25 +128,24 @@ void CommandBuffer::bindRenderEnviroment(const RenderEnviroment& env) const {
             env.render_target_clear_value.color;
     }
 
+    VkRenderingAttachmentInfo depthAttachmentInfo{
+        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+        .imageView = env.depth_stencil,
+        .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE};
+
+    if (env.clear_render_target) {
+        depthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttachmentInfo.clearValue.depthStencil = {env.clear_depth,
+                                                       env.clear_stencil};
+    }
+
     render_info.colorAttachmentCount = 1;
     render_info.pColorAttachments = &colorAttachmentInfo;
 
-    // VkRenderingAttachmentInfo depthAttachmentInfo{
-    //     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-    //     .imageView = depthImageView,
-    //     .imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
-    //     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-    //     .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    //     .clearValue = {.depthStencil = {1.0f, 0}}};
-
-    // VkRenderingInfo renderingInfo{
-    //     .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
-    //     .renderArea{.extent{.width = static_cast<uint32_t>(windowSize.x),
-    //                         .height = static_cast<uint32_t>(windowSize.y)}},
-    //     .layerCount = 1,
-    //     .colorAttachmentCount = 1,
-    //     .pColorAttachments = &colorAttachmentInfo,
-    //     .pDepthAttachment = &depthAttachmentInfo};
+    if (env.depth_stencil != VK_NULL_HANDLE)
+        render_info.pDepthAttachment = &depthAttachmentInfo;
 
     vkCmdBeginRendering(buffer, &render_info);
 

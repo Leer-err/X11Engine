@@ -22,7 +22,7 @@ struct Vertex {
 };
 
 CloudsRenderer::CloudsRenderer(const EngineData& engine_data)
-    : engine_data(engine_data), clouds_data_buffer(this->engine_data) {
+    : engine_data(engine_data), clouds_data_buffer(this->engine_data), env({}) {
     constexpr Vertex cloud_plane_vertex_data[] = {
         {Vector3(-1, 0, -1), Vector2(0, 0)},
         {Vector3(-1, 0, 1), Vector2(0, 1)},

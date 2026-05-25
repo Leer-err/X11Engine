@@ -42,11 +42,11 @@ void StaticMeshRenderer::render(const FrameData& frame_data) {
         buffer.albedo_descriptor = model_data.albedo;
 
         auto buffer_ptr = model_data_buffer.getHostAddress(frame_data);
-        buffer_ptr->at(next_object_index) = buffer;
+        buffer_ptr->at(i) = buffer;
 
         push_constants.model_data =
             model_data_buffer.getDeviceAddress(frame_data) +
-            sizeof(StaticModelBuffer) * next_object_index;
+            sizeof(StaticModelBuffer) * i;
 
         command_buffer.setPipeline(pipeline);
 

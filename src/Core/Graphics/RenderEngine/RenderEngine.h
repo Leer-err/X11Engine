@@ -81,6 +81,7 @@ class RenderEngine final : public IRenderEngine {
     StagingBuffer staging_buffer;
 
     Image render_target_texture;
+    Image depth_stencil_texture;
     RenderEnviroment render_enviroment;
 
     std::unique_ptr<RenderPass> render_pass;

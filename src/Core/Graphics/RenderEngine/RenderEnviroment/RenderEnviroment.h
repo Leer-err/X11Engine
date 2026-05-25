@@ -4,7 +4,6 @@
 
 #include <cstdint>
 
-
 namespace Graphics {
 
 struct RenderEnviroment {
@@ -15,10 +14,10 @@ struct RenderEnviroment {
     bool clear_render_target;
     VkClearValue render_target_clear_value;
 
-    // std::optional<DepthStencil> depth_stencil;
-    // bool clear_depth_stencil;
-    // float clear_depth;
-    // int clear_stencil;
+    VkImageView depth_stencil;
+    bool clear_depth_stencil;
+    float clear_depth;
+    uint32_t clear_stencil;
 };
 
 }  // namespace Graphics

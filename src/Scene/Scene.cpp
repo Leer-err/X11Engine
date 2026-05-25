@@ -80,11 +80,11 @@ void Scene::update(float deltaTime) {
     world.update(deltaTime);
 
     for (int i = 0; i < 100; i++) {
-        for (int j = 0; j < 100; j++) {
-            for (int k = 0; k < 100; k++) {
-                model_data.position = {static_cast<float>(i * 3),
-                                       static_cast<float>(j * 3),
-                                       static_cast<float>(10 + k * 3)};
+        for (int j = 0; j < 10; j++) {
+            for (int k = 0; k < 10; k++) {
+                model_data.position = {static_cast<float>(i * 5),
+                                       static_cast<float>(j * 5),
+                                       static_cast<float>(10 + k * 5)};
                 graphics_communicator.send(model_data);
             }
         }
