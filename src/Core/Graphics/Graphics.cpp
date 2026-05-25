@@ -30,12 +30,13 @@ static RenderEngine* render_engine = nullptr;
 
 static Result<vkb::Instance, Error> createInstance(const Config::App& config) {
     vkb::InstanceBuilder builder;
-    auto inst_ret = builder.set_app_name(config.getName().c_str())
-                        .require_api_version(1, 3, 0)
-                        .request_validation_layers()
-                        .use_default_debug_messenger()
-                        .build();
+    builder.set_app_name(config.getName().c_str()).require_api_version(1, 3, 0);
 
+#ifndef NDEBUG
+    builder.request_validation_layers().use_default_debug_messenger();
+#endif
+
+    auto inst_ret = builder.build();
     if (!inst_ret) return Error::InstanceCreationFailed;
 
     return inst_ret.value();
