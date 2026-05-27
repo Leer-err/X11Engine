@@ -29,7 +29,5 @@ set_target_properties(${TARGET_NAME} PROPERTIES
 	CXX_EXTENSIONS OFF
 )
 
-add_subdirectory(Camera)
-# add_subdirectory(Script)
 add_subdirectory(Scene)
 add_subdirectory(Core)
