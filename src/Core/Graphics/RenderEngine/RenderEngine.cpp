@@ -170,6 +170,9 @@ void RenderEngine::reinitWindowDependentResources() {
     render_enviroment.clear_depth_stencil = true;
     render_enviroment.clear_depth = 1;
     render_enviroment.clear_stencil = 0;
+
+    render_target_handle =
+        descriptor_set.addImage(render_enviroment.render_target);
 }
 
 void RenderEngine::waitRenderFinished() {

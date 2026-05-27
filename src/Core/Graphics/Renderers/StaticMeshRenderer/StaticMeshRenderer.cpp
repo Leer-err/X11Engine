@@ -34,6 +34,10 @@ void StaticMeshRenderer::render(const FrameData& frame_data) {
 
     auto command_buffer = frame_data.cmd;
 
+    auto buffer_ptr = model_data_buffer.getHostAddress(frame_data);
+
+    command_buffer.setPipeline(pipeline);
+
     for (int i = 0; i < next_object_index; i++) {
         StaticModelData model_data = models.at(i);
 
@@ -41,14 +45,11 @@ void StaticMeshRenderer::render(const FrameData& frame_data) {
         buffer.model = Matrix::translation(model_data.position);
         buffer.albedo_descriptor = model_data.albedo;
 
-        auto buffer_ptr = model_data_buffer.getHostAddress(frame_data);
         buffer_ptr->at(i) = buffer;
 
         push_constants.model_data =
             model_data_buffer.getDeviceAddress(frame_data) +
             sizeof(StaticModelBuffer) * i;
-
-        command_buffer.setPipeline(pipeline);
 
         command_buffer.pushConstants(pipeline, &push_constants);
         auto mesh = engine_data.mesh_registry.getMesh(model_data.mesh);

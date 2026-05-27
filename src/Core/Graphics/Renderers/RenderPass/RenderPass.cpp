@@ -7,6 +7,7 @@
 #include "CloudsData.h"
 #include "CloudsRenderer.h"
 #include "Device.h"
+#include "DitheringPass.h"
 #include "GraphicsCommunicationManager.h"
 #include "OverlayRenderer.h"
 #include "StaticModelData.h"
@@ -19,7 +20,8 @@ RenderPass::RenderPass(EngineData engine_data)
       clouds_renderer(engine_data),
       static_mesh_renderer(engine_data),
       overlay_renderer(engine_data),
-      camera_data_buffer(engine_data) {}
+      camera_data_buffer(engine_data),
+      dithering(engine_data) {}
 
 void RenderPass::render(const FrameData& frame_data) {
     ZoneScoped;
@@ -58,6 +60,8 @@ void RenderPass::render(const FrameData& frame_data) {
     static_mesh_renderer.render(frame_data);
 
     overlay_renderer.render(frame_data);
+
+    dithering.render(frame_data);
 
     endPass(frame_data);
 }

@@ -21,6 +21,7 @@
 #include "StagingBuffer.h"
 #include "StarRenderer.h"
 #include "SwapChain.h"
+#include "TextureHandle.h"
 #include "VkBootstrap.h"
 
 namespace Graphics {
@@ -80,6 +81,7 @@ class RenderEngine final : public IRenderEngine {
 
     StagingBuffer staging_buffer;
 
+    TextureHandle render_target_handle;
     Image render_target_texture;
     Image depth_stencil_texture;
     RenderEnviroment render_enviroment;

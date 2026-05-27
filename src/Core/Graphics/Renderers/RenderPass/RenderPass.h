@@ -3,6 +3,7 @@
 #include "BufferedUniform.h"
 #include "CameraData.h"
 #include "CloudsRenderer.h"
+#include "DitheringPass.h"
 #include "FrameData.h"
 #include "OverlayRenderer.h"
 #include "StarRenderer.h"
@@ -30,6 +31,8 @@ class RenderPass {
     CloudsRenderer clouds_renderer;
     StaticMeshRenderer static_mesh_renderer;
     OverlayRenderer overlay_renderer;
+
+    DitheringPass dithering;
 };
 
 }  // namespace Graphics
