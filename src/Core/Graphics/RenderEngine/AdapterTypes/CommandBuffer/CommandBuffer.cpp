@@ -90,7 +90,7 @@ void CommandBuffer::draw(const Mesh& mesh) const {
                            &vertex_buffer_offset);
 
     auto index_count = mesh.index_buffer.size / sizeof(uint32_t);
-    vkCmdDrawIndexed(buffer, index_count, 3, 0, 0, 0);
+    vkCmdDrawIndexed(buffer, index_count, 1, 0, 0, 0);
 }
 
 void CommandBuffer::bindDescriptorSet(const GraphicsPipeline& pipeline,
