@@ -46,6 +46,7 @@ RenderEngine::RenderEngine(const vkb::Instance& instance,
 
     EngineData data = getEngineData();
     render_pass = std::make_unique<RenderPass>(data);
+    postprocess_pass = std::make_unique<PostProcessingPass>(data);
 
     auto pool = frames_in_flight[frame_in_flight_index].pool;
     auto trace_cmd = pool.getCommandBuffer();
@@ -84,6 +85,16 @@ void RenderEngine::render() {
                       .trace_ctx = trace_ctx};
 
     render_pass->render(data);
+
+    // auto barrier = render_target_texture.createBarrier(
+    //     VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    //     VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+    //     VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+    //     VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
+    //     VK_ACCESS_2_SHADER_READ_BIT);
+    // cmd.barrier(&barrier, 1, nullptr, 0);
+
+    // render_pass->render(data);
 
     if (trace_dump_counter++ % 10 == 0) {
         TracyVkCollect(trace_ctx, cmd.buffer);
@@ -147,6 +158,7 @@ void RenderEngine::reinitWindowDependentResources() {
                      config.render_height)
             .isCopySource()
             .isRenderTarget()
+            .isShaderResource()
             .create(device)
             .getResult();
 

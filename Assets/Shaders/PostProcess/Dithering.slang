@@ -51,7 +51,7 @@ float4 pixel_main(in Vertex_Output data)
 
     float noise = thresholds[threshold_coordinates.x][threshold_coordinates.y] - 0.5;
 
-    float4 color = rendered_image.Sample(rendered_image_sampler, data.uv) + noise * 0.2;
+    float4 color = rendered_image.Sample(rendered_image_sampler, data.uv);// + noise * 0.1;
 
     return float4(quantize_color(color.xyz), 1);
 }

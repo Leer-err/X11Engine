@@ -31,8 +31,6 @@ class RenderPass {
     CloudsRenderer clouds_renderer;
     StaticMeshRenderer static_mesh_renderer;
     OverlayRenderer overlay_renderer;
-
-    DitheringPass dithering;
 };
 
 }  // namespace Graphics

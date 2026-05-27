@@ -13,6 +13,7 @@
 #include "EngineData.h"
 #include "IRenderEngine.h"
 #include "MeshRegistry.h"
+#include "PostProcessingPass.h"
 #include "Queue.h"
 #include "RenderEnviroment.h"
 #include "RenderPass.h"
@@ -87,6 +88,7 @@ class RenderEngine final : public IRenderEngine {
     RenderEnviroment render_enviroment;
 
     std::unique_ptr<RenderPass> render_pass;
+    std::unique_ptr<PostProcessingPass> postprocess_pass;
 
     SwapChain swap_chain;
 

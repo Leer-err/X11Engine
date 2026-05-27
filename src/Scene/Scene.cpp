@@ -21,20 +21,21 @@
 #include "TransformSystem.h"
 #include "Vector3.h"
 
-StaticModelData model_data = {};
+StaticModelData tower_data = {};
+StaticModelData gem_data = {};
 
 Scene::Scene() {
     setupSystems();
 
     camera = Camera::create(60, 16.f / 9, 1, 1000);
 
-    File::ModelReader reader("./Assets/gem2.fbx");
+    File::ModelReader reader("./Assets/Tower.fbx");
     auto vertices = reader.readVertices();
     auto indices = reader.readIndices();
 
     auto renderer = Graphics::getRenderEngine();
-    model_data.position = {0, 0, 10};
-    model_data.mesh =
+    tower_data.position = {0, 0, 10};
+    tower_data.mesh =
         renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
                           indices.data(), indices.size() * sizeof(uint32_t));
 
@@ -42,9 +43,20 @@ Scene::Scene() {
     int height;
     int channels;
     unsigned char* data =
-        stbi_load("./Assets/gem2.png", &width, &height, &channels, 0);
+        stbi_load("./Assets/tower.png", &width, &height, &channels, 0);
 
-    model_data.albedo = renderer->addTexture(data, width, height);
+    tower_data.albedo = renderer->addTexture(data, width, height);
+
+    File::ModelReader gem_reader = File::ModelReader("./Assets/Gem2.fbx");
+    vertices = gem_reader.readVertices();
+    indices = gem_reader.readIndices();
+    gem_data.position = {0, 10, 10};
+    gem_data.mesh =
+        renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
+                          indices.data(), indices.size() * sizeof(uint32_t));
+    data = stbi_load("./Assets/gem2.png", &width, &height, &channels, 0);
+
+    gem_data.albedo = renderer->addTexture(data, width, height);
 
     std::shared_ptr<Input::GameInputContext> input =
         std::make_shared<Input::GameInputContext>();
@@ -79,16 +91,8 @@ void Scene::update(float deltaTime) {
     sky.draw();
     world.update(deltaTime);
 
-    for (int i = 0; i < 100; i++) {
-        for (int j = 0; j < 10; j++) {
-            for (int k = 0; k < 10; k++) {
-                model_data.position = {static_cast<float>(i * 5),
-                                       static_cast<float>(j * 5),
-                                       static_cast<float>(10 + k * 5)};
-                graphics_communicator.send(model_data);
-            }
-        }
-    }
+    graphics_communicator.send(tower_data);
+    graphics_communicator.send(gem_data);
 }
 
 void Scene::setupSystems() {
