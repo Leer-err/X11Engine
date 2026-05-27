@@ -6,7 +6,7 @@
 
 ## 🎯 Overview
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Leer-err_X11Engine&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Leer-err_X11Engine)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Leer-err_Kvet&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Leer-err_Kvet)
 
 **Kvet'**  is a real-time 3D game engine written from scratch in modern C++20. It features a Vulkan rendering backend, a fully custom Entity-Component-System (ECS) architecture.
 
@@ -91,7 +91,7 @@ git submodule update --init
 ```bash
 # Clone with all submodules
 git clone --recurse-submodules <repo-url>
-cd X11Engine
+cd Kvet
 
 # Configure (Debug)
 cmake --preset Debug -G Ninja

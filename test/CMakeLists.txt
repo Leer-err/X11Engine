@@ -11,14 +11,14 @@ FetchContent_Declare(test
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(test)
 
-set(TEST_NAME "X11Engine_tests")
+set(TEST_NAME "Kvet_tests")
 
 file(GLOB_RECURSE SOURCES *.c *.cpp)
 
 add_executable(${TEST_NAME} ${SOURCES})
 
 target_link_libraries(${TEST_NAME} PRIVATE
-	X11Engine_lib
+	Kvet_lib
 	GTest::gmock
 	GTest::gtest
 )
