@@ -6,9 +6,22 @@
 
 ## 🎯 Overview
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Leer-err_Kvet&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Leer-err_Kvet)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Leer-err_X11Engine&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Leer-err_X11Engine)
 
 **Kvet'**  is a real-time 3D game engine written from scratch in modern C++20. It features a Vulkan rendering backend, a fully custom Entity-Component-System (ECS) architecture.
+
+## 📸 Screenshots
+
+<table>
+  <tr>
+    <td align="center"><b>Dithering + Color Quantization (x16)</b></td>
+    <td align="center"><b>No Post-Processing</b></td>
+  </tr>
+  <tr>
+    <td><img src="Screenshots/Dithering%20%2B%20color%20quantization%20x16.png" width="100%"></td>
+    <td><img src="Screenshots/Without%20postprocessing.png" width="100%"></td>
+  </tr>
+</table>
 
 ## 🛠️ Tech Stack
 
@@ -23,26 +36,28 @@
 ## 🧱 Architecture
 
 ```
- src/
- ├── Dependencies/         # Third-party libs
- ├── Core/                 # Core engine subsystems
- │   ├── Config/           # Configuration management (Window, Graphics)
- │   ├── ECS/              # Custom Entity-Component-System framework
- │   ├── Event/            # Event system
- │   ├── File/             # File I/O and model reader
- │   ├── Graphics/         # Vulkan renderer & abstraction layer
- │   ├── Input/            # Input handling
- │   ├── Logger/           # Logging subsystem
- │   ├── Physics/          # PhysX integration (RigidBody, Shape, Scene)
- │   ├── Script/           # Lua scripting & C++ bindings
- │   ├── Types/            # Math, Vertex, Result utility types
- │   ├── Utility/          # General-purpose utilities
- │   └── Window/           # SDL3 window management
- ├── Engine/               # Engine singleton, main loop, system pipeline
- ├── Scene/                # Scene management
- ├── Components/           # ECS component definitions
- ├── Systems/              # ECS system implementations
- └── Camera/               # Camera system
+src/
+├── main.cpp                     # Application entry point
+├── Core/                        # Core engine subsystems
+│   ├── Core.cpp / Core.h        # Core initializer & lifecycle
+│   ├── Config/                  # Configuration management (Window, Graphics)
+│   ├── ECS/                     # Custom Entity-Component-System framework
+│   ├── Engine/                  # Engine singleton, main loop, system pipeline
+│   ├── Event/                   # Event system
+│   ├── File/                    # File I/O and model reader
+│   ├── Graphics/                # Vulkan renderer & abstraction layer
+│   ├── Input/                   # Input handling (PhysicalInput, InputContext)
+│   ├── Logger/                  # Logging subsystem
+│   ├── Physics/                 # PhysX integration (RigidBody, Shape, Scene)
+│   ├── Script/                  # Lua scripting & C++ bindings
+│   ├── Types/                   # Math (Vector, Matrix, Quaternion), Vertex, Result, Transform
+│   ├── Utility/                 # TypeId utilities
+│   └── Window/                  # SDL3 window management
+└── Scene/                       # Scene graph & runtime
+    ├── Camera/                  # Camera system
+    ├── GameInputContext/        # Game-specific input bindings
+    ├── Scripts/                 # Built-in Lua scripts (MoveScript, LookScript)
+    └── Sky/                     # Sky, Stars, and Clouds subsystems
 ```
 
 ### 🧩 ECS Design
