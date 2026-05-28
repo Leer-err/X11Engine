@@ -7,6 +7,7 @@
 #include "DitheringPass.h"
 #include "FrameData.h"
 #include "OverlayRenderer.h"
+#include "PostProcessingPass.h"
 #include "RenderEnviroment.h"
 #include "StarRenderer.h"
 #include "StaticMeshRenderer.h"
@@ -18,9 +19,11 @@ class RenderPass {
    public:
     RenderPass(Device& device, const EngineData& engine_data);
 
-    void render(const FrameData& frame_data);
+    Image& render(const FrameData& frame_data);
 
    private:
+    void prepareForPostProcess(const FrameData& frame_data);
+
     void beginPass(const FrameData& frame_data);
     void endPass(const FrameData& frame_data);
 
@@ -37,8 +40,15 @@ class RenderPass {
     StaticMeshRenderer static_mesh_renderer;
     OverlayRenderer overlay_renderer;
 
+    DitheringPass dithering_pass;
+
     RenderEnviroment env;
+    Image render_target_image;
+    Image depth_stencil_image;
     TextureHandle render_target_handle;
+
+    RenderEnviroment post_process_env;
+    Image final_image;
 };
 
 }  // namespace Graphics

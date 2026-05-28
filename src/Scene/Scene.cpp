@@ -23,6 +23,7 @@
 
 StaticModelData tower_data = {};
 StaticModelData gem_data = {};
+StaticModelData terrain_data = {};
 
 Scene::Scene() {
     setupSystems();
@@ -31,33 +32,45 @@ Scene::Scene() {
 
     auto renderer = Graphics::getRenderEngine();
 
-    // File::ModelReader reader("./Assets/Tower.fbx");
-    // auto vertices = reader.readVertices();
-    // auto indices = reader.readIndices();
+    File::ModelReader reader("./Assets/Tower.fbx");
+    auto vertices = reader.readVertices();
+    auto indices = reader.readIndices();
 
-    // tower_data.position = {0, 0, 10};
-    // tower_data.mesh =
-    //     renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
-    //                       indices.data(), indices.size() * sizeof(uint32_t));
+    tower_data.position = {-56, 22, -70};
+    tower_data.mesh =
+        renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
+                          indices.data(), indices.size() * sizeof(uint32_t));
 
     int width;
     int height;
     int channels;
-    // unsigned char* data =
-    //     stbi_load("./Assets/tower.png", &width, &height, &channels, 0);
+    unsigned char* data =
+        stbi_load("./Assets/tower.png", &width, &height, &channels, 0);
 
-    // tower_data.albedo = renderer->addTexture(data, width, height);
+    tower_data.albedo = renderer->addTexture(data, width, height);
 
     File::ModelReader gem_reader = File::ModelReader("./Assets/Gem2.fbx");
-    auto vertices = gem_reader.readVertices();
-    auto indices = gem_reader.readIndices();
-    gem_data.position = {0, 10, 10};
+    vertices = gem_reader.readVertices();
+    indices = gem_reader.readIndices();
+    gem_data.position = {-56, 32, -70};
     gem_data.mesh =
         renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
                           indices.data(), indices.size() * sizeof(uint32_t));
-    auto data = stbi_load("./Assets/gem2.png", &width, &height, &channels, 0);
+    data = stbi_load("./Assets/gem2.png", &width, &height, &channels, 0);
 
     gem_data.albedo = renderer->addTexture(data, width, height);
+
+    File::ModelReader terrain_reader =
+        File::ModelReader("./Assets/Terrain.fbx");
+    vertices = terrain_reader.readVertices();
+    indices = terrain_reader.readIndices();
+    terrain_data.position = {0, 20, 0};
+    terrain_data.mesh =
+        renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
+                          indices.data(), indices.size() * sizeof(uint32_t));
+    data = stbi_load("./Assets/terrain.png", &width, &height, &channels, 0);
+
+    terrain_data.albedo = renderer->addTexture(data, width, height);
 
     std::shared_ptr<Input::GameInputContext> input =
         std::make_shared<Input::GameInputContext>();
@@ -94,6 +107,7 @@ void Scene::update(float deltaTime) {
 
     graphics_communicator.send(tower_data);
     graphics_communicator.send(gem_data);
+    graphics_communicator.send(terrain_data);
 }
 
 void Scene::setupSystems() {

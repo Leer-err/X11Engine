@@ -51,7 +51,7 @@ FrameData RenderingBackend::beginFrame() {
                      .cmd = command_buffer};
 }
 
-void RenderingBackend::endFrame() {
+void RenderingBackend::endFrame(Image& rendered_image) {
     auto frame_in_flight = frames_in_flight[frame_in_flight_index];
     auto command_buffer = frame_in_flight.pool.getCommandBuffer();
 
@@ -63,7 +63,7 @@ void RenderingBackend::endFrame() {
     // Copy render result to swap chain
     auto [backbuffer, ready_for_present] = swap_chain.getBackbuffer(
         frame_in_flight.backbuffer_ready_for_rendering);
-
+    copyToBackbuffer(command_buffer, rendered_image, backbuffer);
     prepareBackbufferForPresentation(command_buffer, backbuffer);
 
     command_buffer.end();
@@ -122,7 +122,7 @@ void RenderingBackend::prepareBackbufferForPresentation(
 
 void RenderingBackend::createSwapChain() {
     swap_chain = SwapChain(device, presentation_queue, 1280, 720,
-                           Config::BufferingMode::VSyncNoBuffering);
+                           Config::BufferingMode::NoBuffering);
 }
 
 Device& RenderingBackend::getDevice() { return device; }

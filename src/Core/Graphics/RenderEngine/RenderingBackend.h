@@ -30,7 +30,7 @@ class RenderingBackend {
     ~RenderingBackend();
 
     FrameData beginFrame();
-    void endFrame();
+    void endFrame(Image& rendered_image);
 
     Device& getDevice();
 

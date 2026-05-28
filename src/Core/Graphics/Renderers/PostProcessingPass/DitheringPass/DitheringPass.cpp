@@ -3,6 +3,7 @@
 #include "EngineData.h"
 #include "GraphicsPipelineBuilder.h"
 #include "MeshBuilder.h"
+#include "Overlay.h"
 #include "Vector3.h"
 
 namespace Graphics {
@@ -24,19 +25,29 @@ DitheringPass::DitheringPass(Device& device, const EngineData& engine_data)
                    "./Assets/Shaders/PostProcess/Dithering.spv", "pixel_main")
                    .create(device, engine_data.shader_registry)
                    .getResult();
+
+    data.spread = 0.1;
+    data.camera_dimensions = {1280, 720};
+    data.color_count = 16;
+    data.sampler_index = 0;
+
+    Overlay::get().add<OverlayElements::SliderFloat>(
+        "Graphics/Post processing", "Dithering spread",
+        [this](float value) { data.spread = value; }, 0, 1, data.spread);
+    Overlay::get().add<OverlayElements::SliderFloat>(
+        "Graphics/Post processing", "Color count per channel",
+        [this](float value) { data.color_count = value; }, 2, 256,
+        data.color_count);
 }
 
-void DitheringPass::render(const FrameData& frame_data) {
+void DitheringPass::render(TextureHandle input_image,
+                           const FrameData& frame_data) {
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Dithering");
 
-    DitheringData data = {};
-    data.spread = 0;
-    data.camera_dimensions = {1280, 720};
-    data.render_target_index = 0;
-    data.sampler_index = 0;
-    dithering_data_buffer.update(frame_data, data);
-
     auto command_buffer = frame_data.cmd;
+
+    data.render_target_index = input_image;
+    dithering_data_buffer.update(frame_data, data);
 
     VkDeviceAddress data_address =
         dithering_data_buffer.getDeviceAddress(frame_data);

@@ -54,9 +54,9 @@ void RenderEngine::render() {
     FrameData frame = backend.beginFrame();
 
     staging_buffer.flush(frame.cmd);
-    render_pass->render(frame);
+    auto& rendered_image = render_pass->render(frame);
 
-    backend.endFrame();
+    backend.endFrame(rendered_image);
 }
 
 void RenderEngine::prepareBackbufferForPresentation(const CommandBuffer& cmd,

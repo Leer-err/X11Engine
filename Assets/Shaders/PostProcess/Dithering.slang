@@ -10,6 +10,7 @@ struct Vertex_input {
 struct DitheringData {
     int2 camera_dimensions;
     float spread;
+    uint32_t color_count;
     uint32_t texture_index;
     uint32_t sampler_index;
 };
@@ -34,13 +35,12 @@ Vertex_Output vertex_main(in Vertex_input vertex)
 }
 
 [[vk::binding(0, 0)]]
-Texture2D rendered_image;
+Texture2D textures[];
 [[vk::binding(1, 0)]]
-SamplerState rendered_image_sampler;
+SamplerState samplers;
 
-static const int COLOR_COUNT = 32;
 float3 quantize_color(float3 color) {
-    return floor(color * (COLOR_COUNT - 1) + 0.5) / (COLOR_COUNT - 1);
+    return floor(color * (constants.parameters->color_count - 1) + 0.5) / (constants.parameters->color_count - 1);
 }
 
 [shader("pixel")]
@@ -51,7 +51,7 @@ float4 pixel_main(in Vertex_Output data)
 
     float noise = thresholds[threshold_coordinates.x][threshold_coordinates.y] - 0.5;
 
-    float4 color = rendered_image.Sample(rendered_image_sampler, data.uv);// + noise * 0.1;
+    float4 color = textures[constants.parameters->texture_index].Sample(samplers, data.uv) + noise * constants.parameters->spread;
 
     return float4(quantize_color(color.xyz), 1);
 }

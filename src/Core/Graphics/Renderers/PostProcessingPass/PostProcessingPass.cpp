@@ -10,7 +10,7 @@ PostProcessingPass::PostProcessingPass(Device& device,
     : dithering_pass(device, engine_data) {}
 
 void PostProcessingPass::render(const FrameData& frame_data) {
-    dithering_pass.render(frame_data);
+    // dithering_pass.render(frame_data);
 }
 
 }  // namespace Graphics
