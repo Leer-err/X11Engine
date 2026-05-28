@@ -7,7 +7,7 @@
 
 namespace Graphics {
 
-OverlayRenderer::OverlayRenderer(const EngineData& engine_data) {}
+OverlayRenderer::OverlayRenderer() {}
 
 void OverlayRenderer::render(const FrameData& frame_data) {
     ImGui_ImplVulkan_NewFrame();

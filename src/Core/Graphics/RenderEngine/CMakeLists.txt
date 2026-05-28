@@ -1,5 +1,6 @@
 target_sources(Graphics PRIVATE
     RenderEngine.cpp
+    RenderingBackend.cpp
 )
 
 target_include_directories(Graphics PRIVATE
@@ -13,6 +14,7 @@ add_subdirectory(RenderEnviroment)
 add_subdirectory(DeviceProperties)
 add_subdirectory(DescriptorSet)
 add_subdirectory(ShaderRegistry)
+add_subdirectory(TextureRegistry)
 add_subdirectory(Utility)
 add_subdirectory(AdapterTypes)
 add_subdirectory(StagingBuffer)

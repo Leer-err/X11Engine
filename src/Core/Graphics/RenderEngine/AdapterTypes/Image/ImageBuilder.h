@@ -21,7 +21,6 @@ class ImageBuilder {
     ImageBuilder& isCopySource();
     ImageBuilder& isCopyDestination();
 
-    Result<Image, ImageError> create(const EngineData& engine_data);
     Result<Image, ImageError> create(Device& device);
 
    private:

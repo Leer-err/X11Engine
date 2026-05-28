@@ -44,12 +44,13 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::setRenderTargetFormat(
 }
 
 Result<GraphicsPipeline, GraphicsPipelineBuilder::Error>
-GraphicsPipelineBuilder::create(const EngineData& engine_data) {
+GraphicsPipelineBuilder::create(Device& device,
+                                ShaderRegistry& shader_registry) {
     auto vertex_shader_result =
-        createShader(engine_data, vertex_shader_filename,
+        createShader(device, shader_registry, vertex_shader_filename,
                      vertex_shader_entrypoint, VK_SHADER_STAGE_VERTEX_BIT);
     auto pixel_shader_result =
-        createShader(engine_data, pixel_shader_filename,
+        createShader(device, shader_registry, pixel_shader_filename,
                      pixel_shader_entrypoint, VK_SHADER_STAGE_FRAGMENT_BIT);
 
     if (vertex_shader_result.isError() || pixel_shader_result.isError())
@@ -59,8 +60,7 @@ GraphicsPipelineBuilder::create(const EngineData& engine_data) {
     auto pixel_shader = pixel_shader_result.getResult();
 
     auto input_layout_result =
-        InputLayoutBuilder(engine_data.shader_registry, vertex_shader_filename)
-            .create();
+        InputLayoutBuilder(shader_registry, vertex_shader_filename).create();
 
     if (input_layout_result.isError()) {
         switch (input_layout_result.getError()) {
@@ -75,8 +75,8 @@ GraphicsPipelineBuilder::create(const EngineData& engine_data) {
     auto input_layout = input_layout_result.getResult();
 
     auto pipeline = GraphicsPipeline{};
-    pipeline.layout = engine_data.device.createPipelineLayout(
-        input_layout.push_constants_size);
+    pipeline.layout =
+        device.createPipelineLayout(input_layout.push_constants_size);
 
     std::array shader_stages = {getStageInfo(vertex_shader),
                                 getStageInfo(pixel_shader)};
@@ -165,16 +165,17 @@ GraphicsPipelineBuilder::create(const EngineData& engine_data) {
     pipeline_info.layout = pipeline.layout;
     pipeline_info.flags = VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
 
-    return engine_data.device.createGraphicsPipeline(pipeline_info);
+    return device.createGraphicsPipeline(pipeline_info);
 }
 
 Result<Shader, GraphicsPipelineBuilder::Error>
-GraphicsPipelineBuilder::createShader(const EngineData& engine_data,
+GraphicsPipelineBuilder::createShader(Device& device,
+                                      ShaderRegistry& shader_registry,
                                       const std::string& filename,
                                       const std::string& entrypoint,
                                       VkShaderStageFlagBits stage) {
     auto shader_build_result =
-        ShaderBuilder(engine_data, filename, entrypoint, stage).create();
+        ShaderBuilder(filename, entrypoint, stage).create(shader_registry);
 
     if (shader_build_result.isError()) return Error::ShaderNotBuilt;
 

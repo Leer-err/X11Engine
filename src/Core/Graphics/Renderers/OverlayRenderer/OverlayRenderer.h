@@ -7,7 +7,7 @@ namespace Graphics {
 
 class OverlayRenderer {
    public:
-    OverlayRenderer(const EngineData& engine_data);
+    OverlayRenderer();
 
     void render(const FrameData& frame_data);
 

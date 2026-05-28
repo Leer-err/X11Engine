@@ -29,32 +29,33 @@ Scene::Scene() {
 
     camera = Camera::create(60, 16.f / 9, 1, 1000);
 
-    File::ModelReader reader("./Assets/Tower.fbx");
-    auto vertices = reader.readVertices();
-    auto indices = reader.readIndices();
-
     auto renderer = Graphics::getRenderEngine();
-    tower_data.position = {0, 0, 10};
-    tower_data.mesh =
-        renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
-                          indices.data(), indices.size() * sizeof(uint32_t));
+
+    // File::ModelReader reader("./Assets/Tower.fbx");
+    // auto vertices = reader.readVertices();
+    // auto indices = reader.readIndices();
+
+    // tower_data.position = {0, 0, 10};
+    // tower_data.mesh =
+    //     renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
+    //                       indices.data(), indices.size() * sizeof(uint32_t));
 
     int width;
     int height;
     int channels;
-    unsigned char* data =
-        stbi_load("./Assets/tower.png", &width, &height, &channels, 0);
+    // unsigned char* data =
+    //     stbi_load("./Assets/tower.png", &width, &height, &channels, 0);
 
-    tower_data.albedo = renderer->addTexture(data, width, height);
+    // tower_data.albedo = renderer->addTexture(data, width, height);
 
     File::ModelReader gem_reader = File::ModelReader("./Assets/Gem2.fbx");
-    vertices = gem_reader.readVertices();
-    indices = gem_reader.readIndices();
+    auto vertices = gem_reader.readVertices();
+    auto indices = gem_reader.readIndices();
     gem_data.position = {0, 10, 10};
     gem_data.mesh =
         renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
                           indices.data(), indices.size() * sizeof(uint32_t));
-    data = stbi_load("./Assets/gem2.png", &width, &height, &channels, 0);
+    auto data = stbi_load("./Assets/gem2.png", &width, &height, &channels, 0);
 
     gem_data.albedo = renderer->addTexture(data, width, height);
 

@@ -27,7 +27,7 @@ class StaticMeshRenderer {
     };
 
    public:
-    StaticMeshRenderer(const EngineData& engine_data);
+    StaticMeshRenderer(Device& device, const EngineData& engine_data);
 
     void queueMeshForRender(const FrameData& frame_data,
                             const StaticModelData& model_data);

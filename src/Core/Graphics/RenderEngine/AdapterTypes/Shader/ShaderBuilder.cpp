@@ -10,21 +10,18 @@
 
 namespace Graphics {
 
-ShaderBuilder::ShaderBuilder(const EngineData& engine_data,
-                             const std::string& filename,
+ShaderBuilder::ShaderBuilder(const std::string& filename,
                              const std::string& entrypoint,
                              VkShaderStageFlagBits stage)
-    : engine_data(engine_data),
-      filename(filename),
-      entrypoint(entrypoint),
-      stage(stage) {}
+    : filename(filename), entrypoint(entrypoint), stage(stage) {}
 
-Result<Shader, ShaderError> ShaderBuilder::create() {
-    auto module = engine_data.shader_registry.getModule(filename);
-    if (module == std::nullopt) return ShaderError::NotFound;
+Result<Shader, ShaderError> ShaderBuilder::create(
+    ShaderRegistry& shader_registry) const {
+    auto shader_module = shader_registry.getModule(filename);
+    if (shader_module == std::nullopt) return ShaderError::NotFound;
 
     auto result = Shader{};
-    result.shader = *module;
+    result.shader = *shader_module;
     result.stage = stage;
     result.entrypoint = entrypoint;
     result.filename = filename;

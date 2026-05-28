@@ -11,15 +11,16 @@
 
 namespace Graphics {
 
-StaticMeshRenderer::StaticMeshRenderer(const EngineData& engine_data)
+StaticMeshRenderer::StaticMeshRenderer(Device& device,
+                                       const EngineData& engine_data)
     : engine_data(engine_data),
-      model_data_buffer(this->engine_data),
+      model_data_buffer(device),
       next_object_index(0) {
     pipeline =
         GraphicsPipelineBuilder(
             "./Assets/Shaders/StaticModel/StaticModel.spv", "vertex_main",
             "./Assets/Shaders/StaticModel/StaticModel.spv", "pixel_main")
-            .create(engine_data)
+            .create(device, engine_data.shader_registry)
             .getResult();
 }
 
@@ -30,7 +31,7 @@ void StaticMeshRenderer::queueMeshForRender(const FrameData& frame_data,
 }
 
 void StaticMeshRenderer::render(const FrameData& frame_data) {
-    TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Static mesh");
+    // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Static mesh");
 
     auto command_buffer = frame_data.cmd;
 

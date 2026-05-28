@@ -13,6 +13,7 @@
 #include "InputLayout.h"
 #include "Result.h"
 #include "Shader.h"
+#include "ShaderRegistry.h"
 // #include "RenderTarget.h"
 
 namespace Graphics {
@@ -31,12 +32,14 @@ class GraphicsPipelineBuilder {
 
     GraphicsPipelineBuilder& setRenderTargetFormat(VkFormat format);
 
-    Result<GraphicsPipeline, Error> create(const EngineData& engine_data);
+    Result<GraphicsPipeline, Error> create(Device& device,
+                                           ShaderRegistry& shader_registry);
 
    private:
     Result<Shader, GraphicsPipelineBuilder::Error> createShader(
-        const EngineData& engine_data, const std::string& filename,
-        const std::string& entrypoint, VkShaderStageFlagBits stage);
+        Device& device, ShaderRegistry& shader_registry,
+        const std::string& filename, const std::string& entrypoint,
+        VkShaderStageFlagBits stage);
 
     const std::string& vertex_shader_filename;
     const std::string& vertex_shader_entrypoint;

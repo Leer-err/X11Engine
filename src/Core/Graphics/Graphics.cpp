@@ -12,6 +12,7 @@
 #include "LoggerFactory.h"
 #include "Queue.h"
 #include "RenderEngine.h"
+#include "RenderingBackend.h"
 #include "Result.h"
 #include "VkBootstrap.h"
 #include "Window.h"

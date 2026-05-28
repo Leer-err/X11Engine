@@ -3,24 +3,24 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
+#include "Device.h"
 #include "EngineData.h"
 
 namespace Graphics {
 
-VkSampler Sampler::point(const EngineData& engine_data) {
-    return createSampler(engine_data, VK_FILTER_NEAREST, false, 0);
+VkSampler Sampler::point(Device& device) {
+    return createSampler(device, VK_FILTER_NEAREST, false, 0);
 }
 
-VkSampler Sampler::linear(const EngineData& engine_data) {
-    return createSampler(engine_data, VK_FILTER_LINEAR, false, 0);
+VkSampler Sampler::linear(Device& device) {
+    return createSampler(device, VK_FILTER_LINEAR, false, 0);
 }
 
-VkSampler Sampler::anisotropic(const EngineData& engine_data,
-                               float anisotropy) {
-    return createSampler(engine_data, VK_FILTER_LINEAR, true, anisotropy);
+VkSampler Sampler::anisotropic(Device& device, float anisotropy) {
+    return createSampler(device, VK_FILTER_LINEAR, true, anisotropy);
 }
 
-VkSampler Sampler::createSampler(const EngineData& engine_data, VkFilter filter,
+VkSampler Sampler::createSampler(Device& device, VkFilter filter,
                                  bool anisotropic, float anisotropy) {
     VkSamplerMipmapMode mipmap_mode;
     switch (filter) {
@@ -45,7 +45,7 @@ VkSampler Sampler::createSampler(const EngineData& engine_data, VkFilter filter,
     info.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     info.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 
-    return engine_data.device.createSampler(info);
+    return device.createSampler(info);
 }
 
 }  // namespace Graphics

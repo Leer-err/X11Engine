@@ -4,23 +4,21 @@
 
 #include <string>
 
-#include "EngineData.h"
 #include "Result.h"
 #include "Shader.h"
 #include "ShaderError.h"
+#include "ShaderRegistry.h"
 
 namespace Graphics {
 
 class ShaderBuilder {
    public:
-    ShaderBuilder(const EngineData& engine_data, const std::string& filename,
-                  const std::string& entrypoint, VkShaderStageFlagBits stage);
+    ShaderBuilder(const std::string& filename, const std::string& entrypoint,
+                  VkShaderStageFlagBits stage);
 
-    Result<Shader, ShaderError> create();
+    Result<Shader, ShaderError> create(ShaderRegistry& shader_registry) const;
 
    private:
-    EngineData engine_data;
-
     std::string filename;
     std::string entrypoint;
     VkShaderStageFlagBits stage;

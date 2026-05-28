@@ -7,8 +7,8 @@
 
 namespace Graphics {
 
-DitheringPass::DitheringPass(const EngineData& engine_data)
-    : engine_data(engine_data), dithering_data_buffer(this->engine_data) {
+DitheringPass::DitheringPass(Device& device, const EngineData& engine_data)
+    : engine_data(engine_data), dithering_data_buffer(device) {
     constexpr Vector3 screen_quad_vertices[] = {
         Vector3(-1, -1, 0), Vector3(-1, 1, 0), Vector3(1, -1, 0),
         Vector3(1, 1, 0)};
@@ -17,17 +17,17 @@ DitheringPass::DitheringPass(const EngineData& engine_data)
 
     quad = MeshBuilder(screen_quad_vertices, sizeof(screen_quad_vertices),
                        screen_quad_indices, sizeof(screen_quad_indices))
-               .create(engine_data);
+               .create(device, engine_data.staging_buffer);
 
     pipeline = GraphicsPipelineBuilder(
                    "./Assets/Shaders/PostProcess/Dithering.spv", "vertex_main",
                    "./Assets/Shaders/PostProcess/Dithering.spv", "pixel_main")
-                   .create(engine_data)
+                   .create(device, engine_data.shader_registry)
                    .getResult();
 }
 
 void DitheringPass::render(const FrameData& frame_data) {
-    TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Dithering");
+    // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Dithering");
 
     DitheringData data = {};
     data.spread = 0;
@@ -42,7 +42,7 @@ void DitheringPass::render(const FrameData& frame_data) {
         dithering_data_buffer.getDeviceAddress(frame_data);
 
     command_buffer.setPipeline(pipeline);
-    command_buffer.bindDescriptorSet(pipeline, frame_data.descriptor_set);
+    command_buffer.bindDescriptorSet(pipeline, engine_data.descriptor_set);
     command_buffer.pushConstants(pipeline, &data_address);
 
     command_buffer.draw(quad);

@@ -8,7 +8,7 @@ namespace Graphics {
 
 class PostProcessingPass {
    public:
-    PostProcessingPass(EngineData engine_data);
+    PostProcessingPass(Device& device, const EngineData& engine_data);
 
     void render(const FrameData& frame_data);
 

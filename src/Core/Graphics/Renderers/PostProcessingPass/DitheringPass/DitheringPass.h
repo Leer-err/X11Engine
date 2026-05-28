@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BufferedUniform.h"
+#include "Device.h"
 #include "EngineData.h"
 #include "FrameData.h"
 #include "GraphicsPipeline.h"
@@ -17,7 +18,7 @@ class DitheringPass {
     };
 
    public:
-    DitheringPass(const EngineData& engine_data);
+    DitheringPass(Device& device, const EngineData& engine_data);
 
     void render(const FrameData& frame_data);
 

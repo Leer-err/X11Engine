@@ -7,24 +7,12 @@
 namespace Graphics {
 
 CommandPool::CommandPool(Device& device, uint32_t queue_index)
-    : device(device), unused_buffer_index(0) {
+    : device(device) {
     pool = device.createCommandPool(queue_index);
+    command_buffer = createCommandBuffer();
 }
 
-CommandBuffer CommandPool::getCommandBuffer() {
-    if (unused_buffer_index == command_buffers.size()) {
-        auto new_buffer = createCommandBuffer();
-
-        command_buffers.push_back(new_buffer);
-        unused_buffer_index++;
-
-        return new_buffer;
-    }
-
-    auto buffer = command_buffers[unused_buffer_index];
-    unused_buffer_index++;
-    return buffer;
-}
+CommandBuffer CommandPool::getCommandBuffer() { return command_buffer; }
 
 CommandBuffer CommandPool::createCommandBuffer() {
     VkCommandBufferAllocateInfo info = {};
@@ -38,10 +26,6 @@ CommandBuffer CommandPool::createCommandBuffer() {
     return buffer;
 }
 
-void CommandPool::reset() {
-    device.resetCommandPool(pool);
-
-    unused_buffer_index = 0;
-}
+void CommandPool::reset() { device.resetCommandPool(pool); }
 
 }  // namespace Graphics

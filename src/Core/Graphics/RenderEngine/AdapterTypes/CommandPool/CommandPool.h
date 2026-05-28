@@ -14,16 +14,16 @@ class CommandPool {
     CommandPool(Device& device, uint32_t queue_index);
 
     CommandBuffer getCommandBuffer();
-    CommandBuffer createCommandBuffer();
 
     void reset();
 
    private:
+    CommandBuffer createCommandBuffer();
+
     Device& device;
 
     VkCommandPool pool;
-    std::vector<CommandBuffer> command_buffers;
-    uint32_t unused_buffer_index;
+    CommandBuffer command_buffer;
 };
 
 }  // namespace Graphics

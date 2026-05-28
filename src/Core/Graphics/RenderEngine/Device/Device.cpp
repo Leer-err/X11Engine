@@ -22,8 +22,10 @@ constexpr auto MAX_SAMPLE_DESCRIPTORS_COUNT = 1000;
 
 namespace Graphics {
 
-Device::Device(vkb::Device device, VmaAllocator allocator)
-    : device(device),
+Device::Device(const vkb::Instance& instance, const vkb::Device& device,
+               VmaAllocator allocator)
+    : instance(instance),
+      device(device),
       allocator(allocator),
       logger(LoggerFactory::getLogger("GraphicsDevice")) {
     createDescriptorLayout();

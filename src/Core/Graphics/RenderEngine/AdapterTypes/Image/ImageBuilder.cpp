@@ -51,10 +51,6 @@ ImageBuilder& ImageBuilder::isCopyDestination() {
     return *this;
 }
 
-Result<Image, ImageError> ImageBuilder::create(const EngineData& engine_data) {
-    return engine_data.device.createImage(image_info, alloc_info);
-}
-
 Result<Image, ImageError> ImageBuilder::create(Device& device) {
     return device.createImage(image_info, alloc_info);
 }

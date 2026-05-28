@@ -1,19 +1,18 @@
 #pragma once
 
 #include "DescriptorSet.h"
-#include "Device.h"
 #include "MeshRegistry.h"
 #include "ShaderRegistry.h"
 #include "StagingBuffer.h"
+#include "TextureRegistry.h"
 
 namespace Graphics {
 
 struct EngineData {
-    Device& device;
-
     DescriptorSet& descriptor_set;
     ShaderRegistry& shader_registry;
     MeshRegistry& mesh_registry;
+    TextureRegistry& texture_registry;
 
     StagingBuffer& staging_buffer;
 };

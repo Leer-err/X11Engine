@@ -6,6 +6,7 @@
 
 #include "BufferBuilder.h"
 #include "CommandBuffer.h"
+#include "Device.h"
 #include "EngineData.h"
 #include "GraphicsPipelineBuilder.h"
 #include "MeshBuilder.h"
@@ -14,8 +15,8 @@
 
 namespace Graphics {
 
-StarRenderer::StarRenderer(const EngineData& engine_data)
-    : engine_data(engine_data), stars_data_buffer(this->engine_data) {
+StarRenderer::StarRenderer(Device& device, const EngineData& engine_data)
+    : engine_data(engine_data), stars_data_buffer(device) {
     constexpr Vector3 screen_quad_vertices[] = {
         Vector3(-1, -1, 1), Vector3(-1, 1, 1), Vector3(1, -1, 1),
         Vector3(1, 1, 1)};
@@ -24,18 +25,18 @@ StarRenderer::StarRenderer(const EngineData& engine_data)
 
     quad = MeshBuilder(screen_quad_vertices, sizeof(screen_quad_vertices),
                        screen_quad_indices, sizeof(screen_quad_indices))
-               .create(engine_data);
+               .create(device, engine_data.staging_buffer);
 
     pipeline = GraphicsPipelineBuilder(
                    "./Assets/Shaders/Stars/Stars.spv", "vertex_main",
                    "./Assets/Shaders/Stars/Stars.spv", "pixel_main")
-                   .create(engine_data)
+                   .create(device, engine_data.shader_registry)
                    .getResult();
 }
 
 void StarRenderer::render(const FrameData& frame_data,
                           const StarsData& stars_data) {
-    TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Stars");
+    // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Stars");
 
     auto command_buffer = frame_data.cmd;
 

@@ -6,6 +6,7 @@
 
 #include "CloudsData.h"
 #include "DescriptorSet.h"
+#include "Device.h"
 #include "EngineData.h"
 #include "GraphicsPipelineBuilder.h"
 #include "ImageBuilder.h"
@@ -21,8 +22,8 @@ struct Vertex {
     Vector2 uv;
 };
 
-CloudsRenderer::CloudsRenderer(const EngineData& engine_data)
-    : engine_data(engine_data), clouds_data_buffer(this->engine_data), env({}) {
+CloudsRenderer::CloudsRenderer(Device& device, const EngineData& engine_data)
+    : engine_data(engine_data), env({}), clouds_data_buffer(device) {
     constexpr Vertex cloud_plane_vertex_data[] = {
         {Vector3(-1, 0, -1), Vector2(0, 0)},
         {Vector3(-1, 0, 1), Vector2(0, 1)},
@@ -38,23 +39,23 @@ CloudsRenderer::CloudsRenderer(const EngineData& engine_data)
     cloud_plane =
         MeshBuilder(cloud_plane_vertex_data, sizeof(cloud_plane_vertex_data),
                     screen_quad_indices, sizeof(screen_quad_indices))
-            .create(engine_data);
+            .create(device, engine_data.staging_buffer);
     quad = MeshBuilder(&screen_quad_vertices[0], sizeof(screen_quad_vertices),
                        &screen_quad_indices[0], sizeof(screen_quad_indices))
-               .create(engine_data);
+               .create(device, engine_data.staging_buffer);
 
     clouds_texture = ImageBuilder(VK_FORMAT_R8G8B8A8_UNORM, 512, 512)
                          .isRenderTarget()
                          .isShaderResource()
-                         .create(engine_data)
+                         .create(device)
                          .getResult();
     engine_data.descriptor_set.addImage(
-        engine_data.device.createTextureView(clouds_texture));
-    engine_data.descriptor_set.addSampler(Sampler::linear(engine_data));
+        device.createTextureView(clouds_texture));
+    engine_data.descriptor_set.addSampler(Sampler::linear(device));
 
     env.width = 512;
     env.height = 512;
-    env.render_target = engine_data.device.createTextureView(clouds_texture);
+    env.render_target = device.createTextureView(clouds_texture);
     env.clear_render_target = true;
     env.render_target_clear_value.color = {0, 0, 0, 0};
 
@@ -63,18 +64,18 @@ CloudsRenderer::CloudsRenderer(const EngineData& engine_data)
             "./Assets/Shaders/Clouds/CloudsTexture.spv", "vertex_main",
             "./Assets/Shaders/Clouds/CloudsTexture.spv", "pixel_main")
             .setRenderTargetFormat(VK_FORMAT_R8G8B8A8_UNORM)
-            .create(engine_data)
+            .create(device, engine_data.shader_registry)
             .getResult();
     cloud_pipeline = GraphicsPipelineBuilder(
                          "./Assets/Shaders/Clouds/Clouds.spv", "vertex_main",
                          "./Assets/Shaders/Clouds/Clouds.spv", "pixel_main")
-                         .create(engine_data)
+                         .create(device, engine_data.shader_registry)
                          .getResult();
 }
 
 void CloudsRenderer::render(const FrameData& frame_data,
                             const CloudsData& clouds_data) {
-    TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Clouds");
+    // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Clouds");
 
     auto command_buffer = frame_data.cmd;
 
@@ -82,7 +83,8 @@ void CloudsRenderer::render(const FrameData& frame_data,
         clouds_data_buffer.getDeviceAddress(frame_data);
 
     command_buffer.setPipeline(cloud_pipeline);
-    command_buffer.bindDescriptorSet(cloud_pipeline, frame_data.descriptor_set);
+    command_buffer.bindDescriptorSet(cloud_pipeline,
+                                     engine_data.descriptor_set);
 
     command_buffer.pushConstants(cloud_pipeline, &push_constants);
 
@@ -91,8 +93,8 @@ void CloudsRenderer::render(const FrameData& frame_data,
 
 void CloudsRenderer::preRender(const FrameData& frame_data,
                                const CloudsData& clouds_data) {
-    TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer,
-                "Cloud texture bake");
+    // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer,
+    //             "Cloud texture bake");
 
     clouds_data_buffer.update(frame_data, clouds_data);
 
@@ -109,7 +111,7 @@ void CloudsRenderer::preRender(const FrameData& frame_data,
 
     command_buffer.setPipeline(cloud_texture_pipeline);
     command_buffer.bindDescriptorSet(cloud_texture_pipeline,
-                                     frame_data.descriptor_set);
+                                     engine_data.descriptor_set);
 
     auto clouds_device_address =
         clouds_data_buffer.getDeviceAddress(frame_data);

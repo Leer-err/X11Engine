@@ -71,11 +71,6 @@ BufferBuilder& BufferBuilder::isCopyDestination() {
     return *this;
 }
 
-Result<Buffer, BufferError> BufferBuilder::create(
-    const EngineData& engine_data) const {
-    return engine_data.device.createBuffer(buffer_info, alloc_info);
-}
-
 Result<Buffer, BufferError> BufferBuilder::create(Device& device) const {
     return device.createBuffer(buffer_info, alloc_info);
 }

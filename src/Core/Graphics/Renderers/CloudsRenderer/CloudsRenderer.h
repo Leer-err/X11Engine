@@ -21,7 +21,7 @@ class CloudsRenderer {
     };
 
    public:
-    CloudsRenderer(const EngineData& engine_data);
+    CloudsRenderer(Device& device, const EngineData& engine_data);
 
     void render(const FrameData& frame_data, const CloudsData& clouds_data);
     void preRender(const FrameData& frame_data, const CloudsData& clouds_data);

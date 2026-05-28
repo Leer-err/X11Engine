@@ -27,7 +27,6 @@ class BufferBuilder {
 
     BufferBuilder& isDeviceAddressable();
 
-    Result<Buffer, BufferError> create(const EngineData& engine_data) const;
     Result<Buffer, BufferError> create(Device& device) const;
 
    private:

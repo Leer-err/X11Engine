@@ -5,16 +5,17 @@
 
 #include "Buffer.h"
 #include "BufferBuilder.h"
+#include "Device.h"
 
 namespace Graphics {
 
-BufferedUniformBase::BufferedUniformBase(EngineData& engine_data, size_t size)
-    : size(size), engine_data(engine_data) {
+BufferedUniformBase::BufferedUniformBase(Device& device, size_t size)
+    : size(size) {
     for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
         buffers[i] = BufferBuilder(size)
                          .isConstantBuffer()
                          .isCPUWritable(true)
-                         .create(engine_data)
+                         .create(device)
                          .getResult();
     }
 }

@@ -24,7 +24,8 @@ struct CommandBuffer;
 
 class Device {
    public:
-    Device(vkb::Device device, VmaAllocator allocator);
+    Device(const vkb::Instance& instance, const vkb::Device& device,
+           VmaAllocator allocator);
     ~Device();
 
     vkb::Swapchain createSwapChain(VkSurfaceFormatKHR format,
