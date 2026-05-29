@@ -4,7 +4,6 @@
 #include "CameraData.h"
 #include "CloudsRenderer.h"
 #include "Device.h"
-#include "DitheringPass.h"
 #include "FrameData.h"
 #include "OverlayRenderer.h"
 #include "PostProcessingPass.h"
@@ -22,10 +21,7 @@ class RenderPass {
     Image& render(const FrameData& frame_data);
 
    private:
-    void prepareForPostProcess(const FrameData& frame_data);
-
-    void beginPass(const FrameData& frame_data);
-    void endPass(const FrameData& frame_data);
+    void postProcessing(const FrameData& frame_data);
 
     void updateCameraBuffer(const FrameData& frame_data);
 
@@ -40,7 +36,7 @@ class RenderPass {
     StaticMeshRenderer static_mesh_renderer;
     OverlayRenderer overlay_renderer;
 
-    DitheringPass dithering_pass;
+    PostProcessingPass post_processing_pass;
 
     RenderEnviroment env;
     Image render_target_image;

@@ -11,10 +11,10 @@
 #include "CloudsData.h"
 #include "CloudsRenderer.h"
 #include "Device.h"
-#include "DitheringPass.h"
 #include "GraphicsCommunicationManager.h"
 #include "ImageBuilder.h"
 #include "OverlayRenderer.h"
+#include "PostProcessingPass.h"
 #include "RenderEnviroment.h"
 #include "StaticModelData.h"
 
@@ -26,7 +26,7 @@ RenderPass::RenderPass(Device& device, const EngineData& engine_data)
       star_renderer(device, engine_data),
       clouds_renderer(device, engine_data),
       static_mesh_renderer(device, engine_data),
-      dithering_pass(device, engine_data),
+      post_processing_pass(device, engine_data),
       overlay_renderer() {
     createRenderEnviroment(device);
 }
@@ -73,49 +73,21 @@ Image& RenderPass::render(const FrameData& frame_data) {
     if (stars) {
         star_renderer.render(frame_data, *stars);
     }
-    if (clouds) {
-        clouds_renderer.render(frame_data, clouds.value());
-    }
 
     while (auto model = manager.recieve<StaticModelData>()) {
         static_mesh_renderer.queueMeshForRender(frame_data, model.value());
     }
     static_mesh_renderer.render(frame_data);
 
-    overlay_renderer.render(frame_data);
+    if (clouds) {
+        clouds_renderer.render(frame_data, clouds.value());
+    }
 
     frame_data.cmd.unbindRenderEnviroment();
 
-    prepareForPostProcess(frame_data);
-
-    frame_data.cmd.bindRenderEnviroment(post_process_env);
-    dithering_pass.render(render_target_handle, frame_data);
-    frame_data.cmd.unbindRenderEnviroment();
+    postProcessing(frame_data);
 
     return final_image;
-}
-
-void RenderPass::prepareForPostProcess(const FrameData& frame_data) {
-    std::array<VkImageMemoryBarrier2, 2> barriers;
-    barriers[0] = render_target_image.createBarrier(
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
-        VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-        VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT);
-    barriers[1] = final_image.createBarrier(
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_NONE,
-        VK_ACCESS_2_NONE, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
-        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
-
-    frame_data.cmd.barrier(barriers);
-}
-
-void RenderPass::beginPass(const FrameData& frame_data) {
-    frame_data.cmd.bindRenderEnviroment(env);
-}
-
-void RenderPass::endPass(const FrameData& frame_data) {
-    frame_data.cmd.unbindRenderEnviroment();
 }
 
 void RenderPass::updateCameraBuffer(const FrameData& frame_data) {
@@ -133,6 +105,8 @@ void RenderPass::createRenderEnviroment(Device& device) {
     auto width = config.render_width;
     auto height = config.render_height;
 
+    auto device_properties = device.getDeviceProperties();
+
     render_target_image =
         ImageBuilder(VK_FORMAT_R8G8B8A8_SRGB, config.render_width,
                      config.render_height)
@@ -143,7 +117,7 @@ void RenderPass::createRenderEnviroment(Device& device) {
             .getResult();
 
     depth_stencil_image =
-        ImageBuilder(VK_FORMAT_D24_UNORM_S8_UINT, config.render_width,
+        ImageBuilder(device_properties.depth_format, config.render_width,
                      config.render_height)
             .isDepthStencil()
             .create(device)
@@ -175,6 +149,28 @@ void RenderPass::createRenderEnviroment(Device& device) {
     post_process_env.height = height;
     post_process_env.render_target = device.createTextureView(final_image);
     env.clear_render_target = true;
+}
+
+void RenderPass::postProcessing(const FrameData& frame_data) {
+    std::array<VkImageMemoryBarrier2, 2> barriers;
+    barriers[0] = render_target_image.createBarrier(
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
+        VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+        VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT);
+    barriers[1] = final_image.createBarrier(
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_NONE,
+        VK_ACCESS_2_NONE, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
+
+    frame_data.cmd.barrier(barriers);
+
+    frame_data.cmd.bindRenderEnviroment(post_process_env);
+
+    post_processing_pass.render(render_target_handle, frame_data);
+    overlay_renderer.render(frame_data);
+
+    frame_data.cmd.unbindRenderEnviroment();
 }
 
 }  // namespace Graphics
