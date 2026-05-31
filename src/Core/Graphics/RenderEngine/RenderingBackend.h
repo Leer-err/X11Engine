@@ -3,7 +3,6 @@
 #include "CommandPool.h"
 #include "Device.h"
 #include "EngineConstants.h"
-#include "EngineData.h"
 #include "FrameData.h"
 #include "SwapChain.h"
 
@@ -30,15 +29,15 @@ class RenderingBackend {
     ~RenderingBackend();
 
     FrameData beginFrame();
-    void endFrame(Image& rendered_image);
+    void endFrame(Texture& rendered_image);
 
     Device& getDevice();
 
    private:
-    void copyToBackbuffer(const CommandBuffer& cmd, Image& render_target,
-                          Image& backbuffer);
+    void copyToBackbuffer(const CommandBuffer& cmd, Texture& render_target,
+                          TextureState& backbuffer);
     void prepareBackbufferForPresentation(const CommandBuffer& cmd,
-                                          Image& backbuffer);
+                                          const TextureState& backbuffer);
 
     void createSwapChain();
 

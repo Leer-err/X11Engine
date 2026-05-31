@@ -3,17 +3,20 @@
 #include <vulkan/vulkan_core.h>
 
 #include "TextureHandle.h"
-#include "TextureRegistry.h"
+#include "TextureState.h"
 
 namespace Graphics {
+
+class TextureRegistry;
 
 class Texture {
    public:
     Texture();
-    Texture(TextureHandle handle, TextureRegistry* registry);
+    Texture(TextureHandle handle, TextureState* texture,
+            TextureRegistry* registry);
 
     TextureHandle getHandle() const;
-    Image& getImage();
+    TextureState getState() const;
 
     VkImageMemoryBarrier2 createBarrier(VkImageLayout new_layout,
                                         VkPipelineStageFlags2 src_stages,
@@ -23,6 +26,7 @@ class Texture {
 
    private:
     TextureHandle handle;
+    TextureState* image;
     TextureRegistry* registry;
 };
 

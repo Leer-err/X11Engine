@@ -42,8 +42,8 @@ SwapChain::SwapChain(Device& device, Queue presentation_queue, uint32_t width,
     auto swap_cahin_images = swap_chain.get_images().value();
     swap_chain_size = swap_cahin_images.size();
     for (int i = 0; i < swap_chain_size; i++) {
-        Image image = {};
-        image.image = swap_cahin_images[i];
+        TextureState image = {};
+        image.texture = swap_cahin_images[i];
         image.width = width;
         image.height = height;
         image.format = format.format;

@@ -22,16 +22,16 @@ StagingBuffer::StagingBuffer(Device& device)
                  .getResult();
 }
 
-void StagingBuffer::stageImage(const Image& destination, const void* data,
-                               size_t data_size) {
+void StagingBuffer::stageTexture(const Texture& destination, const void* data,
+                                 size_t data_size) {
     memcpy(reinterpret_cast<char*>(buffer.mapped_address) + host_data_used,
            data, data_size);
 
-    ImageData image_data = {};
-    image_data.image = destination;
+    TextureData image_data = {};
+    image_data.texture = destination;
     image_data.data_size = data_size;
     image_data.host_offset = host_data_used;
-    images.push_back(image_data);
+    textures.push_back(image_data);
 
     host_data_used += data_size;
 }
@@ -67,8 +67,8 @@ void StagingBuffer::flush(const CommandBuffer& cmd) {
             VK_ACCESS_2_TRANSFER_WRITE_BIT));
     }
 
-    for (auto& image_data : images) {
-        image_barriers.push_back(image_data.image.createBarrier(
+    for (auto& image_data : textures) {
+        image_barriers.push_back(image_data.texture.createBarrier(
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_NONE,
             VK_ACCESS_2_NONE, VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT,
             VK_ACCESS_2_TRANSFER_WRITE_BIT));
@@ -96,21 +96,22 @@ void StagingBuffer::flush(const CommandBuffer& cmd) {
                         &copy);
     }
 
-    for (auto& image_data : images) {
+    for (auto& image_data : textures) {
+        auto state = image_data.texture.getState();
+
         VkBufferImageCopy copy = {};
         copy.bufferOffset = image_data.host_offset;
         copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         copy.imageSubresource.layerCount = 1;
-        copy.imageExtent.width = image_data.image.width;
-        copy.imageExtent.height = image_data.image.height;
+        copy.imageExtent.width = state.width;
+        copy.imageExtent.height = state.height;
         copy.imageExtent.depth = 1;
 
-        vkCmdCopyBufferToImage(cmd.buffer, buffer.buffer,
-                               image_data.image.image,
+        vkCmdCopyBufferToImage(cmd.buffer, buffer.buffer, state.texture,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
     }
 
-    images.clear();
+    textures.clear();
     buffers.clear();
     host_data_used = 0;
 }

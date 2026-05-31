@@ -8,9 +8,9 @@
 
 #include "DescriptorSet.h"
 #include "GraphicsPipeline.h"
-#include "Image.h"
 #include "Mesh.h"
 #include "RenderEnviroment.h"
+#include "TextureState.h"
 
 namespace Graphics {
 
@@ -20,8 +20,8 @@ struct CommandBuffer {
 
     void draw(const Mesh& mesh) const;
 
-    void copy(const Image& src, Image& dst) const;
-    void blit(const Image& src, Image& dst) const;
+    void copy(const TextureState& src, TextureState& dst) const;
+    void blit(const TextureState& src, TextureState& dst) const;
 
     template <typename T>
     void pushConstants(const GraphicsPipeline& pipeline,

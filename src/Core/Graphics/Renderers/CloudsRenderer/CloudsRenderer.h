@@ -38,7 +38,7 @@ class CloudsRenderer {
     GraphicsPipeline cloud_pipeline;
     RenderEnviroment env;
 
-    Image clouds_texture;
+    Texture clouds_texture;
     BufferedUniform<CloudsData> clouds_data_buffer;
 
     PushConstants push_constants;

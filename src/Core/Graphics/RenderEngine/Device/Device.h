@@ -2,7 +2,6 @@
 
 #include <VkBootstrap.h>
 #include <vulkan/vulkan.h>
-#include <vulkan/vulkan_core.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -12,11 +11,11 @@
 #include "DescriptorLayout.h"
 #include "DeviceProperties.h"
 #include "GraphicsPipeline.h"
-#include "Image.h"
 #include "Logger.h"
 #include "Queue.h"
 #include "Result.h"
 #include "Semaphore.h"
+#include "TextureState.h"
 
 namespace Graphics {
 
@@ -32,7 +31,7 @@ class Device {
                                    VkPresentModeKHR present_mode,
                                    size_t image_count, VkImageUsageFlags flags);
 
-    Result<Image, ImageError> createImage(
+    Result<TextureState, TextureError> createTexture(
         const VkImageCreateInfo& image_info,
         const VmaAllocationCreateInfo& alloc_info);
 
@@ -47,8 +46,7 @@ class Device {
     void resetCommandPool(VkCommandPool pool) const;
     VkCommandBuffer createCommandBuffer(VkCommandPool pool);
 
-    VkImageView createDepthStencil(const Image& image);
-    VkImageView createTextureView(const Image& image);
+    VkImageView createTextureView(const TextureState& image);
 
     DescriptorLayout getDescriptorLayout() const;
     DeviceProperties getDeviceProperties() const;

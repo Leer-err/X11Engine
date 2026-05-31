@@ -50,12 +50,6 @@ class RenderEngine final : public IRenderEngine {
     void endFrame(const CommandBuffer& cmd);
 
     void waitRenderFinished();
-    void prepareRenderTargetForRendering(const CommandBuffer& cmd);
-
-    void copyToBackbuffer(const CommandBuffer& cmd, Image& render_target,
-                          Image& backbuffer);
-    void prepareBackbufferForPresentation(const CommandBuffer& cmd,
-                                          Image& backbuffer);
 
     RenderingBackend backend;
 

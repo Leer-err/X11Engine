@@ -3,10 +3,12 @@
 #include <vulkan/vulkan.h>
 
 #include <cstddef>
+#include <map>
+#include <optional>
 
 #include "Buffer.h"
 #include "Device.h"
-#include "TextureHandle.h"
+#include "Texture.h"
 
 namespace Graphics {
 
@@ -14,14 +16,17 @@ class DescriptorSet {
    public:
     DescriptorSet(Device& device, const DeviceProperties& device_properties);
 
-    TextureHandle addImage(const VkImageView& texture);
-    size_t addSampler(const VkSampler& sampler);
+    uint32_t addTexture(const Texture& texture);
+    uint32_t addSampler(const VkSampler& sampler);
+
+    std::optional<uint32_t> getIndex(const Texture& texture);
 
     VkDeviceAddress getDescriptors() const;
 
    private:
     Device& device;
 
+    std::map<TextureHandle, uint32_t> texture_index_map;
     Buffer descriptors;
     TextureHandle current_texture_index;
     size_t current_sampler_index;

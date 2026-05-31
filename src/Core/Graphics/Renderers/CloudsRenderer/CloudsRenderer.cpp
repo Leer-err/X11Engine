@@ -9,9 +9,9 @@
 #include "Device.h"
 #include "EngineData.h"
 #include "GraphicsPipelineBuilder.h"
-#include "ImageBuilder.h"
 #include "MeshBuilder.h"
 #include "Sampler.h"
+#include "TextureBuilder.h"
 #include "Vector2.h"
 #include "Vector3.h"
 
@@ -44,18 +44,17 @@ CloudsRenderer::CloudsRenderer(Device& device, const EngineData& engine_data)
                        &screen_quad_indices[0], sizeof(screen_quad_indices))
                .create(device, engine_data.staging_buffer);
 
-    clouds_texture = ImageBuilder(VK_FORMAT_R8G8B8A8_UNORM, 512, 512)
+    clouds_texture = TextureBuilder(VK_FORMAT_R8G8B8A8_UNORM, 512, 512)
                          .isRenderTarget()
                          .isShaderResource()
-                         .create(device)
+                         .create(device, engine_data.texture_registry)
                          .getResult();
-    engine_data.descriptor_set.addImage(
-        device.createTextureView(clouds_texture));
+    engine_data.descriptor_set.addTexture(clouds_texture);
     engine_data.descriptor_set.addSampler(Sampler::linear(device));
 
     env.width = 512;
     env.height = 512;
-    env.render_target = device.createTextureView(clouds_texture);
+    env.render_target = device.createTextureView(clouds_texture.getState());
     env.clear_render_target = true;
     env.render_target_clear_value.color = {0, 0, 0, 0};
 

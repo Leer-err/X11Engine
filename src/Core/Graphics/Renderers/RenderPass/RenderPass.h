@@ -10,6 +10,7 @@
 #include "RenderEnviroment.h"
 #include "StarRenderer.h"
 #include "StaticMeshRenderer.h"
+#include "Texture.h"
 #include "TextureHandle.h"
 
 namespace Graphics {
@@ -18,7 +19,7 @@ class RenderPass {
    public:
     RenderPass(Device& device, const EngineData& engine_data);
 
-    Image& render(const FrameData& frame_data);
+    Texture render(const FrameData& frame_data);
 
    private:
     void postProcessing(const FrameData& frame_data);
@@ -39,12 +40,11 @@ class RenderPass {
     PostProcessingPass post_processing_pass;
 
     RenderEnviroment env;
-    Image render_target_image;
-    Image depth_stencil_image;
-    TextureHandle render_target_handle;
+    Texture render_target_texture;
+    Texture depth_stencil_texture;
 
     RenderEnviroment post_process_env;
-    Image final_image;
+    Texture final_image;
 };
 
 }  // namespace Graphics

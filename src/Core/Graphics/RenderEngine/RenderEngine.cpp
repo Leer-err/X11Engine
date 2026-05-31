@@ -18,7 +18,6 @@
 #include "DeviceProperties.h"
 #include "EngineData.h"
 #include "FrameData.h"
-#include "ImageBuilder.h"
 #include "MeshBuilder.h"
 #include "MeshRegistry.h"
 #include "RenderPass.h"
@@ -26,6 +25,7 @@
 #include "ShaderRegistry.h"
 #include "StagingBuffer.h"
 #include "SwapChain.h"
+#include "TextureBuilder.h"
 #include "TextureRegistry.h"
 
 namespace Graphics {
@@ -54,20 +54,9 @@ void RenderEngine::render() {
     FrameData frame = backend.beginFrame();
 
     staging_buffer.flush(frame.cmd);
-    auto& rendered_image = render_pass->render(frame);
+    auto rendered_image = render_pass->render(frame);
 
     backend.endFrame(rendered_image);
-}
-
-void RenderEngine::prepareBackbufferForPresentation(const CommandBuffer& cmd,
-                                                    Image& backbuffer) {
-    ZoneScoped;
-    auto render_finished = backbuffer.createBarrier(
-        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_PIPELINE_STAGE_2_BLIT_BIT,
-        VK_ACCESS_2_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_2_NONE,
-        VK_ACCESS_2_NONE);
-
-    cmd.barrier(&render_finished, 1, nullptr, 0);
 }
 
 TextureHandle RenderEngine::addTexture(void* data, uint32_t width,
@@ -75,16 +64,15 @@ TextureHandle RenderEngine::addTexture(void* data, uint32_t width,
     if (data == nullptr) return {};
     // TODO: image lifetime tracking
 
-    auto image = ImageBuilder(VK_FORMAT_R8G8B8A8_SRGB, width, height)
+    auto image = TextureBuilder(VK_FORMAT_R8G8B8A8_SRGB, width, height)
                      .isShaderResource()
                      .isCopyDestination()
-                     .create(backend.getDevice())
+                     .create(backend.getDevice(), texture_registry)
                      .getResult();
 
-    auto view = backend.getDevice().createTextureView(image);
-    auto handle = descriptor_set.addImage(view);
+    auto handle = descriptor_set.addTexture(image);
 
-    staging_buffer.stageImage(image, data, width * height * 4);
+    staging_buffer.stageTexture(image, data, width * height * 4);
 
     return handle;
 }

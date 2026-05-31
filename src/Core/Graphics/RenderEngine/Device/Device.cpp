@@ -9,9 +9,9 @@
 #include "DeviceProperties.h"
 #include "ExtensionFunctions.h"
 #include "GraphicsPipeline.h"
-#include "Image.h"
 #include "Logger.h"
 #include "LoggerFactory.h"
+#include "TextureState.h"
 #include "VkBootstrap.h"
 
 constexpr auto TEXTURE_BINDING_INDEX = 0;
@@ -56,7 +56,7 @@ vkb::Swapchain Device::createSwapChain(VkSurfaceFormatKHR format,
     return swap_ret.value();
 }
 
-Result<Image, ImageError> Device::createImage(
+Result<TextureState, TextureError> Device::createTexture(
     const VkImageCreateInfo& image_info,
     const VmaAllocationCreateInfo& alloc_info) {
     VkImage image;
@@ -66,8 +66,8 @@ Result<Image, ImageError> Device::createImage(
     if (result != VK_SUCCESS)
         logger.error("Image creation failed with {}", string_VkResult(result));
 
-    auto image_result = Image{};
-    image_result.image = image;
+    auto image_result = TextureState{};
+    image_result.texture = image;
     image_result.allocation = allocation;
     image_result.layout = VK_IMAGE_LAYOUT_UNDEFINED;
     image_result.format = image_info.format;
@@ -147,31 +147,16 @@ VkCommandBuffer Device::createCommandBuffer(VkCommandPool pool) {
     return buffer;
 }
 
-VkImageView Device::createDepthStencil(const Image& image) {
+VkImageView Device::createTextureView(const TextureState& texture) {
     VkImageViewCreateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    info.image = image.image;
+    info.image = texture.texture;
     info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    info.format = image.format;
-    info.subresourceRange = {
-        .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
-        .levelCount = 1,
-        .layerCount = 1};
-
-    VkImageView view;
-    vkCreateImageView(device, &info, nullptr, &view);
-    return view;
-}
-
-VkImageView Device::createTextureView(const Image& image) {
-    VkImageViewCreateInfo info = {};
-    info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    info.image = image.image;
-    info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    info.format = image.format;
-    info.subresourceRange = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                             .levelCount = 1,
-                             .layerCount = 1};
+    info.format = texture.format;
+    info.subresourceRange = {.levelCount = 1, .layerCount = 1};
+    if (texture.format == properties.depth_format)
+        info.subresourceRange.aspectMask =
+            VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 
     VkImageView view;
     vkCreateImageView(device, &info, nullptr, &view);

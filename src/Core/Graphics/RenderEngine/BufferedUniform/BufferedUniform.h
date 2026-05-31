@@ -1,6 +1,5 @@
 #pragma once
 
-#include <sys/types.h>
 #include <vulkan/vulkan_core.h>
 
 #include <array>
@@ -10,7 +9,6 @@
 #include "Buffer.h"
 #include "Device.h"
 #include "EngineConstants.h"
-#include "EngineData.h"
 #include "FrameData.h"
 
 namespace Graphics {

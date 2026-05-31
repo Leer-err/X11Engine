@@ -5,16 +5,16 @@
 
 #include "Device.h"
 #include "GraphicsConfig.h"
-#include "Image.h"
 #include "Queue.h"
 #include "Semaphore.h"
+#include "TextureState.h"
 
 namespace Graphics {
 
 class SwapChain {
    public:
     struct BackBuffer {
-        Image backbuffer;
+        TextureState backbuffer;
         Semaphore ready_for_present;
     };
 
@@ -35,7 +35,7 @@ class SwapChain {
 
     vkb::Swapchain swap_chain;
 
-    Image images[SWAP_CHAIN_MAX_SIZE];
+    TextureState images[SWAP_CHAIN_MAX_SIZE];
     Semaphore semaphores[SWAP_CHAIN_MAX_SIZE];
     uint32_t image_index;
     int swap_chain_size;

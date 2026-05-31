@@ -4,16 +4,19 @@ namespace Graphics {
 
 TextureRegistry::TextureRegistry() : next_handle(0) {}
 
-TextureHandle TextureRegistry::addTexture(const Image& image) {
-    images.push_back(image);
+Texture TextureRegistry::addTexture(const TextureState& image) {
+    auto& state = states.emplace_back(image);
 
-    return next_handle++;
+    return Texture(next_handle++, &state, this);
 }
 
-std::optional<Image> TextureRegistry::getTexture(const TextureHandle& handle) {
+std::optional<Texture> TextureRegistry::getTexture(
+    const TextureHandle& handle) {
     if (handle >= next_handle) return {};
 
-    return images[handle];
+    auto& state = states[handle];
+
+    return Texture(handle, &state, this);
 }
 
 }  // namespace Graphics

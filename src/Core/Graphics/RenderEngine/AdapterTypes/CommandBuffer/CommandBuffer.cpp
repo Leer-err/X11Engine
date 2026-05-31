@@ -8,8 +8,8 @@
 #include "Buffer.h"
 #include "ExtensionFunctions.h"
 #include "GraphicsPipeline.h"
-#include "Image.h"
 #include "RenderEnviroment.h"
+#include "Texture.h"
 
 namespace Graphics {
 
@@ -21,7 +21,7 @@ void CommandBuffer::begin() const {
     vkBeginCommandBuffer(buffer, &info);
 }
 
-void CommandBuffer::copy(const Image& src, Image& dst) const {
+void CommandBuffer::copy(const TextureState& src, TextureState& dst) const {
     VkImageCopy2 copy_region = {};
     copy_region.sType = VK_STRUCTURE_TYPE_IMAGE_COPY_2;
     copy_region.extent.width = src.width;
@@ -34,9 +34,9 @@ void CommandBuffer::copy(const Image& src, Image& dst) const {
 
     VkCopyImageInfo2 copy_info = {};
     copy_info.sType = VK_STRUCTURE_TYPE_COPY_IMAGE_INFO_2;
-    copy_info.srcImage = src.image;
+    copy_info.srcImage = src.texture;
     copy_info.srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-    copy_info.dstImage = dst.image;
+    copy_info.dstImage = dst.texture;
     copy_info.dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     copy_info.regionCount = 1;
     copy_info.pRegions = &copy_region;
@@ -44,7 +44,7 @@ void CommandBuffer::copy(const Image& src, Image& dst) const {
     vkCmdCopyImage2(buffer, &copy_info);
 }
 
-void CommandBuffer::blit(const Image& src, Image& dst) const {
+void CommandBuffer::blit(const TextureState& src, TextureState& dst) const {
     VkImageBlit2 region = {};
     region.sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2;
     region.srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
@@ -58,9 +58,9 @@ void CommandBuffer::blit(const Image& src, Image& dst) const {
 
     VkBlitImageInfo2 info = {};
     info.sType = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2;
-    info.srcImage = src.image;
+    info.srcImage = src.texture;
     info.srcImageLayout = src.layout;
-    info.dstImage = dst.image;
+    info.dstImage = dst.texture;
     info.dstImageLayout = dst.layout;
     info.filter = VK_FILTER_NEAREST;
     info.regionCount = 1;

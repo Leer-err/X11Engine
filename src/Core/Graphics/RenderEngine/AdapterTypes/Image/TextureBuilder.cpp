@@ -1,16 +1,15 @@
-#include "ImageBuilder.h"
+#include "TextureBuilder.h"
 
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.h>
-#include <vulkan/vulkan_core.h>
 
 #include "Device.h"
-#include "EngineData.h"
-#include "Image.h"
+#include "Texture.h"
+#include "TextureRegistry.h"
 
 namespace Graphics {
 
-ImageBuilder::ImageBuilder(VkFormat format, uint32_t width, uint32_t height)
+TextureBuilder::TextureBuilder(VkFormat format, uint32_t width, uint32_t height)
     : image_info(), alloc_info() {
     image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_info.imageType = VK_IMAGE_TYPE_2D;
@@ -26,33 +25,37 @@ ImageBuilder::ImageBuilder(VkFormat format, uint32_t width, uint32_t height)
     alloc_info.usage = VMA_MEMORY_USAGE_AUTO;
 }
 
-ImageBuilder& ImageBuilder::isShaderResource() {
+TextureBuilder& TextureBuilder::isShaderResource() {
     image_info.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
     return *this;
 }
 
-ImageBuilder& ImageBuilder::isRenderTarget() {
+TextureBuilder& TextureBuilder::isRenderTarget() {
     image_info.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     return *this;
 }
 
-ImageBuilder& ImageBuilder::isDepthStencil() {
+TextureBuilder& TextureBuilder::isDepthStencil() {
     image_info.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
     return *this;
 }
 
-ImageBuilder& ImageBuilder::isCopySource() {
+TextureBuilder& TextureBuilder::isCopySource() {
     image_info.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     return *this;
 }
 
-ImageBuilder& ImageBuilder::isCopyDestination() {
+TextureBuilder& TextureBuilder::isCopyDestination() {
     image_info.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     return *this;
 }
 
-Result<Image, ImageError> ImageBuilder::create(Device& device) {
-    return device.createImage(image_info, alloc_info);
+Result<Texture, TextureError> TextureBuilder::create(
+    Device& device, TextureRegistry& texture_registry) {
+    auto state = device.createTexture(image_info, alloc_info);
+    if (state.isError()) return state.getError();
+
+    return texture_registry.addTexture(state.getResult());
 }
 
 }  // namespace Graphics

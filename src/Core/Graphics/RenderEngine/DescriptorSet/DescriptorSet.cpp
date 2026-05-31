@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan_core.h>
 
+#include <cstdint>
+
 #include "Buffer.h"
 #include "BufferBuilder.h"
 #include "DeviceProperties.h"
@@ -35,7 +37,7 @@ DescriptorSet::DescriptorSet(Device& device,
                       .getResult();
 }
 
-TextureHandle DescriptorSet::addImage(const VkImageView& texture) {
+uint32_t DescriptorSet::addTexture(const Texture& texture) {
     auto descriptors_ptr = descriptors.mapped_address;
 
     char* binding_ptr =
@@ -43,8 +45,10 @@ TextureHandle DescriptorSet::addImage(const VkImageView& texture) {
     char* element_ptr =
         binding_ptr + (current_texture_index * texture_descriptor_size);
 
+    auto view = device.createTextureView(texture.getState());
+
     VkDescriptorImageInfo image_descriptor_info = {};
-    image_descriptor_info.imageView = texture;
+    image_descriptor_info.imageView = view;
     image_descriptor_info.imageLayout =
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
@@ -55,12 +59,13 @@ TextureHandle DescriptorSet::addImage(const VkImageView& texture) {
     device.writeDescriptor(info, texture_descriptor_size, element_ptr);
 
     auto index = current_texture_index;
+    texture_index_map.emplace(texture.getHandle(), index);
     current_texture_index++;
 
     return index;
 }
 
-size_t DescriptorSet::addSampler(const VkSampler& sampler) {
+uint32_t DescriptorSet::addSampler(const VkSampler& sampler) {
     auto descriptors_ptr = descriptors.mapped_address;
 
     char* binding_ptr =
@@ -78,6 +83,13 @@ size_t DescriptorSet::addSampler(const VkSampler& sampler) {
     current_sampler_index++;
 
     return index;
+}
+
+std::optional<uint32_t> DescriptorSet::getIndex(const Texture& texture) {
+    auto it = texture_index_map.find(texture.getHandle());
+    if (it == texture_index_map.end()) return {};
+
+    return it->second;
 }
 
 VkDeviceAddress DescriptorSet::getDescriptors() const {

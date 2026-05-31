@@ -6,7 +6,6 @@
 #include "Buffer.h"
 #include "CommandBuffer.h"
 #include "Device.h"
-#include "Image.h"
 
 namespace Graphics {
 
@@ -18,8 +17,10 @@ class StagingBuffer {
         size_t data_size;
     };
 
-    struct ImageData {
-        Image image;
+    struct TextureData {
+        Texture texture;
+        size_t width;
+        size_t height;
         size_t host_offset;
 
         size_t data_size;
@@ -28,8 +29,8 @@ class StagingBuffer {
    public:
     StagingBuffer(Device& device);
 
-    void stageImage(const Image& destination, const void* data,
-                    size_t data_size);
+    void stageTexture(const Texture& destination, const void* data,
+                      size_t data_size);
     void stageBuffer(const Buffer& destination, const void* data,
                      size_t data_size);
 
@@ -43,7 +44,7 @@ class StagingBuffer {
     Buffer buffer;
 
     std::vector<BufferData> buffers;
-    std::vector<ImageData> images;
+    std::vector<TextureData> textures;
 };
 
 }  // namespace Graphics

@@ -46,13 +46,14 @@ PostProcessingPass::PostProcessingPass(Device& device,
         data.color_count);
 }
 
-void PostProcessingPass::render(TextureHandle input_image,
+void PostProcessingPass::render(const Texture& input_image,
                                 const FrameData& frame_data) {
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Dithering");
 
     auto command_buffer = frame_data.cmd;
 
-    data.render_target_index = input_image;
+    data.render_target_index =
+        engine_data.descriptor_set.getIndex(input_image).value();
     dithering_data_buffer.update(frame_data, data);
 
     VkDeviceAddress data_address =
