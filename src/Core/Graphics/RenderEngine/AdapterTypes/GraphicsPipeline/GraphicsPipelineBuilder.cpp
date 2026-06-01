@@ -78,6 +78,8 @@ GraphicsPipelineBuilder::create(Device& device,
     pipeline.layout =
         device.createPipelineLayout(input_layout.push_constants_size);
 
+    auto device_properties = device.getDeviceProperties();
+
     std::array shader_stages = {getStageInfo(vertex_shader),
                                 getStageInfo(pixel_shader)};
     VkPipelineInputAssemblyStateCreateInfo input_assembly_state = {};
@@ -119,8 +121,8 @@ GraphicsPipelineBuilder::create(Device& device,
 
     VkPipelineRenderingCreateInfo rendering = {};
     rendering.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
-    rendering.depthAttachmentFormat = VK_FORMAT_D24_UNORM_S8_UINT;
-    rendering.stencilAttachmentFormat = VK_FORMAT_D24_UNORM_S8_UINT;
+    rendering.depthAttachmentFormat = device_properties.depth_format;
+    rendering.stencilAttachmentFormat = device_properties.depth_format;
     rendering.colorAttachmentCount = 1;
     rendering.pColorAttachmentFormats = &render_target_format;
 

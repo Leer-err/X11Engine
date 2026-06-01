@@ -33,7 +33,7 @@ class RenderPass {
     BufferedUniform<CameraData> camera_data_buffer;
 
     StarRenderer star_renderer;
-    CloudsRenderer clouds_renderer;
+    // CloudsRenderer clouds_renderer;
     StaticMeshRenderer static_mesh_renderer;
     OverlayRenderer overlay_renderer;
 

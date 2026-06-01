@@ -18,7 +18,8 @@ class StaticMeshRenderer {
     struct StaticModelBuffer {
         Matrix model;
 
-        TextureHandle albedo_descriptor;
+        uint32_t albedo_descriptor;
+        uint32_t albedo_sampler;
     };
 
     struct PushConstants {
@@ -29,12 +30,13 @@ class StaticMeshRenderer {
    public:
     StaticMeshRenderer(Device& device, const EngineData& engine_data);
 
-    void queueMeshForRender(const FrameData& frame_data,
-                            const StaticModelData& model_data);
     void render(const FrameData& frame_data);
     void setCameraData(VkDeviceAddress camera_data);
 
    private:
+    void queueMeshForRender(const FrameData& frame_data,
+                            const StaticModelData& model_data);
+
     size_t next_object_index;
 
     EngineData engine_data;
@@ -46,6 +48,7 @@ class StaticMeshRenderer {
         model_data_buffer;
 
     PushConstants push_constants;
+    uint32_t sampler_index;
 };
 
 }  // namespace Graphics

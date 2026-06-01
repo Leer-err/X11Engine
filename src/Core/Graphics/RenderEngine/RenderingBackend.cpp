@@ -131,12 +131,12 @@ void RenderingBackend::prepareBackbufferForPresentation(
     auto render_finished = VkImageMemoryBarrier2{};
     render_finished.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
     render_finished.image = backbuffer.texture;
-    render_finished.srcStageMask = VK_PIPELINE_STAGE_2_NONE;
-    render_finished.srcAccessMask = VK_ACCESS_2_NONE;
-    render_finished.dstStageMask = VK_PIPELINE_STAGE_2_BLIT_BIT;
-    render_finished.dstAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
+    render_finished.srcStageMask = VK_PIPELINE_STAGE_2_BLIT_BIT;
+    render_finished.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
+    render_finished.dstStageMask = VK_PIPELINE_STAGE_2_NONE;
+    render_finished.dstAccessMask = VK_ACCESS_2_NONE;
     render_finished.oldLayout = backbuffer.layout;
-    render_finished.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    render_finished.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     render_finished.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     render_finished.subresourceRange.baseMipLevel = 0;
     render_finished.subresourceRange.levelCount = 1;

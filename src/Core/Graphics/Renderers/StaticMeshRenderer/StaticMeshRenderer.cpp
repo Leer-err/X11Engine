@@ -1,27 +1,29 @@
 #include "StaticMeshRenderer.h"
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
-#include "BufferBuilder.h"
+#include "GraphicsCommunicationManager.h"
 #include "GraphicsPipelineBuilder.h"
 #include "Matrix.h"
-#include "MeshHandle.h"
+#include "Sampler.h"
 #include "StaticModelData.h"
-#include "TextureHandle.h"
 
 namespace Graphics {
 
 StaticMeshRenderer::StaticMeshRenderer(Device& device,
                                        const EngineData& engine_data)
-    : engine_data(engine_data),
-      model_data_buffer(device),
-      next_object_index(0) {
+    : next_object_index(0),
+      engine_data(engine_data),
+      model_data_buffer(device) {
     pipeline =
         GraphicsPipelineBuilder(
             "./Assets/Shaders/StaticModel/StaticModel.spv", "vertex_main",
             "./Assets/Shaders/StaticModel/StaticModel.spv", "pixel_main")
             .create(device, engine_data.shader_registry)
             .getResult();
+
+    sampler_index =
+        engine_data.descriptor_set.addSampler(Sampler::linear(device));
 }
 
 void StaticMeshRenderer::queueMeshForRender(const FrameData& frame_data,
@@ -32,6 +34,11 @@ void StaticMeshRenderer::queueMeshForRender(const FrameData& frame_data,
 
 void StaticMeshRenderer::render(const FrameData& frame_data) {
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Static mesh");
+
+    while (auto model_data =
+               GraphicsCommunicationManager::get().recieve<StaticModelData>()) {
+        queueMeshForRender(frame_data, *model_data);
+    }
 
     auto command_buffer = frame_data.cmd;
 
@@ -45,8 +52,9 @@ void StaticMeshRenderer::render(const FrameData& frame_data) {
         StaticModelBuffer buffer = {};
         buffer.model = Matrix::translation(model_data.position);
         buffer.albedo_descriptor = model_data.albedo;
+        buffer.albedo_sampler = sampler_index;
 
-        buffer_ptr->at(i) = buffer;
+        (*buffer_ptr)[i] = buffer;
 
         push_constants.model_data =
             model_data_buffer.getDeviceAddress(frame_data) +

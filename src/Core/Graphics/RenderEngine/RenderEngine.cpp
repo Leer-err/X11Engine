@@ -41,11 +41,10 @@ RenderEngine::RenderEngine(const vkb::Instance& instance,
                      this->backend.getDevice().getDeviceProperties()),
       shader_registry(this->backend.getDevice()),
       mesh_registry(),
-      texture_registry(),
+      texture_registry(this->backend.getDevice()),
       staging_buffer(this->backend.getDevice()) {
     EngineData data = getEngineData();
     render_pass = std::make_unique<RenderPass>(this->backend.getDevice(), data);
-    // postprocess_pass = std::make_unique<PostProcessingPass>(data);
 }
 
 void RenderEngine::render() {
@@ -62,7 +61,6 @@ void RenderEngine::render() {
 TextureHandle RenderEngine::addTexture(void* data, uint32_t width,
                                        uint32_t height) {
     if (data == nullptr) return {};
-    // TODO: image lifetime tracking
 
     auto image = TextureBuilder(VK_FORMAT_R8G8B8A8_SRGB, width, height)
                      .isShaderResource()
@@ -79,23 +77,11 @@ TextureHandle RenderEngine::addTexture(void* data, uint32_t width,
 
 MeshHandle RenderEngine::addMesh(void* vertex_data, size_t vertex_data_size,
                                  void* index_data, size_t index_data_size) {
-    Mesh mesh = {};
-    mesh.vertex_buffer = BufferBuilder(vertex_data_size)
-                             .isVertexBuffer()
-                             .isCopyDestination()
-                             .create(backend.getDevice())
-                             .getResult();
-    mesh.index_buffer = BufferBuilder(index_data_size)
-                            .isIndexBuffer()
-                            .isCopyDestination()
-                            .create(backend.getDevice())
-                            .getResult();
+    auto mesh =
+        MeshBuilder(vertex_data, vertex_data_size, index_data, index_data_size)
+            .create(backend.getDevice(), staging_buffer);
 
     auto handle = mesh_registry.addMesh(mesh);
-
-    staging_buffer.stageBuffer(mesh.vertex_buffer, vertex_data,
-                               vertex_data_size);
-    staging_buffer.stageBuffer(mesh.index_buffer, index_data, index_data_size);
 
     return handle;
 }

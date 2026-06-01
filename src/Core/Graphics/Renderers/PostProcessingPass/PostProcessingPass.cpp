@@ -6,6 +6,7 @@
 #include "GraphicsPipelineBuilder.h"
 #include "MeshBuilder.h"
 #include "Overlay.h"
+#include "Sampler.h"
 #include "Vector3.h"
 
 namespace Graphics {
@@ -37,6 +38,9 @@ PostProcessingPass::PostProcessingPass(Device& device,
     data.color_count = 16;
     data.sampler_index = 0;
 
+    data.sampler_index =
+        engine_data.descriptor_set.addSampler(Sampler::point(device));
+
     Overlay::get().add<OverlayElements::SliderFloat>(
         "Graphics/Post processing", "Dithering spread",
         [this](float value) { data.spread = value; }, 0, 1, data.spread);
@@ -52,8 +56,10 @@ void PostProcessingPass::render(const Texture& input_image,
 
     auto command_buffer = frame_data.cmd;
 
-    data.render_target_index =
-        engine_data.descriptor_set.getIndex(input_image).value();
+    auto render_target_opt = engine_data.descriptor_set.getIndex(input_image);
+    if (render_target_opt.has_value() == false) return;
+
+    data.render_target_index = *render_target_opt;
     dithering_data_buffer.update(frame_data, data);
 
     VkDeviceAddress data_address =

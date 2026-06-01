@@ -9,6 +9,7 @@ struct StaticModelData
     float4x4 model;
 
     uint32_t albedo_descriptor;
+    uint32_t sampler_descriptor;
 }
 
 struct Vertex_Output{
@@ -46,11 +47,12 @@ Vertex_Output vertex_main(Vertex_input vertex)
 [[vk::binding(0, 0)]]
 Texture2D textures[];
 [[vk::binding(1, 0)]]
-SamplerState samplers;
+SamplerState samplers[];
 
 [shader("pixel")]
 float4 pixel_main(in Vertex_Output data)
 {
     uint32_t texture_index = constants.model_data.albedo_descriptor;
-    return textures[texture_index].Sample(samplers, data.uv);
+    uint32_t sampler_index = constants.model_data.sampler_descriptor;
+    return textures[texture_index].Sample(samplers[sampler_index], data.uv);
 }

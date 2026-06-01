@@ -18,7 +18,7 @@ class StarRenderer {
    public:
     StarRenderer(Device& device, const EngineData& engine_data);
 
-    void render(const FrameData& frame_data, const StarsData& stars_data);
+    void render(const FrameData& frame_data);
 
     void setCameraData(VkDeviceAddress camera_data);
 

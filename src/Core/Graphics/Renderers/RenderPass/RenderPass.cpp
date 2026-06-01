@@ -7,14 +7,11 @@
 
 #include "AppConfig.h"
 #include "CameraData.h"
-#include "CloudsData.h"
-#include "CloudsRenderer.h"
 #include "Device.h"
 #include "GraphicsCommunicationManager.h"
 #include "OverlayRenderer.h"
 #include "PostProcessingPass.h"
 #include "RenderEnviroment.h"
-#include "StaticModelData.h"
 #include "TextureBuilder.h"
 
 namespace Graphics {
@@ -23,7 +20,6 @@ RenderPass::RenderPass(Device& device, const EngineData& engine_data)
     : engine_data(engine_data),
       camera_data_buffer(device),
       star_renderer(device, engine_data),
-      clouds_renderer(device, engine_data),
       static_mesh_renderer(device, engine_data),
       post_processing_pass(device, engine_data),
       overlay_renderer() {
@@ -35,19 +31,10 @@ Texture RenderPass::render(const FrameData& frame_data) {
 
     auto camera_data_address = camera_data_buffer.getDeviceAddress(frame_data);
 
-    clouds_renderer.setCameraData(camera_data_address);
     star_renderer.setCameraData(camera_data_address);
     static_mesh_renderer.setCameraData(camera_data_address);
 
-    auto& manager = GraphicsCommunicationManager::get();
-
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Render pass");
-
-    auto clouds = manager.recieve<CloudsData>();
-
-    if (clouds) {
-        clouds_renderer.preRender(frame_data, clouds.value());
-    }
 
     updateCameraBuffer(frame_data);
 
@@ -61,25 +48,15 @@ Texture RenderPass::render(const FrameData& frame_data) {
         VK_PIPELINE_STAGE_2_NONE, VK_ACCESS_2_NONE,
         VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT,
         VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-            VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
+            VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+        VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
 
     frame_data.cmd.barrier(barriers);
 
     frame_data.cmd.bindRenderEnviroment(env);
 
-    auto stars = manager.recieve<StarsData>();
-    if (stars) {
-        star_renderer.render(frame_data, *stars);
-    }
-
-    while (auto model = manager.recieve<StaticModelData>()) {
-        static_mesh_renderer.queueMeshForRender(frame_data, model.value());
-    }
+    star_renderer.render(frame_data);
     static_mesh_renderer.render(frame_data);
-
-    if (clouds) {
-        clouds_renderer.render(frame_data, clouds.value());
-    }
 
     frame_data.cmd.unbindRenderEnviroment();
 
@@ -105,7 +82,7 @@ void RenderPass::createRenderEnviroment(Device& device) {
 
     auto device_properties = device.getDeviceProperties();
 
-    auto render_target_image =
+    render_target_texture =
         TextureBuilder(VK_FORMAT_R8G8B8A8_SRGB, config.render_width,
                        config.render_height)
             .isCopySource()
@@ -114,7 +91,7 @@ void RenderPass::createRenderEnviroment(Device& device) {
             .create(device, engine_data.texture_registry)
             .getResult();
 
-    auto depth_stencil_image =
+    depth_stencil_texture =
         TextureBuilder(device_properties.depth_format, config.render_width,
                        config.render_height)
             .isDepthStencil()
@@ -143,12 +120,13 @@ void RenderPass::createRenderEnviroment(Device& device) {
                       .isShaderResource()
                       .create(device, engine_data.texture_registry)
                       .getResult();
+
     post_process_env = RenderEnviroment{};
     post_process_env.width = width;
     post_process_env.height = height;
     post_process_env.render_target =
         device.createTextureView(final_image.getState());
-    env.clear_render_target = true;
+    post_process_env.clear_render_target = true;
 }
 
 void RenderPass::postProcessing(const FrameData& frame_data) {
