@@ -14,12 +14,24 @@
 
 <table>
   <tr>
+    <td align="center"><b>🏝️ Island View</b></td>
+    <td align="center"><b>🏔️ Landscape</b></td>
+    <td align="center"><b>🗼 Tower</b></td>
+  </tr>
+  <tr>
+    <td><img src="Screenshots/Island%20view.png" width="100%"></td>
+    <td><img src="Screenshots/Landscape.png" width="100%"></td>
+    <td><img src="Screenshots/Tower.png" width="100%"></td>
+  </tr>
+  <tr>
     <td align="center"><b>Dithering + Color Quantization (x16)</b></td>
     <td align="center"><b>No Post-Processing</b></td>
+    <td></td>
   </tr>
   <tr>
     <td><img src="Screenshots/Dithering%20%2B%20color%20quantization%20x16.png" width="100%"></td>
     <td><img src="Screenshots/Without%20postprocessing.png" width="100%"></td>
+    <td></td>
   </tr>
 </table>
 
