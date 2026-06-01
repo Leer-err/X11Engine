@@ -12,21 +12,19 @@ class TextureRegistry;
 class Texture {
    public:
     Texture();
-    Texture(TextureHandle handle, TextureState* texture,
-            TextureRegistry* registry);
+    Texture(TextureHandle handle, TextureRegistry* registry);
 
     TextureHandle getHandle() const;
     TextureState getState() const;
 
-    VkImageMemoryBarrier2 createBarrier(VkImageLayout new_layout,
-                                        VkPipelineStageFlags2 src_stages,
-                                        VkAccessFlags2 src_access,
-                                        VkPipelineStageFlags2 dst_stages,
-                                        VkAccessFlags2 dst_access);
+    VkImageMemoryBarrier2 createBarrier(
+        VkImageLayout new_layout, VkPipelineStageFlags2 src_stages,
+        VkAccessFlags2 src_access, VkPipelineStageFlags2 dst_stages,
+        VkAccessFlags2 dst_access,
+        VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT);
 
    private:
     TextureHandle handle;
-    TextureState* image;
     TextureRegistry* registry;
 };
 
