@@ -36,7 +36,7 @@ Scene::Scene() {
     auto vertices = reader.readVertices();
     auto indices = reader.readIndices();
 
-    tower_data.position = {-56, 22, -70};
+    tower_data.position = {-26, 9, -8};
     tower_data.mesh =
         renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
                           indices.data(), indices.size() * sizeof(uint32_t));
@@ -52,7 +52,7 @@ Scene::Scene() {
     File::ModelReader gem_reader = File::ModelReader("./Assets/Gem2.fbx");
     vertices = gem_reader.readVertices();
     indices = gem_reader.readIndices();
-    gem_data.position = {-56, 32, -70};
+    gem_data.position = {-26, 20, -8};
     gem_data.mesh =
         renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
                           indices.data(), indices.size() * sizeof(uint32_t));
@@ -60,15 +60,15 @@ Scene::Scene() {
 
     gem_data.albedo = renderer->addTexture(data, width, height);
 
-    File::ModelReader terrain_reader =
-        File::ModelReader("./Assets/Terrain.fbx");
+    File::ModelReader terrain_reader = File::ModelReader("./Assets/Island.fbx");
     vertices = terrain_reader.readVertices();
     indices = terrain_reader.readIndices();
-    terrain_data.position = {0, 20, 0};
+    terrain_data.position = {0, -50, 0};
     terrain_data.mesh =
         renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
                           indices.data(), indices.size() * sizeof(uint32_t));
-    data = stbi_load("./Assets/terrain.png", &width, &height, &channels, 0);
+    data =
+        stbi_load("./Assets/island_albedo.png", &width, &height, &channels, 0);
 
     terrain_data.albedo = renderer->addTexture(data, width, height);
 
