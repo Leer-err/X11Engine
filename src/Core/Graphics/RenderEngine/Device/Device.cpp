@@ -77,6 +77,10 @@ Result<TextureState, TextureError> Device::createTexture(
     return image_result;
 }
 
+void Device::destroyTexture(const TextureState& state) {
+    vmaDestroyImage(allocator, state.texture, state.allocation);
+}
+
 Result<Buffer, BufferError> Device::createBuffer(
     const VkBufferCreateInfo& buffer_info,
     const VmaAllocationCreateInfo& alloc_info) {
@@ -157,6 +161,8 @@ VkImageView Device::createTextureView(const TextureState& texture) {
     if (texture.format == properties.depth_format)
         info.subresourceRange.aspectMask =
             VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    else
+        info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
     VkImageView view;
     vkCreateImageView(device, &info, nullptr, &view);

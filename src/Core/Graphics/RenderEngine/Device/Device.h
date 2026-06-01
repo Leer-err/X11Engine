@@ -34,6 +34,7 @@ class Device {
     Result<TextureState, TextureError> createTexture(
         const VkImageCreateInfo& image_info,
         const VmaAllocationCreateInfo& alloc_info);
+    void destroyTexture(const TextureState& state);
 
     Result<Buffer, BufferError> createBuffer(
         const VkBufferCreateInfo& buffer_info,
