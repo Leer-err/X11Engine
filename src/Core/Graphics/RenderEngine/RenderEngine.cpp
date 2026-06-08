@@ -6,25 +6,20 @@
 
 #include <tracy/Tracy.hpp>
 #include <tracy/TracyVulkan.hpp>
-// #include "AppConfig.h"
-// #include "Context.h"
-// #include "Format.h"
-#include "AppConfig.h"
-// #include "Context.h"
-#include "BufferBuilder.h"
-#include "CommandBuffer.h"
-#include "CommandPool.h"
+
+#include "CameraData.h"
 #include "DescriptorSet.h"
-#include "DeviceProperties.h"
 #include "EngineData.h"
 #include "FrameData.h"
+#include "GraphicsCommunicationManager.h"
 #include "MeshBuilder.h"
 #include "MeshRegistry.h"
+#include "PostProcessingData.h"
 #include "RenderPass.h"
 #include "RenderingBackend.h"
 #include "ShaderRegistry.h"
 #include "StagingBuffer.h"
-#include "SwapChain.h"
+#include "StarsData.h"
 #include "TextureBuilder.h"
 #include "TextureRegistry.h"
 
@@ -89,6 +84,14 @@ MeshHandle RenderEngine::addMesh(void* vertex_data, size_t vertex_data_size,
 EngineData RenderEngine::getEngineData() {
     return EngineData{descriptor_set, shader_registry, mesh_registry,
                       texture_registry, staging_buffer};
+}
+
+void RenderEngine::updateRenderWorld() {
+    auto& manager = GraphicsCommunicationManager::get();
+
+    auto stars_data = manager.recieve<StarsData>();
+    auto post_processing_data = manager.recieve<PostProcessingData>();
+    auto camera_data = manager.recieve<CameraData>();
 }
 
 }  // namespace Graphics

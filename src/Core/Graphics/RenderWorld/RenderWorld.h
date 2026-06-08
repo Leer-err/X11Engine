@@ -9,6 +9,8 @@
 #include "StarsData.h"
 #include "TextureHandle.h"
 
+namespace Graphics {
+
 struct RenderObject {
     Matrix world_matrix;
     MeshHandle mesh;
@@ -20,6 +22,8 @@ using RenderObjectHandle = uint32_t;
 
 class RenderWorld {
    public:
+    RenderWorld();
+
     void setCameraData(const CameraData& camera_data);
     CameraData getCameraData() const;
     void setStarsData(const StarsData& data);
@@ -34,12 +38,15 @@ class RenderWorld {
                             const Matrix& world_matrix,
                             const MeshHandle& mesh_handle,
                             const TextureHandle& texture_handle);
-    RenderObject getRenderObject(const RenderObjectHandle& handle) const;
+    const std::vector<RenderObject>& getRenderObjects() const;
 
    private:
     std::vector<RenderObject> opaque_objects;
+    RenderObjectHandle next_handle;
 
     StarsData stars_data;
     PostProcessingData post_processing_data;
     CameraData camera_data;
 };
+
+}  // namespace Graphics

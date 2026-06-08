@@ -50,6 +50,7 @@ class RenderEngine final : public IRenderEngine {
     void endFrame(const CommandBuffer& cmd);
 
     void waitRenderFinished();
+    void updateRenderWorld();
 
     RenderingBackend backend;
 
