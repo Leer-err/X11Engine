@@ -3,6 +3,7 @@
 #include <cstddef>
 
 #include "MeshHandle.h"
+#include "RenderWorld.h"
 #include "TextureHandle.h"
 
 namespace Graphics {
@@ -10,6 +11,8 @@ namespace Graphics {
 class IRenderEngine {
    public:
     virtual void render() = 0;
+
+    virtual RenderWorld& getRenderWorld() = 0;
 
     virtual TextureHandle addTexture(void* data, uint32_t width,
                                      uint32_t height) = 0;

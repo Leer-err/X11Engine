@@ -24,7 +24,8 @@ target_link_libraries(Graphics
 )
 
 add_subdirectory(RenderEngine)
+add_subdirectory(RenderWorld)
 add_subdirectory(Overlay)
 add_subdirectory(Renderers)
 add_subdirectory(RenderData)
-add_subdirectory(GraphicsCommunicationManager)
+# add_subdirectory(GraphicsCommunicationManager)

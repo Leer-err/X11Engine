@@ -12,6 +12,7 @@ target_link_libraries(Engine
     PUBLIC
         Graphics
         Utility
+        Types
         Input
         Window
         STB

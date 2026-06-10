@@ -9,7 +9,7 @@
 #include "EngineData.h"
 #include "FrameData.h"
 #include "Matrix.h"
-#include "StaticModelData.h"
+#include "RenderWorld/RenderWorld.h"
 
 namespace Graphics {
 
@@ -30,20 +30,14 @@ class StaticMeshRenderer {
    public:
     StaticMeshRenderer(Device& device, const EngineData& engine_data);
 
-    void render(const FrameData& frame_data);
+    void render(const FrameData& frame_data, const RenderWorld& world);
     void setCameraData(VkDeviceAddress camera_data);
 
    private:
-    void queueMeshForRender(const FrameData& frame_data,
-                            const StaticModelData& model_data);
-
-    size_t next_object_index;
-
     EngineData engine_data;
 
     GraphicsPipeline pipeline;
 
-    std::array<StaticModelData, MAX_STATIC_MESHES_PER_DRAW> models;
     BufferedUniform<std::array<StaticModelBuffer, MAX_STATIC_MESHES_PER_DRAW>>
         model_data_buffer;
 

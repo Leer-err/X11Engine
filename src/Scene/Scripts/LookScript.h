@@ -6,6 +6,7 @@
 #include "Entity.h"
 #include "GameInputContext.h"
 #include "IScript.h"
+#include "RenderWorld/RenderWorld.h"
 
 class LookScript final : public IScript {
    public:
@@ -28,4 +29,6 @@ class LookScript final : public IScript {
     Entity player_entity;
 
     std::shared_ptr<Input::GameInputContext> input;
+
+    Graphics::RenderWorld& render_world;
 };

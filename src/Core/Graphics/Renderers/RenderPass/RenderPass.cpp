@@ -8,10 +8,10 @@
 #include "AppConfig.h"
 #include "CameraData.h"
 #include "Device.h"
-#include "GraphicsCommunicationManager.h"
 #include "OverlayRenderer.h"
 #include "PostProcessingPass.h"
 #include "RenderEnviroment.h"
+#include "RenderWorld/RenderWorld.h"
 #include "TextureBuilder.h"
 
 namespace Graphics {
@@ -21,12 +21,13 @@ RenderPass::RenderPass(Device& device, const EngineData& engine_data)
       camera_data_buffer(device),
       star_renderer(device, engine_data),
       static_mesh_renderer(device, engine_data),
-      post_processing_pass(device, engine_data),
-      overlay_renderer() {
+      overlay_renderer(),
+      post_processing_pass(device, engine_data) {
     createRenderEnviroment(device);
 }
 
-Texture RenderPass::render(const FrameData& frame_data) {
+Texture RenderPass::render(const FrameData& frame_data,
+                           const RenderWorld& world) {
     ZoneScoped;
 
     auto camera_data_address = camera_data_buffer.getDeviceAddress(frame_data);
@@ -36,7 +37,7 @@ Texture RenderPass::render(const FrameData& frame_data) {
 
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Render pass");
 
-    updateCameraBuffer(frame_data);
+    updateCameraBuffer(frame_data, world);
 
     std::array<VkImageMemoryBarrier2, 2> barriers;
     barriers[0] = render_target_texture.createBarrier(
@@ -55,23 +56,21 @@ Texture RenderPass::render(const FrameData& frame_data) {
 
     frame_data.cmd.bindRenderEnviroment(env);
 
-    star_renderer.render(frame_data);
-    static_mesh_renderer.render(frame_data);
+    star_renderer.render(frame_data, world);
+    static_mesh_renderer.render(frame_data, world);
 
     frame_data.cmd.unbindRenderEnviroment();
 
-    postProcessing(frame_data);
+    postProcessing(frame_data, world);
 
     return final_image;
 }
 
-void RenderPass::updateCameraBuffer(const FrameData& frame_data) {
-    auto camera_data =
-        GraphicsCommunicationManager::get().recieve<CameraData>();
+void RenderPass::updateCameraBuffer(const FrameData& frame_data,
+                                    const RenderWorld& world) {
+    auto camera_data = world.getCameraData();
 
-    if (!camera_data) return;
-
-    camera_data_buffer.update(frame_data, *camera_data);
+    camera_data_buffer.update(frame_data, camera_data);
 }
 
 void RenderPass::createRenderEnviroment(Device& device) {
@@ -129,7 +128,8 @@ void RenderPass::createRenderEnviroment(Device& device) {
     post_process_env.clear_render_target = true;
 }
 
-void RenderPass::postProcessing(const FrameData& frame_data) {
+void RenderPass::postProcessing(const FrameData& frame_data,
+                                const RenderWorld& world) {
     std::array<VkImageMemoryBarrier2, 2> barriers;
     barriers[0] = render_target_texture.createBarrier(
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
@@ -145,7 +145,7 @@ void RenderPass::postProcessing(const FrameData& frame_data) {
 
     frame_data.cmd.bindRenderEnviroment(post_process_env);
 
-    post_processing_pass.render(render_target_texture, frame_data);
+    post_processing_pass.render(render_target_texture, frame_data, world);
     overlay_renderer.render(frame_data);
 
     frame_data.cmd.unbindRenderEnviroment();

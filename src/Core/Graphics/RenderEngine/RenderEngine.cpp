@@ -2,26 +2,17 @@
 
 #include <VkBootstrap.h>
 #include <vulkan/vulkan.h>
-#include <vulkan/vulkan_core.h>
 
 #include <tracy/Tracy.hpp>
 #include <tracy/TracyVulkan.hpp>
 
-#include "CameraData.h"
 #include "DescriptorSet.h"
 #include "EngineData.h"
 #include "FrameData.h"
-#include "GraphicsCommunicationManager.h"
 #include "MeshBuilder.h"
 #include "MeshRegistry.h"
-#include "PostProcessingData.h"
-#include "RenderPass.h"
-#include "RenderingBackend.h"
-#include "ShaderRegistry.h"
 #include "StagingBuffer.h"
-#include "StarsData.h"
 #include "TextureBuilder.h"
-#include "TextureRegistry.h"
 
 namespace Graphics {
 
@@ -48,7 +39,7 @@ void RenderEngine::render() {
     FrameData frame = backend.beginFrame();
 
     staging_buffer.flush(frame.cmd);
-    auto rendered_image = render_pass->render(frame);
+    auto rendered_image = render_pass->render(frame, world);
 
     backend.endFrame(rendered_image);
 }
@@ -86,12 +77,6 @@ EngineData RenderEngine::getEngineData() {
                       texture_registry, staging_buffer};
 }
 
-void RenderEngine::updateRenderWorld() {
-    auto& manager = GraphicsCommunicationManager::get();
-
-    auto stars_data = manager.recieve<StarsData>();
-    auto post_processing_data = manager.recieve<PostProcessingData>();
-    auto camera_data = manager.recieve<CameraData>();
-}
+RenderWorld& RenderEngine::getRenderWorld() { return world; }
 
 }  // namespace Graphics

@@ -7,7 +7,6 @@
 #include <tracy/Tracy.hpp>
 
 #include "Graphics.h"
-#include "GraphicsCommunicationManager.h"
 #include "IScene.h"
 #include "Overlay.h"
 #include "PhysicalInput.h"
@@ -68,15 +67,13 @@ void Engine::update(IScene* scene, float delta_time) {
 
     renderer->render();
 
-    GraphicsCommunicationManager::get().clear();
-
     FrameMark;
 }
 
 void Engine::exit() { should_exit = true; }
 
 float Engine::getTime() const {
-    auto elapsed = clock.now();
+    auto elapsed = std::chrono::high_resolution_clock::now();
     return std::chrono::duration_cast<std::chrono::duration<float>>(elapsed -
                                                                     start)
         .count();

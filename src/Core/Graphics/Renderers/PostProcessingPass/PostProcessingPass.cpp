@@ -6,6 +6,7 @@
 #include "GraphicsPipelineBuilder.h"
 #include "MeshBuilder.h"
 #include "Overlay.h"
+#include "RenderWorld.h"
 #include "Sampler.h"
 #include "Vector3.h"
 
@@ -51,7 +52,8 @@ PostProcessingPass::PostProcessingPass(Device& device,
 }
 
 void PostProcessingPass::render(const Texture& input_image,
-                                const FrameData& frame_data) {
+                                const FrameData& frame_data,
+                                const RenderWorld& world) {
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Dithering");
 
     auto command_buffer = frame_data.cmd;

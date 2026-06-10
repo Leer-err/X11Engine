@@ -4,7 +4,7 @@
 #include "TextureHandle.h"
 #include "Vector3.h"
 
-struct StaticModelData {
+struct OpaqueRenderObjectData {
     Vector3 position;
 
     TextureHandle albedo;

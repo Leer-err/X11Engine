@@ -3,11 +3,14 @@
 #include <tracy/Tracy.hpp>
 
 #include "Engine.h"
-// #include "Overlay.h"
-#include "GraphicsCommunicationManager.h"
+#include "Graphics.h"
 #include "StarsData.h"
 
-Stars::Stars() : star_density(30), blinking_speed(1), blink_strength(0.6) {}
+Stars::Stars()
+    : star_density(30),
+      blinking_speed(1),
+      blink_strength(0.6f),
+      render_world(Graphics::getRenderEngine()->getRenderWorld()) {}
 
 void Stars::draw() {
     ZoneScoped;
@@ -18,5 +21,5 @@ void Stars::draw() {
     star_parameters.blink_strength = blink_strength;
     star_parameters.blinking_speed = blinking_speed;
 
-    GraphicsCommunicationManager::get().send(star_parameters);
+    render_world.setStarsData(star_parameters);
 }

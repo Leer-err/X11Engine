@@ -24,25 +24,19 @@ PostProcessingData RenderWorld::getPostProcessingData() const {
     return post_processing_data;
 }
 
-RenderObjectHandle RenderWorld::addRenderObject(
-    const Matrix& world_matrix, const MeshHandle& mesh_handle,
-    const TextureHandle& texture_handle) {
-    opaque_objects.emplace_back(world_matrix, mesh_handle, texture_handle);
+OpaqueObjectHandle RenderWorld::addOpaqueObject(
+    const OpaqueRenderObjectData& data) {
+    opaque_objects.emplace_back(data);
 
     return next_handle++;
 }
 
-void RenderWorld::updateRenderObject(const RenderObjectHandle& handle,
-                                     const Matrix& world_matrix,
-                                     const MeshHandle& mesh_handle,
-                                     const TextureHandle& texture_handle) {
-    auto& object = opaque_objects[handle];
-    object.world_matrix = world_matrix;
-    object.mesh = mesh_handle;
-    object.albedo = texture_handle;
+OpaqueRenderObjectData& RenderWorld::getOpaqueObject(
+    const OpaqueObjectHandle& handle) {
+    return opaque_objects.at(handle);
 }
 
-const std::vector<RenderObject>& RenderWorld::getRenderObjects() const {
+std::span<const OpaqueRenderObjectData> RenderWorld::getOpaqueObjects() const {
     return opaque_objects;
 }
 

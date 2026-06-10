@@ -4,7 +4,6 @@
 
 #include "CloudsData.h"
 #include "Engine.h"
-#include "GraphicsCommunicationManager.h"
 #include "Vector3.h"
 
 Clouds::Clouds() : cloud_plane_height(100), cloud_plane_size(1000) {}
@@ -17,6 +16,4 @@ void Clouds::draw() {
     cloud_parameters.color = Vector3(1, 0, 1);
     cloud_parameters.cloud_plane_scale = cloud_plane_size;
     cloud_parameters.height = cloud_plane_height;
-
-    GraphicsCommunicationManager::get().send(cloud_parameters);
 }

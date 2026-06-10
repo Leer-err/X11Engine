@@ -5,24 +5,17 @@
 #include <cstdint>
 
 #include "CommandBuffer.h"
-#include "CommandPool.h"
 #include "DescriptorSet.h"
 #include "Device.h"
-#include "DeviceProperties.h"
-#include "EngineConstants.h"
 #include "EngineData.h"
 #include "IRenderEngine.h"
 #include "MeshRegistry.h"
-// #include "PostProcessingPass.h"
 #include "Queue.h"
-#include "RenderEnviroment.h"
 #include "RenderPass.h"
+#include "RenderWorld.h"
 #include "RenderingBackend.h"
-#include "Semaphore.h"
 #include "ShaderRegistry.h"
 #include "StagingBuffer.h"
-#include "StarRenderer.h"
-#include "SwapChain.h"
 #include "TextureHandle.h"
 #include "TextureRegistry.h"
 #include "VkBootstrap.h"
@@ -38,6 +31,8 @@ class RenderEngine final : public IRenderEngine {
     void reinitWindowDependentResources();
     void render() override;
 
+    RenderWorld& getRenderWorld();
+
     TextureHandle addTexture(void* data, uint32_t width,
                              uint32_t height) override;
     MeshHandle addMesh(void* vertex_data, size_t vertex_data_size,
@@ -50,7 +45,6 @@ class RenderEngine final : public IRenderEngine {
     void endFrame(const CommandBuffer& cmd);
 
     void waitRenderFinished();
-    void updateRenderWorld();
 
     RenderingBackend backend;
 
@@ -61,8 +55,9 @@ class RenderEngine final : public IRenderEngine {
 
     StagingBuffer staging_buffer;
 
+    RenderWorld world;
+
     std::unique_ptr<RenderPass> render_pass;
-    // std::unique_ptr<PostProcessingPass> postprocess_pass;
 };
 
 }  // namespace Graphics

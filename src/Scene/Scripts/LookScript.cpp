@@ -2,7 +2,7 @@
 
 #include "CameraData.h"
 #include "GameInputContext.h"
-#include "GraphicsCommunicationManager.h"
+#include "Graphics.h"
 #include "Transform.h"
 #include "WorldMatrix.h"
 
@@ -14,7 +14,8 @@ LookScript::LookScript(const Entity& head_entity, const Entity& player_entity,
       camera(camera),
       input(input),
       current_pitch(0),
-      current_yaw(0) {}
+      current_yaw(0),
+      render_world(Graphics::getRenderEngine()->getRenderWorld()) {}
 
 void LookScript::update(float delta_time) {
     ZoneScoped;
@@ -60,5 +61,5 @@ void LookScript::preRender() {
     data.view_projection = projection * view;
     data.inverse_view_projection = data.view_projection.inverse();
 
-    GraphicsCommunicationManager::get().send(data);
+    render_world.setCameraData(data);
 }

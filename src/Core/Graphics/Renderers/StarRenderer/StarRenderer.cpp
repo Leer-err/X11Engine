@@ -8,9 +8,9 @@
 #include "CommandBuffer.h"
 #include "Device.h"
 #include "EngineData.h"
-#include "GraphicsCommunicationManager.h"
 #include "GraphicsPipelineBuilder.h"
 #include "MeshBuilder.h"
+#include "RenderWorld/RenderWorld.h"
 #include "StarsData.h"
 #include "Vector3.h"
 
@@ -35,15 +35,14 @@ StarRenderer::StarRenderer(Device& device, const EngineData& engine_data)
                    .getResult();
 }
 
-void StarRenderer::render(const FrameData& frame_data) {
+void StarRenderer::render(const FrameData& frame_data,
+                          const RenderWorld& world) {
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Stars");
-
-    auto stars_data = GraphicsCommunicationManager::get().recieve<StarsData>();
-    if (!stars_data) return;
 
     auto command_buffer = frame_data.cmd;
 
-    stars_data_buffer.update(frame_data, *stars_data);
+    auto stars_data = world.getStarsData();
+    stars_data_buffer.update(frame_data, stars_data);
     push_constants.stars_data = stars_data_buffer.getDeviceAddress(frame_data);
 
     command_buffer.setPipeline(pipeline);

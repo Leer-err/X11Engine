@@ -2,19 +2,16 @@
 
 #include <vulkan/vulkan.h>
 
-#include "GraphicsCommunicationManager.h"
 #include "GraphicsPipelineBuilder.h"
 #include "Matrix.h"
+#include "RenderWorld.h"
 #include "Sampler.h"
-#include "StaticModelData.h"
 
 namespace Graphics {
 
 StaticMeshRenderer::StaticMeshRenderer(Device& device,
                                        const EngineData& engine_data)
-    : next_object_index(0),
-      engine_data(engine_data),
-      model_data_buffer(device) {
+    : engine_data(engine_data), model_data_buffer(device) {
     pipeline =
         GraphicsPipelineBuilder(
             "./Assets/Shaders/StaticModel/StaticModel.spv", "vertex_main",
@@ -26,19 +23,9 @@ StaticMeshRenderer::StaticMeshRenderer(Device& device,
         engine_data.descriptor_set.addSampler(Sampler::linear(device));
 }
 
-void StaticMeshRenderer::queueMeshForRender(const FrameData& frame_data,
-                                            const StaticModelData& model_data) {
-    models.at(next_object_index) = model_data;
-    next_object_index++;
-}
-
-void StaticMeshRenderer::render(const FrameData& frame_data) {
+void StaticMeshRenderer::render(const FrameData& frame_data,
+                                const RenderWorld& world) {
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Static mesh");
-
-    while (auto model_data =
-               GraphicsCommunicationManager::get().recieve<StaticModelData>()) {
-        queueMeshForRender(frame_data, *model_data);
-    }
 
     auto command_buffer = frame_data.cmd;
 
@@ -46,28 +33,23 @@ void StaticMeshRenderer::render(const FrameData& frame_data) {
 
     command_buffer.setPipeline(pipeline);
 
-    for (int i = 0; i < next_object_index; i++) {
-        StaticModelData model_data = models.at(i);
+    auto objects = world.getOpaqueObjects();
+    for (int i = 0; i < objects.size(); i++) {
+        const auto& model = objects[i];
 
-        StaticModelBuffer buffer = {};
-        buffer.model = Matrix::translation(model_data.position);
-        buffer.albedo_descriptor = model_data.albedo;
-        buffer.albedo_sampler = sampler_index;
-
-        (*buffer_ptr)[i] = buffer;
+        auto& model_data = (*buffer_ptr)[i];
+        model_data.model = Matrix::translation(model.position);
+        model_data.albedo_descriptor = model.albedo;
+        model_data.albedo_sampler = sampler_index;
 
         push_constants.model_data =
             model_data_buffer.getDeviceAddress(frame_data) +
             sizeof(StaticModelBuffer) * i;
 
         command_buffer.pushConstants(pipeline, &push_constants);
-        auto mesh = engine_data.mesh_registry.getMesh(model_data.mesh);
-        if (mesh) {
-            command_buffer.draw(*mesh);
-        }
+        auto mesh = engine_data.mesh_registry.getMesh(model.mesh);
+        command_buffer.draw(*mesh);
     }
-
-    next_object_index = 0;
 }
 
 void StaticMeshRenderer::setCameraData(const VkDeviceAddress camera_data) {

@@ -5,6 +5,7 @@
 #include "FrameData.h"
 #include "GraphicsPipeline.h"
 #include "Mesh.h"
+#include "RenderWorld/RenderWorld.h"
 #include "StarsData.h"
 
 namespace Graphics {
@@ -18,7 +19,7 @@ class StarRenderer {
    public:
     StarRenderer(Device& device, const EngineData& engine_data);
 
-    void render(const FrameData& frame_data);
+    void render(const FrameData& frame_data, const RenderWorld& world);
 
     void setCameraData(VkDeviceAddress camera_data);
 
