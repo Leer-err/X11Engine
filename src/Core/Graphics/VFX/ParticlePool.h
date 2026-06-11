@@ -1,8 +1,10 @@
 #pragma once
 
 #include <cstddef>
+#include <deque>
 #include <vector>
 
+#include "ParticleHandle.h"
 #include "TextureHandle.h"
 #include "Vector3.h"
 
@@ -20,11 +22,14 @@ class ParticlePool {
    public:
     explicit ParticlePool(size_t size);
 
-    size_t allocate();
-    void free(size_t index);
+    ParticleHandle allocate();
+    void free(ParticleHandle index);
+
+    const ParticleBatchState& getBatch() const;
 
    private:
     ParticleBatchState batch;
+    std::deque<size_t> free_list;
 };
 
 }  // namespace Graphics

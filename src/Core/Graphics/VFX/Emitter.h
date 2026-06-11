@@ -9,7 +9,9 @@ namespace Graphics {
 
 class Emitter {
    public:
-    void update();
+    Emitter(ParticlePool& pool, size_t particle_count);
+
+    void update(float delta_time);
 
    private:
     ParticlePool& pool;

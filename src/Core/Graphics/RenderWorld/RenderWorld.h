@@ -5,8 +5,10 @@
 
 #include "CameraData.h"
 #include "OpaqueRenderObjectData.h"
+#include "ParticlePool.h"
 #include "PostProcessingData.h"
 #include "StarsData.h"
+#include "VFXWorld.h"
 
 namespace Graphics {
 
@@ -27,9 +29,14 @@ class RenderWorld {
     OpaqueRenderObjectData& getOpaqueObject(const OpaqueObjectHandle& handle);
     std::span<const OpaqueRenderObjectData> getOpaqueObjects() const;
 
+    const ParticleBatchState& getParticles() const;
+
    private:
     std::vector<OpaqueRenderObjectData> opaque_objects;
     OpaqueObjectHandle next_handle;
+
+    ParticlePool particle_pool;
+    std::vector<Effect> effects;
 
     StarsData stars_data;
     PostProcessingData post_processing_data;

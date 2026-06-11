@@ -1,8 +1,11 @@
 #include "RenderWorld.h"
 
+#include "ParticlePool.h"
+
 namespace Graphics {
 
-RenderWorld::RenderWorld() : next_handle(0) {}
+RenderWorld::RenderWorld()
+    : next_handle(0), particle_pool(1000), effects({Effect(particle_pool)}) {}
 
 void RenderWorld::setCameraData(const CameraData& data) {
     this->camera_data = data;
@@ -38,6 +41,10 @@ OpaqueRenderObjectData& RenderWorld::getOpaqueObject(
 
 std::span<const OpaqueRenderObjectData> RenderWorld::getOpaqueObjects() const {
     return opaque_objects;
+}
+
+const ParticleBatchState& RenderWorld::getParticles() const {
+    return particle_pool.getBatch();
 }
 
 }  // namespace Graphics
