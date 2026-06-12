@@ -242,3 +242,16 @@ target_sources(STB
 	PRIVATE
 		STBUsage.cpp
 )
+
+# meshoptimizer
+
+add_library(meshoptimizer STATIC)
+
+target_include_directories(meshoptimizer PUBLIC
+	${CMAKE_CURRENT_SOURCE_DIR}/meshoptimizer/src
+)
+
+target_sources(meshoptimizer
+	PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}/meshoptimizer/src/meshletcodec.cpp
+)

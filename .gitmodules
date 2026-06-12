@@ -28,3 +28,6 @@
 [submodule "Dependencies/stb"]
 	path = Dependencies/stb
 	url = https://github.com/nothings/stb.git
+[submodule "Dependencies/meshoptimizer"]
+	path = Dependencies/meshoptimizer
+	url = https://github.com/zeux/meshoptimizer.git

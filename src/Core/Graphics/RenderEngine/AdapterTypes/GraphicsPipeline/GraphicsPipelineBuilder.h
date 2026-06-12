@@ -1,20 +1,13 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include <vulkan/vulkan_core.h>
 
-#include <optional>
 #include <string>
 
-#include "EngineData.h"
 #include "GraphicsPipeline.h"
-
-// #include "InputLayout.h"
-#include "InputLayout.h"
 #include "Result.h"
 #include "Shader.h"
 #include "ShaderRegistry.h"
-// #include "RenderTarget.h"
 
 namespace Graphics {
 
@@ -22,8 +15,8 @@ class GraphicsPipelineBuilder {
    public:
     enum class Error { ShaderNotBuilt, VertexInputTypeNotSupported };
 
-    GraphicsPipelineBuilder(const std::string& vertex_shader_filename,
-                            const std::string& vertex_shader_entrypoint,
+    GraphicsPipelineBuilder(const std::string& mesh_shader_filename,
+                            const std::string& mesh_shader_entrypoint,
                             const std::string& pixel_shader_filename,
                             const std::string& pixel_shader_entrypoint);
 
@@ -41,8 +34,8 @@ class GraphicsPipelineBuilder {
         const std::string& filename, const std::string& entrypoint,
         VkShaderStageFlagBits stage);
 
-    const std::string& vertex_shader_filename;
-    const std::string& vertex_shader_entrypoint;
+    const std::string& mesh_shader_filename;
+    const std::string& mesh_shader_entrypoint;
     const std::string& pixel_shader_filename;
     const std::string& pixel_shader_entrypoint;
 

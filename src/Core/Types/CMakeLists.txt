@@ -18,4 +18,5 @@ target_compile_definitions(Types PUBLIC GLM_FORCE_DEPTH_ZERO_TO_ONE GLM_ENABLE_E
 
 add_subdirectory(Result)
 add_subdirectory(Math)
+add_subdirectory(Mesh)
 add_subdirectory(Vertex)

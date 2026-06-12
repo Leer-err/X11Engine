@@ -1,11 +1,9 @@
 #include "GraphicsPipelineBuilder.h"
 
 #include <vulkan/vulkan.h>
-#include <vulkan/vulkan_core.h>
 
 #include <array>
 
-#include "EngineData.h"
 #include "GraphicsPipeline.h"
 #include "InputLayout.h"
 #include "InputLayoutBuilder.h"
@@ -16,12 +14,12 @@
 namespace Graphics {
 
 GraphicsPipelineBuilder::GraphicsPipelineBuilder(
-    const std::string& vertex_shader_filename,
-    const std::string& vertex_shader_entrypoint,
+    const std::string& mesh_shader_filename,
+    const std::string& mesh_shader_entrypoint,
     const std::string& pixel_shader_filename,
     const std::string& pixel_shader_entrypoint)
-    : vertex_shader_filename(vertex_shader_filename),
-      vertex_shader_entrypoint(vertex_shader_entrypoint),
+    : mesh_shader_filename(mesh_shader_filename),
+      mesh_shader_entrypoint(mesh_shader_entrypoint),
       pixel_shader_filename(pixel_shader_filename),
       pixel_shader_entrypoint(pixel_shader_entrypoint),
       render_target_format(VK_FORMAT_R8G8B8A8_SRGB),
@@ -46,21 +44,21 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::setRenderTargetFormat(
 Result<GraphicsPipeline, GraphicsPipelineBuilder::Error>
 GraphicsPipelineBuilder::create(Device& device,
                                 ShaderRegistry& shader_registry) {
-    auto vertex_shader_result =
-        createShader(device, shader_registry, vertex_shader_filename,
-                     vertex_shader_entrypoint, VK_SHADER_STAGE_VERTEX_BIT);
+    auto mesh_shader_result =
+        createShader(device, shader_registry, mesh_shader_filename,
+                     mesh_shader_entrypoint, VK_SHADER_STAGE_MESH_BIT_EXT);
     auto pixel_shader_result =
         createShader(device, shader_registry, pixel_shader_filename,
                      pixel_shader_entrypoint, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-    if (vertex_shader_result.isError() || pixel_shader_result.isError())
+    if (mesh_shader_result.isError() || pixel_shader_result.isError())
         return Error::ShaderNotBuilt;
 
-    auto vertex_shader = vertex_shader_result.getResult();
+    auto vertex_shader = mesh_shader_result.getResult();
     auto pixel_shader = pixel_shader_result.getResult();
 
     auto input_layout_result =
-        InputLayoutBuilder(shader_registry, vertex_shader_filename).create();
+        InputLayoutBuilder(shader_registry, mesh_shader_filename).create();
 
     if (input_layout_result.isError()) {
         switch (input_layout_result.getError()) {
@@ -87,16 +85,16 @@ GraphicsPipelineBuilder::create(Device& device,
         VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     input_assembly_state.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
-    VkPipelineVertexInputStateCreateInfo vertex_input_state = {};
-    vertex_input_state.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertex_input_state.vertexBindingDescriptionCount = 1;
-    vertex_input_state.pVertexBindingDescriptions =
-        &input_layout.buffer_binding_description;
-    vertex_input_state.vertexAttributeDescriptionCount =
-        static_cast<uint32_t>(input_layout.elements.size());
-    vertex_input_state.pVertexAttributeDescriptions =
-        input_layout.elements.data();
+    // VkPipelineVertexInputStateCreateInfo vertex_input_state = {};
+    // vertex_input_state.sType =
+    //     VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    // vertex_input_state.vertexBindingDescriptionCount = 1;
+    // vertex_input_state.pVertexBindingDescriptions =
+    //     &input_layout.buffer_binding_description;
+    // vertex_input_state.vertexAttributeDescriptionCount =
+    //     static_cast<uint32_t>(input_layout.elements.size());
+    // vertex_input_state.pVertexAttributeDescriptions =
+    //     input_layout.elements.data();
 
     VkPipelineViewportStateCreateInfo viewport_state = {};
     viewport_state.sType =
@@ -156,7 +154,7 @@ GraphicsPipelineBuilder::create(Device& device,
     pipeline_info.pNext = &rendering;
     pipeline_info.stageCount = shader_stages.size();
     pipeline_info.pStages = shader_stages.data();
-    pipeline_info.pVertexInputState = &vertex_input_state;
+    pipeline_info.pVertexInputState = nullptr;
     pipeline_info.pInputAssemblyState = &input_assembly_state;
     pipeline_info.pViewportState = &viewport_state;
     pipeline_info.pMultisampleState = &multisampling_state;

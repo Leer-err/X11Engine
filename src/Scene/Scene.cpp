@@ -32,40 +32,41 @@ Scene::Scene() {
 
     OpaqueRenderObjectData tower_data = {};
     auto tower_reader = File::ModelReader("./Assets/Tower.fbx");
-    auto vertices = tower_reader.readVertices();
-    auto indices = tower_reader.readIndices();
-    tower_data.position = {-26, 9, -8};
-    tower_data.mesh =
-        renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
-                          indices.data(), indices.size() * sizeof(uint32_t));
-    data = stbi_load("./Assets/tower.png", &width, &height, &channels, 0);
-    tower_data.albedo = renderer->addTexture(data, width, height);
-    renderer->getRenderWorld().addOpaqueObject(tower_data);
+    // auto vertices = tower_reader.readVertices();
+    // auto indices = tower_reader.readIndices();
+    // tower_data.position = {-26, 9, -8};
+    // tower_data.mesh =
+    //     renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
+    //                       indices.data(), indices.size() * sizeof(uint32_t));
+    // data = stbi_load("./Assets/tower.png", &width, &height, &channels, 0);
+    // tower_data.albedo = renderer->addTexture(data, width, height);
+    // renderer->getRenderWorld().addOpaqueObject(tower_data);
 
-    OpaqueRenderObjectData gem_data = {};
-    auto gem_reader = File::ModelReader("./Assets/Gem2.fbx");
-    vertices = gem_reader.readVertices();
-    indices = gem_reader.readIndices();
-    gem_data.position = {-26, 20, -8};
-    gem_data.mesh =
-        renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
-                          indices.data(), indices.size() * sizeof(uint32_t));
-    data = stbi_load("./Assets/gem2.png", &width, &height, &channels, 0);
-    gem_data.albedo = renderer->addTexture(data, width, height);
-    renderer->getRenderWorld().addOpaqueObject(gem_data);
+    // OpaqueRenderObjectData gem_data = {};
+    // auto gem_reader = File::ModelReader("./Assets/Gem2.fbx");
+    // vertices = gem_reader.readVertices();
+    // indices = gem_reader.readIndices();
+    // gem_data.position = {-26, 20, -8};
+    // gem_data.mesh =
+    //     renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
+    //                       indices.data(), indices.size() * sizeof(uint32_t));
+    // data = stbi_load("./Assets/gem2.png", &width, &height, &channels, 0);
+    // gem_data.albedo = renderer->addTexture(data, width, height);
+    // renderer->getRenderWorld().addOpaqueObject(gem_data);
 
-    OpaqueRenderObjectData terrain_data = {};
-    auto terrain_reader = File::ModelReader("./Assets/Island.fbx");
-    vertices = terrain_reader.readVertices();
-    indices = terrain_reader.readIndices();
-    terrain_data.position = {0, -50, 0};
-    terrain_data.mesh =
-        renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
-                          indices.data(), indices.size() * sizeof(uint32_t));
-    data =
-        stbi_load("./Assets/island_albedo.png", &width, &height, &channels, 0);
-    terrain_data.albedo = renderer->addTexture(data, width, height);
-    renderer->getRenderWorld().addOpaqueObject(terrain_data);
+    // OpaqueRenderObjectData terrain_data = {};
+    // auto terrain_reader = File::ModelReader("./Assets/Island.fbx");
+    // vertices = terrain_reader.readVertices();
+    // indices = terrain_reader.readIndices();
+    // terrain_data.position = {0, -50, 0};
+    // terrain_data.mesh =
+    //     renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
+    //                       indices.data(), indices.size() * sizeof(uint32_t));
+    // data =
+    //     stbi_load("./Assets/island_albedo.png", &width, &height, &channels,
+    //     0);
+    // terrain_data.albedo = renderer->addTexture(data, width, height);
+    // renderer->getRenderWorld().addOpaqueObject(terrain_data);
 
     auto input = std::make_shared<Input::GameInputContext>();
     input->addBinding(Input::GameAxes::LookYaw, Input::Axis::MOUSE_X);

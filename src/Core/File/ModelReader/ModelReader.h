@@ -8,18 +8,21 @@
 #include <cstdint>
 #include <vector>
 
+#include "Mesh.h"
 #include "VertexFormats.h"
 
 namespace File {
 
 class ModelReader {
    public:
-    ModelReader(const std::string& filename);
+    explicit ModelReader(const std::string& filename);
 
+    Mesh readMesh() const;
+
+   private:
     std::vector<Vertex> readVertices() const;
     std::vector<uint32_t> readIndices() const;
 
-   private:
     Assimp::Importer importer;
 
     aiMesh* mesh;

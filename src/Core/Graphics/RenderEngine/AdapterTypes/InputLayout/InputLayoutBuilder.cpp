@@ -46,14 +46,14 @@ InputLayoutBuilder& InputLayoutBuilder::setPushConstantsSize(size_t size) {
 
 Result<InputLayout, InputLayoutBuilder::Error> InputLayoutBuilder::create() {
     if (vertex_shader_file.empty() == false) {
-        auto shader_elements = getElementsFromShader(vertex_shader_file);
+        // auto shader_elements = getElementsFromShader(vertex_shader_file);
         auto shader_push_constants =
             getPushConstantsFromShader(vertex_shader_file);
 
-        if (!shader_elements.isError() && !shader_push_constants.isError()) {
-            elements = shader_elements.getResult();
-            push_constants_size = shader_push_constants.getResult();
-        }
+        // if (!shader_elements.isError() && !shader_push_constants.isError()) {
+        //     elements = shader_elements.getResult();
+        //     push_constants_size = shader_push_constants.getResult();
+        // }
     }
 
     std::vector<VkVertexInputAttributeDescription> vertexAttributes;

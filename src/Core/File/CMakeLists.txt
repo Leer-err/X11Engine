@@ -11,6 +11,7 @@ target_link_libraries(File
     PUBLIC
         Assimp
         Types
+        meshoptimizer
 )
 
 add_subdirectory(ModelReader)
