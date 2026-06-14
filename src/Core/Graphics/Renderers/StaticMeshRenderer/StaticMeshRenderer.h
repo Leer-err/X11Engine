@@ -23,6 +23,11 @@ class StaticMeshRenderer {
     };
 
     struct PushConstants {
+        VkDeviceAddress vertices;
+        VkDeviceAddress meshlet_triangles;
+        VkDeviceAddress meshlet_vertices;
+        VkDeviceAddress meshlets;
+
         VkDeviceAddress camera_data;
         VkDeviceAddress model_data;
     };

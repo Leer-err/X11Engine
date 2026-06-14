@@ -32,9 +32,7 @@ class InputLayoutBuilder {
     Result<InputLayout, Error> create();
 
    private:
-    Result<std::vector<VkFormat>, Error> getElementsFromShader(
-        const std::string& vertex_shader_file);
-    Result<size_t, Error> getPushConstantsFromShader(
+    Result<std::vector<size_t>, Error> getPushConstantsFromShader(
         const std::string& vertex_shader_file);
 
     Result<VkFormat, Error> parseType(const SpvReflectFormat& type);
@@ -43,9 +41,7 @@ class InputLayoutBuilder {
 
     std::string vertex_shader_file;
 
-    std::vector<VkFormat> elements;
-
-    size_t push_constants_size;
+    std::vector<size_t> push_constant_ranges;
 };
 
 }  // namespace Graphics

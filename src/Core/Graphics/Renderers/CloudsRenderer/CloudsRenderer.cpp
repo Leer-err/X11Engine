@@ -85,9 +85,9 @@ void CloudsRenderer::render(const FrameData& frame_data,
     command_buffer.bindDescriptorSet(cloud_pipeline,
                                      engine_data.descriptor_set);
 
-    command_buffer.pushConstants(cloud_pipeline, &push_constants);
+    command_buffer.pushConstants(cloud_pipeline, &push_constants, 0);
 
-    command_buffer.draw(cloud_plane);
+    // command_buffer.draw(cloud_plane);
 }
 
 void CloudsRenderer::preRender(const FrameData& frame_data,
@@ -114,10 +114,10 @@ void CloudsRenderer::preRender(const FrameData& frame_data,
 
     auto clouds_device_address =
         clouds_data_buffer.getDeviceAddress(frame_data);
-    command_buffer.pushConstants(cloud_texture_pipeline,
-                                 &clouds_device_address);
+    command_buffer.pushConstants(cloud_texture_pipeline, &clouds_device_address,
+                                 0);
 
-    command_buffer.draw(quad);
+    // command_buffer.draw(quad);
 
     command_buffer.unbindRenderEnviroment();
 

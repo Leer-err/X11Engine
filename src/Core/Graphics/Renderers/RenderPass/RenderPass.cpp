@@ -19,9 +19,9 @@ namespace Graphics {
 RenderPass::RenderPass(Device& device, const EngineData& engine_data)
     : engine_data(engine_data),
       camera_data_buffer(device),
-      star_renderer(device, engine_data),
+      //   star_renderer(device, engine_data),
       static_mesh_renderer(device, engine_data),
-      overlay_renderer(),
+      //   overlay_renderer(),
       post_processing_pass(device, engine_data) {
     createRenderEnviroment(device);
 }
@@ -32,7 +32,7 @@ Texture RenderPass::render(const FrameData& frame_data,
 
     auto camera_data_address = camera_data_buffer.getDeviceAddress(frame_data);
 
-    star_renderer.setCameraData(camera_data_address);
+    // star_renderer.setCameraData(camera_data_address);
     static_mesh_renderer.setCameraData(camera_data_address);
 
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Render pass");
@@ -56,7 +56,7 @@ Texture RenderPass::render(const FrameData& frame_data,
 
     frame_data.cmd.bindRenderEnviroment(env);
 
-    star_renderer.render(frame_data, world);
+    // star_renderer.render(frame_data, world);
     static_mesh_renderer.render(frame_data, world);
 
     frame_data.cmd.unbindRenderEnviroment();
@@ -146,7 +146,7 @@ void RenderPass::postProcessing(const FrameData& frame_data,
     frame_data.cmd.bindRenderEnviroment(post_process_env);
 
     post_processing_pass.render(render_target_texture, frame_data, world);
-    overlay_renderer.render(frame_data);
+    // overlay_renderer.render(frame_data);
 
     frame_data.cmd.unbindRenderEnviroment();
 }

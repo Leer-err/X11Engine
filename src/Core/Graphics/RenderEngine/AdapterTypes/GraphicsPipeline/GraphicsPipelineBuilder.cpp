@@ -73,8 +73,7 @@ GraphicsPipelineBuilder::create(Device& device,
     auto input_layout = input_layout_result.getResult();
 
     auto pipeline = GraphicsPipeline{};
-    pipeline.layout =
-        device.createPipelineLayout(input_layout.push_constants_size);
+    pipeline.layout = device.createPipelineLayout(input_layout.push_constants);
 
     auto device_properties = device.getDeviceProperties();
 
@@ -85,16 +84,9 @@ GraphicsPipelineBuilder::create(Device& device,
         VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     input_assembly_state.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
-    // VkPipelineVertexInputStateCreateInfo vertex_input_state = {};
-    // vertex_input_state.sType =
-    //     VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    // vertex_input_state.vertexBindingDescriptionCount = 1;
-    // vertex_input_state.pVertexBindingDescriptions =
-    //     &input_layout.buffer_binding_description;
-    // vertex_input_state.vertexAttributeDescriptionCount =
-    //     static_cast<uint32_t>(input_layout.elements.size());
-    // vertex_input_state.pVertexAttributeDescriptions =
-    //     input_layout.elements.data();
+    VkPipelineVertexInputStateCreateInfo vertex_input_state = {};
+    vertex_input_state.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
     VkPipelineViewportStateCreateInfo viewport_state = {};
     viewport_state.sType =

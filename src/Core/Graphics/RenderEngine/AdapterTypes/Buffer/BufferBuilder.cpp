@@ -17,7 +17,8 @@ BufferBuilder::BufferBuilder(size_t size) : buffer_info(), alloc_info() {
 }
 
 BufferBuilder& BufferBuilder::isShaderResource() {
-    buffer_info.usage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+    buffer_info.usage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                         VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
     return *this;
 }
 

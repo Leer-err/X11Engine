@@ -5,13 +5,18 @@
 
 #include <cstddef>
 
-#include "Buffer.h"
 #include "ExtensionFunctions.h"
 #include "GraphicsPipeline.h"
 #include "RenderEnviroment.h"
-#include "Texture.h"
 
 namespace Graphics {
+
+struct MeshData {
+    VkDeviceAddress vertices;
+    VkDeviceAddress meshlet_triangles;
+    VkDeviceAddress meshlet_vertices;
+    VkDeviceAddress meshlets;
+};
 
 void CommandBuffer::begin() const {
     VkCommandBufferBeginInfo info = {};
@@ -70,9 +75,13 @@ void CommandBuffer::blit(const TextureState& src, TextureState& dst) const {
 }
 
 void CommandBuffer::pushConstants(const GraphicsPipeline& pipeline,
-                                  const void* constants,
+                                  const void* constants, size_t constant_offset,
                                   size_t constant_size) const {
-    vkCmdPushConstants(buffer, pipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, 0,
+    constexpr VkShaderStageFlags stages = VK_SHADER_STAGE_TASK_BIT_EXT |
+                                          VK_SHADER_STAGE_MESH_BIT_EXT |
+                                          VK_SHADER_STAGE_FRAGMENT_BIT;
+
+    vkCmdPushConstants(buffer, pipeline.layout, stages, constant_offset,
                        constant_size, constants);
 }
 
@@ -81,16 +90,8 @@ void CommandBuffer::setPipeline(const GraphicsPipeline& pipeline) const {
                       pipeline.pipeline);
 }
 
-void CommandBuffer::draw(const Mesh& mesh) const {
-    vkCmdBindIndexBuffer(buffer, mesh.index_buffer.buffer, 0,
-                         VK_INDEX_TYPE_UINT32);
-
-    VkDeviceSize vertex_buffer_offset = 0;
-    vkCmdBindVertexBuffers(buffer, 0, 1, &mesh.vertex_buffer.buffer,
-                           &vertex_buffer_offset);
-
-    auto index_count = mesh.index_buffer.size / sizeof(uint32_t);
-    vkCmdDrawIndexed(buffer, index_count, 1, 0, 0, 0);
+void CommandBuffer::draw(uint32_t meshlet_count) const {
+    vkCmdDrawMeshTasksEXT(buffer, meshlet_count, 1, 1);
 }
 
 void CommandBuffer::bindDescriptorSet(const GraphicsPipeline& pipeline,

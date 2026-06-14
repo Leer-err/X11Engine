@@ -23,4 +23,7 @@ extern PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT
     vkGetPhysicalDeviceCalibrateableTimeDomainsEXT;
 extern PFN_vkGetCalibratedTimestampsEXT vkGetCalibratedTimestampsEXT;
 
+// VK_EXT_mesh_shader
+extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasksEXT;
+
 }  // namespace Graphics

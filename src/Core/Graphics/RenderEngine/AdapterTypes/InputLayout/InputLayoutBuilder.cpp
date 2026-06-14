@@ -32,28 +32,14 @@ InputLayoutBuilder::InputLayoutBuilder(ShaderRegistry& shader_registry,
 
 InputLayoutBuilder::~InputLayoutBuilder() {}
 
-InputLayoutBuilder& InputLayoutBuilder::addElement(VkFormat format) {
-    elements.push_back(format);
-
-    return *this;
-}
-
-InputLayoutBuilder& InputLayoutBuilder::setPushConstantsSize(size_t size) {
-    push_constants_size = size;
-
-    return *this;
-}
-
 Result<InputLayout, InputLayoutBuilder::Error> InputLayoutBuilder::create() {
     if (vertex_shader_file.empty() == false) {
-        // auto shader_elements = getElementsFromShader(vertex_shader_file);
         auto shader_push_constants =
             getPushConstantsFromShader(vertex_shader_file);
 
-        // if (!shader_elements.isError() && !shader_push_constants.isError()) {
-        //     elements = shader_elements.getResult();
-        //     push_constants_size = shader_push_constants.getResult();
-        // }
+        if (!shader_push_constants.isError()) {
+            push_constant_ranges = shader_push_constants.getResult();
+        }
     }
 
     std::vector<VkVertexInputAttributeDescription> vertexAttributes;
@@ -62,72 +48,9 @@ Result<InputLayout, InputLayoutBuilder::Error> InputLayoutBuilder::create() {
     size_t element_index = 0;
 
     auto result = InputLayout{};
-    result.elements.reserve(elements.size());
-
-    for (const auto& format : elements) {
-        auto format_size = getFormatSize(format);
-
-        if (format_size == 0) return Error::UnsupportedElementFormat;
-
-        VkVertexInputAttributeDescription desc = {};
-        desc.binding = 0;
-        desc.format = format;
-        desc.location = element_index;
-        desc.offset = vertex_size;
-
-        result.elements.push_back(desc);
-
-        vertex_size += format_size;
-        element_index++;
-    }
-
-    VkVertexInputBindingDescription binding;
-    binding.binding = 0;
-    binding.stride = static_cast<uint32_t>(vertex_size);
-    binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-    result.buffer_binding_description = binding;
-    result.push_constants_size = push_constants_size;
+    result.push_constants = push_constant_ranges;
 
     return result;
-}
-
-Result<std::vector<VkFormat>, InputLayoutBuilder::Error>
-InputLayoutBuilder::getElementsFromShader(
-    const std::string& vertex_shader_file) {
-    auto shader_source = shader_registry.getShaderBytecode(vertex_shader_file);
-    if (!shader_source) return Error::FileNotFound;
-
-    SpvReflectShaderModule module;
-    SpvReflectResult result = spvReflectCreateShaderModule(
-        shader_source->size(), shader_source->data(), &module);
-    if (result != SPV_REFLECT_RESULT_SUCCESS) return Error::ParseError;
-
-    uint32_t var_count = 0;
-    result = spvReflectEnumerateInputVariables(&module, &var_count, NULL);
-    if (result != SPV_REFLECT_RESULT_SUCCESS) return Error::ParseError;
-
-    auto input_vars = new SpvReflectInterfaceVariable*[var_count];
-    result = spvReflectEnumerateInputVariables(&module, &var_count, input_vars);
-    if (result != SPV_REFLECT_RESULT_SUCCESS) {
-        delete[] input_vars;
-        return Error::ParseError;
-    }
-
-    auto inputs = std::vector<VkFormat>(var_count);
-    for (int i = 0; i < var_count; i++) {
-        auto element_type = parseType(input_vars[i]->format);
-        if (element_type.isError()) {
-            delete[] input_vars;
-            return element_type.getError();
-        }
-
-        auto index = input_vars[i]->location;
-        inputs[index] = element_type.getResult();
-    }
-
-    delete[] input_vars;
-
-    return inputs;
 }
 
 Result<VkFormat, InputLayoutBuilder::Error> InputLayoutBuilder::parseType(
@@ -162,7 +85,7 @@ Result<VkFormat, InputLayoutBuilder::Error> InputLayoutBuilder::parseType(
     }
 }
 
-Result<size_t, InputLayoutBuilder::Error>
+Result<std::vector<size_t>, InputLayoutBuilder::Error>
 InputLayoutBuilder::getPushConstantsFromShader(
     const std::string& vertex_shader_file) {
     auto shader_source = shader_registry.getShaderBytecode(vertex_shader_file);
@@ -185,14 +108,14 @@ InputLayoutBuilder::getPushConstantsFromShader(
         return Error::ParseError;
     }
 
-    size_t size = 0;
+    auto push_constants = std::vector<size_t>(var_count);
     for (int i = 0; i < var_count; i++) {
-        size += push_vars[i]->size;
+        push_constants[i] = push_vars[i]->size;
     }
 
     delete[] push_vars;
 
-    return size;
+    return push_constants;
 }
 
 }  // namespace Graphics

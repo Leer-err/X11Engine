@@ -12,7 +12,6 @@
 #include "LoggerFactory.h"
 #include "Queue.h"
 #include "RenderEngine.h"
-#include "RenderingBackend.h"
 #include "Result.h"
 #include "VkBootstrap.h"
 #include "Window.h"
@@ -52,6 +51,7 @@ static Result<vkb::Device, Error> createDevice(const vkb::Instance& instance,
             .require_dedicated_transfer_queue()
             .add_required_extension(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME)
             .add_required_extension(VK_EXT_CALIBRATED_TIMESTAMPS_EXTENSION_NAME)
+            .add_required_extension(VK_EXT_MESH_SHADER_EXTENSION_NAME)
             .select();
 
     if (!phys_ret) {
@@ -66,6 +66,9 @@ static Result<vkb::Device, Error> createDevice(const vkb::Instance& instance,
     features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     features12.bufferDeviceAddress = VK_TRUE;
     features12.runtimeDescriptorArray = VK_TRUE;
+    features12.scalarBlockLayout = VK_TRUE;
+    features12.shaderInt8 = VK_TRUE;
+    features12.storagePushConstant8 = VK_TRUE;
     device_builder.add_pNext(&features12);
 
     VkPhysicalDeviceSynchronization2FeaturesKHR synchronization_2{
@@ -83,6 +86,11 @@ static Result<vkb::Device, Error> createDevice(const vkb::Instance& instance,
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT};
     descriptor_buffer.descriptorBuffer = VK_TRUE;
     device_builder.add_pNext(&descriptor_buffer);
+
+    VkPhysicalDeviceMeshShaderFeaturesEXT mesh_shader{
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT};
+    mesh_shader.meshShader = VK_TRUE;
+    device_builder.add_pNext(&mesh_shader);
 
     auto dev_ret = device_builder.build();
     if (!dev_ret) return Error::DeviceCreationFailed;

@@ -21,15 +21,18 @@ struct StarsData
     float blink_strength;
 };
 
-[shader("vertex")]
-Vertex_Output vertex_main(in Vertex_input vertex, uniform CameraData* camera_data, uniform StarsData* stars_data)
+[shader("mesh")]
+[outputtopology("triangle")]
+[numthreads(32, 1, 1)]
+Vertex_Output vertex_main(out indices uint3 triangles[96], out vertices float3 vertices[64], 
+  uint3 groupId : SV_GroupID, uint3 gtid : SV_GroupThreadID)
 {
     Vertex_Output output;
 
-    output.viewport_position = float4(vertex.position, 1);
-    float4 position = mul(camera_data->inverse_view_projection, output.viewport_position);
-    position = position / position.w;
-    output.position = position.xyz;
+    // output.viewport_position = float4(vertex.position, 1);
+    // float4 position = mul(camera_data->inverse_view_projection, output.viewport_position);
+    // position = position / position.w;
+    // output.position = position.xyz;
 
     return output;
 }

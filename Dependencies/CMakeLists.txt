@@ -253,5 +253,6 @@ target_include_directories(meshoptimizer PUBLIC
 
 target_sources(meshoptimizer
 	PRIVATE
-		${CMAKE_CURRENT_SOURCE_DIR}/meshoptimizer/src/meshletcodec.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/meshoptimizer/src/meshletutils.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/meshoptimizer/src/clusterizer.cpp
 )

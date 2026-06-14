@@ -59,7 +59,8 @@ class Device {
     VkShaderModule createShader(const uint32_t* shader_data,
                                 size_t shader_data_size);
 
-    VkPipelineLayout createPipelineLayout(size_t push_constants_size);
+    VkPipelineLayout createPipelineLayout(
+        const std::vector<size_t>& push_constant_ranges);
     GraphicsPipeline createGraphicsPipeline(
         const VkGraphicsPipelineCreateInfo& pipeline_info);
 

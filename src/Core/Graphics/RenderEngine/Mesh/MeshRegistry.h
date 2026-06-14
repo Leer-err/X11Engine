@@ -3,7 +3,7 @@
 #include <optional>
 #include <vector>
 
-#include "Mesh.h"
+#include "GraphicsMesh.h"
 #include "MeshHandle.h"
 
 namespace Graphics {

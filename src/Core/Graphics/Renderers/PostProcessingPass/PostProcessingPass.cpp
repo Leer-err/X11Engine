@@ -15,9 +15,11 @@ namespace Graphics {
 PostProcessingPass::PostProcessingPass(Device& device,
                                        const EngineData& engine_data)
     : engine_data(engine_data), dithering_data_buffer(device) {
-    constexpr Vector3 screen_quad_vertices[] = {
-        Vector3(-1, -1, 0), Vector3(-1, 1, 0), Vector3(1, -1, 0),
-        Vector3(1, 1, 0)};
+    constexpr Vertex screen_quad_vertices[] = {
+        Vertex(Vector3(-1, -1, 0), Vector2(0, 0)),
+        Vertex(Vector3(-1, 1, 0), Vector2(0, 1)),
+        Vertex(Vector3(1, -1, 0), Vector2(1, 0)),
+        Vertex(Vector3(1, 1, 0), Vector2(1, 1))};
 
     constexpr uint32_t screen_quad_indices[] = {0, 1, 2, 1, 3, 2};
 
@@ -27,7 +29,7 @@ PostProcessingPass::PostProcessingPass(Device& device,
 
     pipeline =
         GraphicsPipelineBuilder(
-            "./Assets/Shaders/PostProcess/PostProcessing.spv", "vertex_main",
+            "./Assets/Shaders/PostProcess/PostProcessing.spv", "mesh_main",
             "./Assets/Shaders/PostProcess/PostProcessing.spv", "pixel_main")
             .create(device, engine_data.shader_registry)
             .getResult();
@@ -51,6 +53,15 @@ PostProcessingPass::PostProcessingPass(Device& device,
         data.color_count);
 }
 
+struct PushConstants {
+    VkDeviceAddress vertices;
+    VkDeviceAddress meshlet_triangles;
+    VkDeviceAddress meshlet_vertices;
+    VkDeviceAddress meshlets;
+
+    VkDeviceAddress data_address;
+};
+
 void PostProcessingPass::render(const Texture& input_image,
                                 const FrameData& frame_data,
                                 const RenderWorld& world) {
@@ -64,14 +75,21 @@ void PostProcessingPass::render(const Texture& input_image,
     data.render_target_index = *render_target_opt;
     dithering_data_buffer.update(frame_data, data);
 
-    VkDeviceAddress data_address =
+    PushConstants push_constants;
+    push_constants.data_address =
         dithering_data_buffer.getDeviceAddress(frame_data);
+    push_constants.vertices = quad.vertex_buffer.device_address;
+    push_constants.meshlet_triangles =
+        quad.meshlet_triangles_buffer.device_address;
+    push_constants.meshlet_vertices =
+        quad.meshlet_vertices_buffer.device_address;
+    push_constants.meshlets = quad.meshlet_buffer.device_address;
 
     command_buffer.setPipeline(pipeline);
     command_buffer.bindDescriptorSet(pipeline, engine_data.descriptor_set);
-    command_buffer.pushConstants(pipeline, &data_address);
+    command_buffer.pushConstants(pipeline, &push_constants, 0);
 
-    command_buffer.draw(quad);
+    command_buffer.draw(quad.meshlet_count);
 }
 
 }  // namespace Graphics

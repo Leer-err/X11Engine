@@ -32,9 +32,9 @@ class RenderPass {
 
     BufferedUniform<CameraData> camera_data_buffer;
 
-    StarRenderer star_renderer;
+    // StarRenderer star_renderer;
     StaticMeshRenderer static_mesh_renderer;
-    OverlayRenderer overlay_renderer;
+    // OverlayRenderer overlay_renderer;
 
     PostProcessingPass post_processing_pass;
 

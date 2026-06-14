@@ -32,15 +32,12 @@ Scene::Scene() {
 
     OpaqueRenderObjectData tower_data = {};
     auto tower_reader = File::ModelReader("./Assets/Tower.fbx");
-    // auto vertices = tower_reader.readVertices();
-    // auto indices = tower_reader.readIndices();
-    // tower_data.position = {-26, 9, -8};
-    // tower_data.mesh =
-    //     renderer->addMesh(vertices.data(), vertices.size() * sizeof(Vertex),
-    //                       indices.data(), indices.size() * sizeof(uint32_t));
-    // data = stbi_load("./Assets/tower.png", &width, &height, &channels, 0);
-    // tower_data.albedo = renderer->addTexture(data, width, height);
-    // renderer->getRenderWorld().addOpaqueObject(tower_data);
+    auto tower_mesh = tower_reader.readMesh();
+    tower_data.position = {0, 0, 8};
+    tower_data.mesh = renderer->addMesh(tower_mesh);
+    data = stbi_load("./Assets/tower.png", &width, &height, &channels, 0);
+    tower_data.albedo = renderer->addTexture(data, width, height);
+    renderer->getRenderWorld().addOpaqueObject(tower_data);
 
     // OpaqueRenderObjectData gem_data = {};
     // auto gem_reader = File::ModelReader("./Assets/Gem2.fbx");

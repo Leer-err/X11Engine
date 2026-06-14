@@ -24,9 +24,9 @@ StarRenderer::StarRenderer(Device& device, const EngineData& engine_data)
 
     constexpr uint32_t screen_quad_indices[] = {0, 1, 2, 1, 3, 2};
 
-    quad = MeshBuilder(screen_quad_vertices, sizeof(screen_quad_vertices),
-                       screen_quad_indices, sizeof(screen_quad_indices))
-               .create(device, engine_data.staging_buffer);
+    // quad = MeshBuilder(screen_quad_vertices, sizeof(screen_quad_vertices),
+    //                    screen_quad_indices, sizeof(screen_quad_indices))
+    //            .create(device, engine_data.staging_buffer);
 
     pipeline = GraphicsPipelineBuilder(
                    "./Assets/Shaders/Stars/Stars.spv", "vertex_main",
@@ -47,9 +47,9 @@ void StarRenderer::render(const FrameData& frame_data,
 
     command_buffer.setPipeline(pipeline);
 
-    command_buffer.pushConstants(pipeline, &push_constants);
+    command_buffer.pushConstants(pipeline, &push_constants, 0);
 
-    command_buffer.draw(quad);
+    // command_buffer.draw(quad);
 }
 
 void StarRenderer::setCameraData(VkDeviceAddress camera_data) {

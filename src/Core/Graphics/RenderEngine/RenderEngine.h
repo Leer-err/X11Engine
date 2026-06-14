@@ -31,12 +31,11 @@ class RenderEngine final : public IRenderEngine {
     void reinitWindowDependentResources();
     void render() override;
 
-    RenderWorld& getRenderWorld();
+    RenderWorld& getRenderWorld() override;
 
     TextureHandle addTexture(void* data, uint32_t width,
                              uint32_t height) override;
-    MeshHandle addMesh(void* vertex_data, size_t vertex_data_size,
-                       void* index_data, size_t index_data_size) override;
+    MeshHandle addMesh(const ::Mesh& mesh) override;
 
     EngineData getEngineData();
 

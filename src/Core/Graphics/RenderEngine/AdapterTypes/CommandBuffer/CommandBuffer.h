@@ -8,7 +8,6 @@
 
 #include "DescriptorSet.h"
 #include "GraphicsPipeline.h"
-#include "Mesh.h"
 #include "RenderEnviroment.h"
 #include "TextureState.h"
 
@@ -18,18 +17,18 @@ struct CommandBuffer {
     void begin() const;
     void end() const;
 
-    void draw(const Mesh& mesh) const;
+    void draw(uint32_t meshlet_count) const;
 
     void copy(const TextureState& src, TextureState& dst) const;
     void blit(const TextureState& src, TextureState& dst) const;
 
     template <typename T>
-    void pushConstants(const GraphicsPipeline& pipeline,
-                       const T* constants) const {
-        pushConstants(pipeline, constants, sizeof(T));
+    void pushConstants(const GraphicsPipeline& pipeline, const T* constants,
+                       size_t constant_offset) const {
+        pushConstants(pipeline, constants, constant_offset, sizeof(T));
     }
     void pushConstants(const GraphicsPipeline& pipeline, const void* constants,
-                       size_t constant_size) const;
+                       size_t constant_offset, size_t constant_size) const;
 
     void bindDescriptorSet(const GraphicsPipeline& pipeline,
                            const DescriptorSet& set) const;

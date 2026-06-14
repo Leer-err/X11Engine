@@ -2,7 +2,6 @@
 
 #include <vulkan/vulkan_core.h>
 
-
 namespace Graphics {
 
 // VK_EXT_descriptor_buffer
@@ -19,6 +18,9 @@ PFN_vkCmdBindDescriptorBufferEmbeddedSamplersEXT
 PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT
     vkGetPhysicalDeviceCalibrateableTimeDomainsEXT;
 PFN_vkGetCalibratedTimestampsEXT vkGetCalibratedTimestampsEXT;
+
+// VK_EXT_mesh_shader
+PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasksEXT;
 
 void loadExtensionFunctions(VkInstance instance, VkDevice device) {
     // VK_EXT_descriptor_buffer
@@ -50,6 +52,9 @@ void loadExtensionFunctions(VkInstance instance, VkDevice device) {
     vkGetCalibratedTimestampsEXT =
         reinterpret_cast<PFN_vkGetCalibratedTimestampsEXT>(
             vkGetDeviceProcAddr(device, "vkGetCalibratedTimestampsEXT"));
+
+    vkCmdDrawMeshTasksEXT = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(
+        vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksEXT"));
 }
 
 }  // namespace Graphics

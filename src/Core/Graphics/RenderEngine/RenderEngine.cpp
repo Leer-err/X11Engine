@@ -61,13 +61,11 @@ TextureHandle RenderEngine::addTexture(void* data, uint32_t width,
     return handle;
 }
 
-MeshHandle RenderEngine::addMesh(void* vertex_data, size_t vertex_data_size,
-                                 void* index_data, size_t index_data_size) {
-    auto mesh =
-        MeshBuilder(vertex_data, vertex_data_size, index_data, index_data_size)
-            .create(backend.getDevice(), staging_buffer);
+MeshHandle RenderEngine::addMesh(const ::Mesh& mesh) {
+    auto device_mesh =
+        MeshBuilder(mesh).create(backend.getDevice(), staging_buffer);
 
-    auto handle = mesh_registry.addMesh(mesh);
+    auto handle = mesh_registry.addMesh(device_mesh);
 
     return handle;
 }

@@ -9,7 +9,6 @@
 #include <string_view>
 
 #include "Vector2.h"
-#include "meshoptimizer.h"
 
 namespace File {
 
@@ -26,42 +25,11 @@ ModelReader::ModelReader(const std::string& filename) : mesh(nullptr) {
 }
 
 Mesh ModelReader::readMesh() const {
-    auto vertices = readVertices();
-    auto indices = readIndices();
-
-    const size_t max_vertices = 64;
-    const size_t max_indices = 96;  // note: in v0.25 or prior, max_triangles
-                                    // needs to be divisible by 4
-    const float cone_weight = 0.0f;
-
-    size_t max_meshlets =
-        meshopt_buildMeshletsBound(indices.size(), max_vertices, max_indices);
-    std::vector<meshopt_Meshlet> meshlets(max_meshlets);
-    std::vector<unsigned int> meshlet_vertices(indices.size());
-    std::vector<unsigned char> meshlet_triangles(indices.size());
-
-    size_t meshlet_count = meshopt_buildMeshlets(
-        meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(),
-        indices.data(), indices.size(), (float*)&vertices[0].position,
-        vertices.size(), sizeof(Vertex), max_vertices, max_indices,
-        cone_weight);
-
-    const auto& last = meshlets[meshlet_count - 1];
-
-    meshlet_vertices.resize(last.vertex_offset + last.vertex_count);
-    meshlet_triangles.resize(last.triangle_offset + last.triangle_count * 3);
-    meshlets.resize(meshlet_count);
-
-    for (const auto& meshlet : meshlets) {
-        meshopt_optimizeMeshlet(&meshlet_vertices[meshlet.vertex_offset],
-                                &meshlet_triangles[meshlet.triangle_offset],
-                                meshlet.triangle_count, meshlet.vertex_count);
-    }
-
     Mesh mesh;
-    mesh.vertices = vertices;
-    mesh.indices = indices;
-    // mesh.meshlets =
+    mesh.vertices = readVertices();
+    mesh.indices = readIndices();
+
+    return mesh;
 }
 
 std::vector<Vertex> ModelReader::readVertices() const {

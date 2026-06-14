@@ -4,6 +4,8 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
+#include <vector>
+
 #include "Buffer.h"
 #include "CommandBuffer.h"
 #include "DeviceProperties.h"
@@ -197,21 +199,33 @@ void Device::resetFence(VkFence fence) const {
     vkResetFences(device, 1, &fence);
 }
 
-VkPipelineLayout Device::createPipelineLayout(size_t push_constants_size) {
-    VkPushConstantRange constants = {};
-    constants.stageFlags = VK_SHADER_STAGE_ALL_GRAPHICS;
-    constants.size = push_constants_size;
-    constants.offset = 0;
+VkPipelineLayout Device::createPipelineLayout(
+    const std::vector<size_t>& push_constant_ranges) {
+    size_t offset = 0;
+
+    auto push_constants = std::vector<VkPushConstantRange>();
+    push_constants.reserve(push_constant_ranges.size());
+
+    for (const auto& range : push_constant_ranges) {
+        VkPushConstantRange constant = {};
+        constant.stageFlags = VK_SHADER_STAGE_TASK_BIT_EXT |
+                              VK_SHADER_STAGE_MESH_BIT_EXT |
+                              VK_SHADER_STAGE_FRAGMENT_BIT;
+        constant.size = range;
+        constant.offset = offset;
+
+        offset += range;
+
+        push_constants.push_back(constant);
+    }
 
     VkPipelineLayoutCreateInfo pipelineLayoutCI = {};
     pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutCI.setLayoutCount = 1;
     pipelineLayoutCI.pSetLayouts = &descriptor_layout.layout;
 
-    if (push_constants_size != 0) {
-        pipelineLayoutCI.pushConstantRangeCount = 1;
-        pipelineLayoutCI.pPushConstantRanges = &constants;
-    }
+    pipelineLayoutCI.pushConstantRangeCount = push_constants.size();
+    pipelineLayoutCI.pPushConstantRanges = push_constants.data();
 
     VkPipelineLayout pipeline_layout = {};
     auto result = vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr,
