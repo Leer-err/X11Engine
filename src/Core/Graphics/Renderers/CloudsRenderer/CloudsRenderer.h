@@ -9,6 +9,7 @@
 #include "DescriptorSet.h"
 #include "EngineData.h"
 #include "FrameData.h"
+#include "FrameGraph.h"
 #include "GraphicsPipeline.h"
 #include "RenderEnviroment.h"
 
@@ -23,8 +24,7 @@ class CloudsRenderer {
    public:
     CloudsRenderer(Device& device, const EngineData& engine_data);
 
-    void render(const FrameData& frame_data, const CloudsData& clouds_data);
-    void preRender(const FrameData& frame_data, const CloudsData& clouds_data);
+    void render(const FrameData& frame_data, FrameGraph& frame_graph);
 
     void setCameraData(VkDeviceAddress camera_data);
 

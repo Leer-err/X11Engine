@@ -3,6 +3,7 @@
 #include "BufferedUniform.h"
 #include "EngineData.h"
 #include "FrameData.h"
+#include "FrameGraph.h"
 #include "PostProcessingData.h"
 #include "RenderWorld.h"
 
@@ -24,7 +25,7 @@ class PostProcessingPass {
     PostProcessingPass(Device& device, const EngineData& engine_data);
 
     void render(const Texture& input_image, const FrameData& frame_data,
-                const RenderWorld& world);
+                FrameGraph& frame_graph, const RenderWorld& world);
 
    private:
     EngineData engine_data;

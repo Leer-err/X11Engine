@@ -23,7 +23,8 @@ class RenderPass {
                    const RenderWorld& world);
 
    private:
-    void postProcessing(const FrameData& frame_data, const RenderWorld& world);
+    void postProcessing(const FrameData& frame_data, FrameGraph& frame_graph,
+                        const RenderWorld& world);
 
     void updateCameraBuffer(const FrameData& frame_data,
                             const RenderWorld& world);
@@ -36,7 +37,7 @@ class RenderPass {
 
     // StarRenderer star_renderer;
     StaticMeshRenderer static_mesh_renderer;
-    // OverlayRenderer overlay_renderer;
+    OverlayRenderer overlay_renderer;
 
     PostProcessingPass post_processing_pass;
 

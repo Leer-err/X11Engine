@@ -1,11 +1,14 @@
 #pragma once
 
+#include <vulkan/vulkan_core.h>
+
 #include <cstddef>
 #include <vector>
 
 #include "Buffer.h"
 #include "CommandBuffer.h"
 #include "Device.h"
+
 
 namespace Graphics {
 
@@ -42,6 +45,8 @@ class StagingBuffer {
     size_t host_data_used;
 
     Buffer buffer;
+
+    size_t getTexelBlockSize(VkFormat format) const;
 
     std::vector<BufferData> buffers;
     std::vector<TextureData> textures;

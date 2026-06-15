@@ -86,7 +86,11 @@ uint32_t DescriptorSet::addSampler(const VkSampler& sampler) {
 }
 
 std::optional<uint32_t> DescriptorSet::getIndex(const Texture& texture) {
-    auto it = texture_index_map.find(texture.getHandle());
+    return getIndex(texture.getHandle());
+}
+
+std::optional<uint32_t> DescriptorSet::getIndex(TextureHandle texture) {
+    auto it = texture_index_map.find(texture);
     if (it == texture_index_map.end()) return {};
 
     return it->second;

@@ -1,6 +1,7 @@
 #include "StagingBuffer.h"
 
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 #include <cstring>
 #include <vector>
@@ -10,7 +11,7 @@
 
 namespace Graphics {
 
-constexpr size_t BUFFER_SIZE = 64 * 1024 * 1024;
+constexpr size_t BUFFER_SIZE = 128 * 1024 * 1024;
 
 StagingBuffer::StagingBuffer(Device& device)
     : device(device), host_data_used(0) {
@@ -24,16 +25,21 @@ StagingBuffer::StagingBuffer(Device& device)
 
 void StagingBuffer::stageTexture(const Texture& destination, const void* data,
                                  size_t data_size) {
-    memcpy(reinterpret_cast<char*>(buffer.mapped_address) + host_data_used,
+    auto format = destination.getState().format;
+    size_t alignment = getTexelBlockSize(format);
+    size_t aligned_host_offset =
+        (host_data_used + alignment - 1) & ~(alignment - 1);
+
+    memcpy(std::bit_cast<uint8_t*>(buffer.mapped_address) + aligned_host_offset,
            data, data_size);
 
     TextureData image_data = {};
     image_data.texture = destination;
     image_data.data_size = data_size;
-    image_data.host_offset = host_data_used;
+    image_data.host_offset = aligned_host_offset;
     textures.push_back(image_data);
 
-    host_data_used += data_size;
+    host_data_used = aligned_host_offset + data_size;
 }
 
 void StagingBuffer::stageBuffer(const Buffer& destination, const void* data,
@@ -48,6 +54,12 @@ void StagingBuffer::stageBuffer(const Buffer& destination, const void* data,
     buffers.push_back(buffer_data);
 
     host_data_used += data_size;
+}
+
+size_t StagingBuffer::getTexelBlockSize(VkFormat format) const {
+    if (format == VK_FORMAT_R8G8B8A8_SRGB) return 4;
+
+    return 1;
 }
 
 void StagingBuffer::flush(const CommandBuffer& cmd) {

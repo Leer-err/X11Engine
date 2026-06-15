@@ -8,6 +8,7 @@
 #include "AppConfig.h"
 #include "CameraData.h"
 #include "Device.h"
+#include "FrameGraph.h"
 #include "OverlayRenderer.h"
 #include "PostProcessingPass.h"
 #include "RenderEnviroment.h"
@@ -21,7 +22,7 @@ RenderPass::RenderPass(Device& device, const EngineData& engine_data)
       camera_data_buffer(device),
       //   star_renderer(device, engine_data),
       static_mesh_renderer(device, engine_data),
-      //   overlay_renderer(),
+      overlay_renderer(),
       post_processing_pass(device, engine_data) {
     createRenderEnviroment(device);
 }
@@ -39,31 +40,12 @@ Texture RenderPass::render(const FrameData& frame_data, FrameGraph& frame_graph,
 
     updateCameraBuffer(frame_data, world);
 
-    // std::array<VkImageMemoryBarrier2, 2> barriers;
-    // barriers[0] = render_target_texture.createBarrier(
-    //     VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_NONE,
-    //     VK_ACCESS_2_NONE,
-    //     VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
-    //     VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
-    // barriers[1] = depth_stencil_texture.createBarrier(
-    //     VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-    //     VK_PIPELINE_STAGE_2_NONE, VK_ACCESS_2_NONE,
-    //     VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT,
-    //     VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-    //         VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
-
-    // frame_data.cmd.barrier(barriers);
-
-    // frame_data.cmd.bindRenderEnviroment(env);
-
     // star_renderer.render(frame_data, world);
     static_mesh_renderer.render(frame_data, frame_graph, world);
 
-    // frame_data.cmd.unbindRenderEnviroment();
+    postProcessing(frame_data, frame_graph, world);
 
-    // postProcessing(frame_data, world);
-
-    return render_target_texture;
+    return final_image;
 }
 
 void RenderPass::updateCameraBuffer(const FrameData& frame_data,
@@ -111,26 +93,16 @@ void RenderPass::createRenderEnviroment(Device& device) {
 }
 
 void RenderPass::postProcessing(const FrameData& frame_data,
+                                FrameGraph& frame_graph,
                                 const RenderWorld& world) {
-    std::array<VkImageMemoryBarrier2, 2> barriers;
-    barriers[0] = render_target_texture.createBarrier(
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
-        VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-        VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT, VK_ACCESS_2_SHADER_READ_BIT);
-    barriers[1] = final_image.createBarrier(
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_NONE,
-        VK_ACCESS_2_NONE, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
-        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
+    post_processing_pass.render(render_target_texture, frame_data, frame_graph,
+                                world);
 
-    frame_data.cmd.barrier(barriers);
+    // frame_data.cmd.bindRenderEnviroment(post_process_env);
 
-    frame_data.cmd.bindRenderEnviroment(post_process_env);
-
-    post_processing_pass.render(render_target_texture, frame_data, world);
     // overlay_renderer.render(frame_data);
 
-    frame_data.cmd.unbindRenderEnviroment();
+    // frame_data.cmd.unbindRenderEnviroment();
 }
 
 }  // namespace Graphics

@@ -2,6 +2,7 @@
 
 #include "EngineData.h"
 #include "FrameData.h"
+#include "FrameGraph.h"
 
 namespace Graphics {
 

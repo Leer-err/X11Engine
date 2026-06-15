@@ -20,6 +20,7 @@ class DescriptorSet {
     uint32_t addSampler(const VkSampler& sampler);
 
     std::optional<uint32_t> getIndex(const Texture& texture);
+    std::optional<uint32_t> getIndex(TextureHandle texture);
 
     VkDeviceAddress getDescriptors() const;
 

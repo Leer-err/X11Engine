@@ -102,7 +102,7 @@ Graphics::Mesh MeshBuilder::create(Device& device,
                                meshlet_vertices_buffer_size);
 
     size_t meshlet_indices_buffer_size =
-        meshlet_triangles.size() * sizeof(uint8_t) * 3;
+        meshlet_triangles.size() * sizeof(uint8_t);
     device_mesh.meshlet_triangles_buffer =
         BufferBuilder(meshlet_indices_buffer_size)
             .isShaderResource()

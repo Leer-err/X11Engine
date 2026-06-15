@@ -58,11 +58,10 @@ TextureHandle RenderEngine::addTexture(void* data, uint32_t width,
                      .create(backend.getDevice(), texture_registry)
                      .getResult();
 
-    auto handle = descriptor_set.addTexture(image);
-
+    descriptor_set.addTexture(image);
     staging_buffer.stageTexture(image, data, width * height * 4);
 
-    return handle;
+    return image.getHandle();
 }
 
 MeshHandle RenderEngine::addMesh(const ::Mesh& mesh) {

@@ -29,32 +29,31 @@ void StaticMeshRenderer::render(const FrameData& frame_data,
                                 const RenderWorld& world) {
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Static mesh");
 
-    auto command_buffer = frame_data.cmd;
-
     auto buffer_ptr = model_data_buffer.getHostAddress(frame_data);
-
     auto objects = world.getOpaqueObjects();
 
-    auto pass = GraphicsPass(pipeline, [=](GraphicsPassExecution& execution,
-                                           const FrameData& frame_data) {
-        for (int i = 0; i < objects.size(); i++) {
-            const auto& model = objects[i];
-            auto mesh = engine_data.mesh_registry.getMesh(model.mesh);
+    auto pass =
+        GraphicsPass(pipeline, [this, objects](GraphicsPassExecution& execution,
+                                               const FrameData& frame_data) {
+            for (int i = 0; i < objects.size(); i++) {
+                const auto& model = objects[i];
+                auto mesh = engine_data.mesh_registry.getMesh(model.mesh);
 
-            auto buffer_address =
-                model_data_buffer.getDeviceAddress(frame_data) +
-                sizeof(StaticModelBuffer) * i;
-            execution.appendData(buffer_address);
-            execution.draw(*mesh);
-        }
-    });
+                push_constants.model_data =
+                    model_data_buffer.getDeviceAddress(frame_data) +
+                    sizeof(StaticModelBuffer) * i;
+                execution.appendData(push_constants);
+                execution.draw(*mesh);
+            }
+        });
 
     for (int i = 0; i < objects.size(); i++) {
         const auto& model = objects[i];
 
         auto& model_data = (*buffer_ptr)[i];
         model_data.model = Matrix::translation(model.position);
-        model_data.albedo_descriptor = model.albedo;
+        model_data.albedo_descriptor =
+            *engine_data.descriptor_set.getIndex(model.albedo);
         model_data.albedo_sampler = sampler_index;
 
         pass.reads(*engine_data.texture_registry.getTexture(model.albedo));
