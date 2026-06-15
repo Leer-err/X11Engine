@@ -3,6 +3,8 @@
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.h>
 
+#include <string_view>
+
 #include "Device.h"
 #include "Texture.h"
 #include "TextureRegistry.h"
@@ -23,6 +25,11 @@ TextureBuilder::TextureBuilder(VkFormat format, uint32_t width, uint32_t height)
     image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     alloc_info.usage = VMA_MEMORY_USAGE_AUTO;
+}
+
+TextureBuilder& TextureBuilder::setName(std::string_view texture_name) {
+    name = texture_name;
+    return *this;
 }
 
 TextureBuilder& TextureBuilder::isShaderResource() {
@@ -55,7 +62,10 @@ Result<Texture, TextureError> TextureBuilder::create(
     auto state = device.createTexture(image_info, alloc_info);
     if (state.isError()) return state.getError();
 
-    return texture_registry.addTexture(state.getResult());
+    if (name.empty())
+        return texture_registry.addTexture(state.getResult());
+    else
+        return texture_registry.addTexture(name, state.getResult());
 }
 
 }  // namespace Graphics

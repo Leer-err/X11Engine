@@ -8,6 +8,7 @@
 #include "DescriptorSet.h"
 #include "Device.h"
 #include "EngineData.h"
+#include "FrameGraph.h"
 #include "IRenderEngine.h"
 #include "MeshRegistry.h"
 #include "Queue.h"

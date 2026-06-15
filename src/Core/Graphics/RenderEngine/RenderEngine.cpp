@@ -9,6 +9,7 @@
 #include "DescriptorSet.h"
 #include "EngineData.h"
 #include "FrameData.h"
+#include "FrameGraph.h"
 #include "MeshBuilder.h"
 #include "MeshRegistry.h"
 #include "StagingBuffer.h"
@@ -37,9 +38,12 @@ void RenderEngine::render() {
     ZoneScoped;
 
     FrameData frame = backend.beginFrame();
+    FrameGraph frame_graph(getEngineData());
 
     staging_buffer.flush(frame.cmd);
-    auto rendered_image = render_pass->render(frame, world);
+    auto rendered_image = render_pass->render(frame, frame_graph, world);
+
+    frame_graph.execute(frame);
 
     backend.endFrame(rendered_image);
 }

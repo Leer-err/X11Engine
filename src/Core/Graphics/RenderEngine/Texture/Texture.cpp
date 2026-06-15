@@ -21,9 +21,13 @@ VkImageMemoryBarrier2 Texture::createBarrier(VkImageLayout new_layout,
                                              VkPipelineStageFlags2 src_stages,
                                              VkAccessFlags2 src_access,
                                              VkPipelineStageFlags2 dst_stages,
-                                             VkAccessFlags2 dst_access,
-                                             VkImageAspectFlags aspect) {
+                                             VkAccessFlags2 dst_access) {
     auto state = registry->getTextureState(handle);
+
+    VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+    if (state->format == VK_FORMAT_D24_UNORM_S8_UINT ||
+        state->format == VK_FORMAT_D32_SFLOAT_S8_UINT)
+        aspect = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 
     auto barrier = VkImageMemoryBarrier2{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;

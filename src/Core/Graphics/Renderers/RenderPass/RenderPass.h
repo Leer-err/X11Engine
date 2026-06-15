@@ -4,6 +4,7 @@
 #include "CameraData.h"
 #include "Device.h"
 #include "FrameData.h"
+#include "FrameGraph/FrameGraph.h"
 #include "OverlayRenderer.h"
 #include "PostProcessingPass.h"
 #include "RenderEnviroment.h"
@@ -18,7 +19,8 @@ class RenderPass {
    public:
     RenderPass(Device& device, const EngineData& engine_data);
 
-    Texture render(const FrameData& frame_data, const RenderWorld& world);
+    Texture render(const FrameData& frame_data, FrameGraph& frame_graph,
+                   const RenderWorld& world);
 
    private:
     void postProcessing(const FrameData& frame_data, const RenderWorld& world);

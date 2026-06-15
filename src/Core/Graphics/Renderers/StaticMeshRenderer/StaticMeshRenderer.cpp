@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include "FrameData.h"
+#include "FrameGraph.h"
 #include "GraphicsPipelineBuilder.h"
 #include "Matrix.h"
 #include "RenderWorld.h"
@@ -23,6 +25,7 @@ StaticMeshRenderer::StaticMeshRenderer(Device& device,
 }
 
 void StaticMeshRenderer::render(const FrameData& frame_data,
+                                FrameGraph& frame_graph,
                                 const RenderWorld& world) {
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Static mesh");
 
@@ -30,10 +33,22 @@ void StaticMeshRenderer::render(const FrameData& frame_data,
 
     auto buffer_ptr = model_data_buffer.getHostAddress(frame_data);
 
-    command_buffer.setPipeline(pipeline);
-    command_buffer.bindDescriptorSet(pipeline, engine_data.descriptor_set);
-
     auto objects = world.getOpaqueObjects();
+
+    auto pass = GraphicsPass(pipeline, [=](GraphicsPassExecution& execution,
+                                           const FrameData& frame_data) {
+        for (int i = 0; i < objects.size(); i++) {
+            const auto& model = objects[i];
+            auto mesh = engine_data.mesh_registry.getMesh(model.mesh);
+
+            auto buffer_address =
+                model_data_buffer.getDeviceAddress(frame_data) +
+                sizeof(StaticModelBuffer) * i;
+            execution.appendData(buffer_address);
+            execution.draw(*mesh);
+        }
+    });
+
     for (int i = 0; i < objects.size(); i++) {
         const auto& model = objects[i];
 
@@ -42,22 +57,15 @@ void StaticMeshRenderer::render(const FrameData& frame_data,
         model_data.albedo_descriptor = model.albedo;
         model_data.albedo_sampler = sampler_index;
 
-        auto mesh = engine_data.mesh_registry.getMesh(model.mesh);
-
-        push_constants.model_data =
-            model_data_buffer.getDeviceAddress(frame_data) +
-            sizeof(StaticModelBuffer) * i;
-        push_constants.vertices = mesh->vertex_buffer.device_address;
-        push_constants.meshlet_triangles =
-            mesh->meshlet_triangles_buffer.device_address;
-        push_constants.meshlet_vertices =
-            mesh->meshlet_vertices_buffer.device_address;
-        push_constants.meshlets = mesh->meshlet_buffer.device_address;
-
-        command_buffer.pushConstants(pipeline, &push_constants, 0);
-
-        command_buffer.draw(mesh->meshlet_count);
+        pass.reads(*engine_data.texture_registry.getTexture(model.albedo));
     }
+    pass.addColorAttachment(*engine_data.texture_registry.getTexture("Color"),
+                            true, VkClearValue{.color = {0, 0, 0, 0}});
+    pass.addDepthAttachment(
+        *engine_data.texture_registry.getTexture("Depth"), true, true,
+        VkClearValue{.depthStencil = {.depth = 1, .stencil = 0}});
+
+    frame_graph.addGraphicsPass(pass);
 }
 
 void StaticMeshRenderer::setCameraData(const VkDeviceAddress camera_data) {

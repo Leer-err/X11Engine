@@ -14,6 +14,8 @@ struct TextureState {
     VmaAllocation allocation;
     VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;
 
+    VkImageView view;
+
     VkFormat format;
     size_t width;
     size_t height;

@@ -45,7 +45,7 @@ uint32_t DescriptorSet::addTexture(const Texture& texture) {
     char* element_ptr =
         binding_ptr + (current_texture_index * texture_descriptor_size);
 
-    auto view = device.createTextureView(texture.getState());
+    auto view = texture.getState().view;
 
     VkDescriptorImageInfo image_descriptor_info = {};
     image_descriptor_info.imageView = view;

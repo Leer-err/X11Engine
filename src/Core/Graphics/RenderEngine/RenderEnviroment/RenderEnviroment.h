@@ -16,8 +16,7 @@ struct RenderEnviroment {
 
     VkImageView depth_stencil;
     bool clear_depth_stencil;
-    float clear_depth;
-    uint32_t clear_stencil;
+    VkClearValue depth_stencil_clear_value;
 };
 
 }  // namespace Graphics

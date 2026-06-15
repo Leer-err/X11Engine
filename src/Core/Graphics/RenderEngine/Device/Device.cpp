@@ -76,6 +76,21 @@ Result<TextureState, TextureError> Device::createTexture(
     image_result.width = image_info.extent.width;
     image_result.height = image_info.extent.height;
 
+    VkImageViewCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    info.image = image;
+    info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    info.format = image_info.format;
+    info.subresourceRange = {.levelCount = 1, .layerCount = 1};
+    if (image_info.format == properties.depth_format)
+        info.subresourceRange.aspectMask =
+            VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    else
+        info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+    VkImageView view;
+    vkCreateImageView(device, &info, nullptr, &image_result.view);
+
     return image_result;
 }
 
@@ -151,24 +166,6 @@ VkCommandBuffer Device::createCommandBuffer(VkCommandPool pool) {
                      string_VkResult(result));
 
     return buffer;
-}
-
-VkImageView Device::createTextureView(const TextureState& texture) {
-    VkImageViewCreateInfo info = {};
-    info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    info.image = texture.texture;
-    info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    info.format = texture.format;
-    info.subresourceRange = {.levelCount = 1, .layerCount = 1};
-    if (texture.format == properties.depth_format)
-        info.subresourceRange.aspectMask =
-            VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-    else
-        info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-
-    VkImageView view;
-    vkCreateImageView(device, &info, nullptr, &view);
-    return view;
 }
 
 DescriptorLayout Device::getDescriptorLayout() const {

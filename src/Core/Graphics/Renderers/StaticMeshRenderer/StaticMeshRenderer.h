@@ -8,8 +8,9 @@
 #include "BufferedUniform.h"
 #include "EngineData.h"
 #include "FrameData.h"
+#include "FrameGraph.h"
 #include "Matrix.h"
-#include "RenderWorld/RenderWorld.h"
+#include "RenderWorld.h"
 
 namespace Graphics {
 
@@ -35,7 +36,8 @@ class StaticMeshRenderer {
    public:
     StaticMeshRenderer(Device& device, const EngineData& engine_data);
 
-    void render(const FrameData& frame_data, const RenderWorld& world);
+    void render(const FrameData& frame_data, FrameGraph& frame_graph,
+                const RenderWorld& world);
     void setCameraData(VkDeviceAddress camera_data);
 
    private:

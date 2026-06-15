@@ -31,12 +31,12 @@ Scene::Scene() {
     unsigned char* data;
 
     OpaqueRenderObjectData tower_data = {};
-    auto tower_reader = File::ModelReader("./Assets/Tower.fbx");
+    auto tower_reader = File::ModelReader("./Assets/Gem2.fbx");
     auto tower_mesh = tower_reader.readMesh();
     tower_data.position = {0, 0, 8};
-    tower_data.mesh = renderer->addMesh(tower_mesh);
-    data = stbi_load("./Assets/tower.png", &width, &height, &channels, 0);
+    data = stbi_load("./Assets/gem2.png", &width, &height, &channels, 0);
     tower_data.albedo = renderer->addTexture(data, width, height);
+    tower_data.mesh = renderer->addMesh(tower_mesh);
     renderer->getRenderWorld().addOpaqueObject(tower_data);
 
     // OpaqueRenderObjectData gem_data = {};

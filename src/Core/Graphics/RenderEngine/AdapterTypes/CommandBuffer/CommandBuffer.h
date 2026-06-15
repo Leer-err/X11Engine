@@ -41,24 +41,17 @@ struct CommandBuffer {
                  size_t image_barrier_count,
                  const VkBufferMemoryBarrier2* buffer_barriers,
                  size_t buffer_barrier_count) const;
-    template <size_t image_barriers_count, size_t buffer_barriers_count>
     void barrier(
-        const std::array<VkImageMemoryBarrier2, image_barriers_count>&
-            image_barriers,
-        const std::array<VkBufferMemoryBarrier2, buffer_barriers_count>&
-            buffer_barriers) const {
+        const std::span<VkImageMemoryBarrier2>& image_barriers,
+        const std::span<VkBufferMemoryBarrier2>& buffer_barriers) const {
         barrier(image_barriers.data(), image_barriers.size(),
                 buffer_barriers.data(), buffer_barriers.size());
     }
-    template <size_t buffer_barriers_count>
     void barrier(
-        const std::array<VkBufferMemoryBarrier2, buffer_barriers_count>&
-            buffer_barriers) const {
+        const std::span<VkBufferMemoryBarrier2>& buffer_barriers) const {
         barrier(nullptr, 0, buffer_barriers.data(), buffer_barriers.size());
     }
-    template <size_t image_barriers_count>
-    void barrier(const std::array<VkImageMemoryBarrier2, image_barriers_count>&
-                     image_barriers) const {
+    void barrier(const std::span<VkImageMemoryBarrier2>& image_barriers) const {
         barrier(image_barriers.data(), image_barriers.size(), nullptr, 0);
     }
 

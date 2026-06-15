@@ -119,14 +119,13 @@ void CommandBuffer::bindRenderEnviroment(const RenderEnviroment& env) const {
     VkRenderingAttachmentInfo colorAttachmentInfo = {};
     colorAttachmentInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
     colorAttachmentInfo.imageView = env.render_target;
-    colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+    colorAttachmentInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     colorAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
     colorAttachmentInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
     if (env.clear_render_target) {
         colorAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        colorAttachmentInfo.clearValue.color =
-            env.render_target_clear_value.color;
+        colorAttachmentInfo.clearValue = env.render_target_clear_value;
     }
 
     VkRenderingAttachmentInfo depthAttachmentInfo{
@@ -138,8 +137,7 @@ void CommandBuffer::bindRenderEnviroment(const RenderEnviroment& env) const {
 
     if (env.clear_render_target) {
         depthAttachmentInfo.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        depthAttachmentInfo.clearValue.depthStencil = {env.clear_depth,
-                                                       env.clear_stencil};
+        depthAttachmentInfo.clearValue = env.depth_stencil_clear_value;
     }
 
     render_info.colorAttachmentCount = 1;

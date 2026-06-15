@@ -54,7 +54,7 @@ CloudsRenderer::CloudsRenderer(Device& device, const EngineData& engine_data)
 
     env.width = 512;
     env.height = 512;
-    env.render_target = device.createTextureView(clouds_texture.getState());
+    env.render_target = clouds_texture.getState().view;
     env.clear_render_target = true;
     env.render_target_clear_value.color = {0, 0, 0, 0};
 

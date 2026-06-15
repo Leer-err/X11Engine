@@ -47,8 +47,6 @@ class Device {
     void resetCommandPool(VkCommandPool pool) const;
     VkCommandBuffer createCommandBuffer(VkCommandPool pool);
 
-    VkImageView createTextureView(const TextureState& image);
-
     DescriptorLayout getDescriptorLayout() const;
     DeviceProperties getDeviceProperties() const;
 
