@@ -1,6 +1,5 @@
 #pragma once
 
-#include "BufferedUniform.h"
 #include "EngineData.h"
 #include "FrameData.h"
 #include "GraphicsPipeline.h"
@@ -30,7 +29,7 @@ class StarRenderer {
 
     GraphicsPipeline pipeline;
 
-    BufferedUniform<StarsData> stars_data_buffer;
+    Buffer stars_data_buffer;
 
     PushConstants push_constants;
 };

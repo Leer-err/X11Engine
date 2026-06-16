@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include <cstddef>
 #include <vector>
@@ -8,7 +8,6 @@
 #include "Buffer.h"
 #include "CommandBuffer.h"
 #include "Device.h"
-
 
 namespace Graphics {
 

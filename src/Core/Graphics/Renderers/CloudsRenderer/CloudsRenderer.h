@@ -1,12 +1,8 @@
 #pragma once
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include "Buffer.h"
-#include "BufferedUniform.h"
-#include "CloudsData.h"
-#include "CommandBuffer.h"
-#include "DescriptorSet.h"
 #include "EngineData.h"
 #include "FrameData.h"
 #include "FrameGraph.h"
@@ -39,7 +35,7 @@ class CloudsRenderer {
     RenderEnviroment env;
 
     Texture clouds_texture;
-    BufferedUniform<CloudsData> clouds_data_buffer;
+    Buffer clouds_data_buffer;
 
     PushConstants push_constants;
 };

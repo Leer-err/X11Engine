@@ -6,6 +6,8 @@
 #include <tracy/Tracy.hpp>
 
 #include "AppConfig.h"
+#include "Buffer/BufferBuilder.h"
+#include "BufferRegistry/BufferRegistry.h"
 #include "CameraData.h"
 #include "Device.h"
 #include "FrameGraph.h"
@@ -19,7 +21,8 @@ namespace Graphics {
 
 RenderPass::RenderPass(Device& device, const EngineData& engine_data)
     : engine_data(engine_data),
-      camera_data_buffer(device),
+      camera_data_buffer(
+          createCameraBuffer(device, engine_data.buffer_registry)),
       //   star_renderer(device, engine_data),
       static_mesh_renderer(device, engine_data),
       overlay_renderer(),
@@ -103,6 +106,17 @@ void RenderPass::postProcessing(const FrameData& frame_data,
     // overlay_renderer.render(frame_data);
 
     // frame_data.cmd.unbindRenderEnviroment();
+}
+
+Buffer RenderPass::createCameraBuffer(Device& device,
+                                      BufferRegistry& buffer_registry) {
+    auto builder = BufferBuilder(sizeof(CameraData))
+                       .isConstantBuffer()
+                       .isDeviceAddressable()
+                       .isCPUWritable(true)
+                       .isChained();
+
+    return builder.create(device, buffer_registry).getResult();
 }
 
 }  // namespace Graphics

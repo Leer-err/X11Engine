@@ -1,24 +1,47 @@
 #pragma once
 
-#include <map>
-#include <memory>
+#include <array>
+#include <unordered_map>
 
 #include "Buffer.h"
+#include "Device.h"
+#include "EngineConstants.h"
 
 namespace Graphics {
 
-using BufferHandle = uint32_t;
-
 class BufferRegistry {
-   public:
-    BufferHandle registerBuffer(const Buffer& buffer);
+    using BufferKey = uint32_t;
 
-    const Buffer* getBuffer(BufferHandle handle) const;
-    ````` bool hasBuffer(BufferHandle handle) const;
+   public:
+    explicit BufferRegistry(Device& device);
+    ~BufferRegistry();
+
+    BufferRegistry(const BufferRegistry&) = delete;
+    BufferRegistry& operator=(const BufferRegistry&) = delete;
+    BufferRegistry(BufferRegistry&&) = delete;
+    BufferRegistry& operator=(BufferRegistry&&) = delete;
+
+    Buffer registerBuffer(const BufferState& buffer);
+    Buffer registerBufferChain(
+        const std::array<BufferState, MAX_FRAMES_IN_FLIGHT>& buffer);
+
+    BufferState getState(BufferHandle handle) const;
+
+    void setFrameInFlight(uint32_t frame_index);
 
    private:
-    std::map<BufferHandle, std::shared_ptr<const Buffer>> buffers_;
-    BufferHandle next_handle_ = 1;
+    using BufferChain = std::array<BufferKey, MAX_FRAMES_IN_FLIGHT>;
+
+    Device& device;
+
+    std::unordered_map<BufferKey, BufferState> buffers;
+    std::unordered_map<BufferHandle, BufferChain> buffer_chains;
+    std::unordered_map<BufferHandle, bool> buffer_chain_flags;
+
+    BufferHandle next_handle = 1;
+    BufferKey next_key = 1;
+
+    uint32_t frame_index = 0;
 };
 
 }  // namespace Graphics

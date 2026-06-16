@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BufferedUniform.h"
+#include "Buffer.h"
 #include "EngineData.h"
 #include "FrameData.h"
 #include "FrameGraph.h"
@@ -33,7 +33,7 @@ class PostProcessingPass {
     GraphicsPipeline pipeline;
     Mesh quad;
 
-    BufferedUniform<PostProcessingData> dithering_data_buffer;
+    Buffer dithering_data_buffer;
     PostProcessingData data;
 };
 

@@ -98,10 +98,10 @@ void Device::destroyTexture(const TextureState& state) {
     vmaDestroyImage(allocator, state.texture, state.allocation);
 }
 
-Result<Buffer, BufferError> Device::createBuffer(
+Result<BufferState, BufferError> Device::createBuffer(
     const VkBufferCreateInfo& buffer_info,
     const VmaAllocationCreateInfo& alloc_info) {
-    Buffer buffer = {};
+    BufferState buffer = {};
 
     VmaAllocationInfo result_info = {};
 
@@ -122,14 +122,8 @@ Result<Buffer, BufferError> Device::createBuffer(
     return buffer;
 }
 
-void* Device::map(const Buffer& buffer) const {
-    void* data;
-    vmaMapMemory(allocator, buffer.allocation, &data);
-    return data;
-}
-
-void Device::unmap(const Buffer& buffer) const {
-    vmaUnmapMemory(allocator, buffer.allocation);
+void Device::destroyBuffer(const BufferState& state) {
+    vmaDestroyBuffer(allocator, state.buffer, state.allocation);
 }
 
 VkCommandPool Device::createCommandPool(uint32_t queue_index) {

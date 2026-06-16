@@ -5,7 +5,7 @@
 #include <array>
 #include <cstddef>
 
-#include "BufferedUniform.h"
+#include "Buffer.h"
 #include "EngineData.h"
 #include "FrameData.h"
 #include "FrameGraph.h"
@@ -40,8 +40,7 @@ class StaticMeshRenderer {
 
     GraphicsPipeline pipeline;
 
-    BufferedUniform<std::array<StaticModelBuffer, MAX_STATIC_MESHES_PER_DRAW>>
-        model_data_buffer;
+    Buffer model_data_buffer;
 
     PushConstants push_constants;
     uint32_t sampler_index;

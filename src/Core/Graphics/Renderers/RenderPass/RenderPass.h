@@ -1,14 +1,14 @@
 #pragma once
 
-#include "BufferedUniform.h"
+#include "Buffer.h"
 #include "CameraData.h"
 #include "Device.h"
 #include "FrameData.h"
-#include "FrameGraph/FrameGraph.h"
+#include "FrameGraph.h"
 #include "OverlayRenderer.h"
 #include "PostProcessingPass.h"
 #include "RenderEnviroment.h"
-#include "RenderWorld/RenderWorld.h"
+#include "RenderWorld.h"
 #include "StarRenderer.h"
 #include "StaticMeshRenderer.h"
 #include "Texture.h"
@@ -31,9 +31,12 @@ class RenderPass {
 
     void createRenderEnviroment(Device& device);
 
+    static Buffer createCameraBuffer(Device& device,
+                                     BufferRegistry& buffer_registry);
+
     EngineData engine_data;
 
-    BufferedUniform<CameraData> camera_data_buffer;
+    Buffer camera_data_buffer;
 
     // StarRenderer star_renderer;
     StaticMeshRenderer static_mesh_renderer;

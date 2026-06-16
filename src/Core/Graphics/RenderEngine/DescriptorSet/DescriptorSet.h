@@ -25,6 +25,8 @@ class DescriptorSet {
     VkDeviceAddress getDescriptors() const;
 
    private:
+    static Buffer createDescriptorBuffer(Device& device);
+
     Device& device;
 
     std::map<TextureHandle, uint32_t> texture_index_map;

@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <tracy/TracyVulkan.hpp>
 
-#include "Buffer.h"
+#include "BufferState.h"
 #include "DescriptorLayout.h"
 #include "DeviceProperties.h"
 #include "GraphicsPipeline.h"
@@ -36,12 +36,10 @@ class Device {
         const VmaAllocationCreateInfo& alloc_info);
     void destroyTexture(const TextureState& state);
 
-    Result<Buffer, BufferError> createBuffer(
+    Result<BufferState, BufferError> createBuffer(
         const VkBufferCreateInfo& buffer_info,
         const VmaAllocationCreateInfo& alloc_info);
-
-    void* map(const Buffer& buffer) const;
-    void unmap(const Buffer& buffer) const;
+    void destroyBuffer(const BufferState& state);
 
     VkCommandPool createCommandPool(uint32_t queue_index);
     void resetCommandPool(VkCommandPool pool) const;

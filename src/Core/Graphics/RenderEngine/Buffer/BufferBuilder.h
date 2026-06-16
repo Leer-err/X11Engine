@@ -3,6 +3,7 @@
 #include <cstddef>
 
 #include "Buffer.h"
+#include "BufferRegistry/BufferRegistry.h"
 #include "Device.h"
 #include "EngineData.h"
 #include "Result.h"
@@ -27,11 +28,21 @@ class BufferBuilder {
 
     BufferBuilder& isDeviceAddressable();
 
-    Result<Buffer, BufferError> create(Device& device) const;
+    BufferBuilder& isChained();
+
+    Result<Buffer, BufferError> create(Device& device,
+                                       BufferRegistry& registry) const;
 
    private:
+    Result<Buffer, BufferError> createSingle(Device& device,
+                                             BufferRegistry& registry) const;
+    Result<Buffer, BufferError> createChained(Device& device,
+                                              BufferRegistry& registry) const;
+
     VkBufferCreateInfo buffer_info;
     VmaAllocationCreateInfo alloc_info;
+
+    bool is_chained = false;
 };
 
 }  // namespace Graphics
