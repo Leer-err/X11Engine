@@ -2,15 +2,16 @@
 
 #include <array>
 
+#include "Buffer.h"
 #include "EngineConstants.h"
 
 namespace Graphics {
 
-BufferRegistry::BufferRegistry(Device& device) : device(device) {}
+BufferRegistry::BufferRegistry(VmaAllocator allocator) : allocator(allocator) {}
 
 BufferRegistry::~BufferRegistry() {
     for (const auto& [key, state] : buffers) {
-        device.destroyBuffer(state);
+        vmaDestroyBuffer(allocator, state.buffer, state.allocation);
     }
 }
 
@@ -22,7 +23,7 @@ Buffer BufferRegistry::registerBuffer(const BufferState& buffer) {
     buffer_chains.try_emplace(handle, BufferChain{key});
     buffer_chain_flags.try_emplace(handle, false);
 
-    return Buffer(handle);
+    return Buffer(this, handle);
 }
 
 Buffer BufferRegistry::registerBufferChain(
@@ -34,13 +35,13 @@ Buffer BufferRegistry::registerBufferChain(
         auto key = next_key++;
 
         keys[i] = key;
-        buffers.try_emplace(key, buffer);
+        buffers.try_emplace(key, buffer[i]);
     }
 
     buffer_chains.try_emplace(handle, keys);
     buffer_chain_flags.try_emplace(handle, true);
 
-    return Buffer(handle);
+    return Buffer(this, handle);
 }
 
 BufferState BufferRegistry::getState(BufferHandle handle) const {
@@ -56,7 +57,7 @@ BufferState BufferRegistry::getState(BufferHandle handle) const {
     else
         key = chain[frame_index];
 
-    return buffers[key];
+    return buffers.at(key);
 }
 
 void BufferRegistry::setFrameInFlight(uint32_t index) { frame_index = index; }

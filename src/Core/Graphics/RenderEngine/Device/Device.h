@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <tracy/TracyVulkan.hpp>
 
+#include "BufferRegistry.h"
 #include "BufferState.h"
 #include "DescriptorLayout.h"
 #include "DeviceProperties.h"
@@ -83,6 +84,8 @@ class Device {
     vkb::Device device;
 
     VmaAllocator allocator;
+
+    BufferRegistry buffer_registry;
 
     DescriptorLayout descriptor_layout;
     DeviceProperties properties;

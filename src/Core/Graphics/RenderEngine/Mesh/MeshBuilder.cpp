@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "BufferBuilder.h"
+#include "BufferRegistry.h"
 #include "Device.h"
 #include "GraphicsMesh.h"
 #include "Mesh.h"
@@ -25,7 +26,7 @@ MeshBuilder::MeshBuilder(const ::Mesh& mesh)
       index_data(mesh.indices.data()),
       index_data_size(mesh.indices.size() * sizeof(uint32_t)) {}
 
-Graphics::Mesh MeshBuilder::create(Device& device,
+Graphics::Mesh MeshBuilder::create(Device& device, BufferRegistry& registry,
                                    StagingBuffer& staging_buffer) {
     const size_t max_vertices = 64;
     const size_t max_triangles = 96;
@@ -69,51 +70,45 @@ Graphics::Mesh MeshBuilder::create(Device& device,
         meshlets.push_back(meshlet);
     }
 
-    Mesh device_mesh = {};
-    device_mesh.meshlet_count = meshlets.size();
-
-    device_mesh.vertex_buffer = BufferBuilder(vertex_data_size)
-                                    .isShaderResource()
-                                    .isCopyDestination()
-                                    .create(device)
-                                    .getResult();
-    staging_buffer.stageBuffer(device_mesh.vertex_buffer, vertex_data,
-                               vertex_data_size);
+    auto vertex_buffer = BufferBuilder(vertex_data_size)
+                             .isShaderResource()
+                             .isCopyDestination()
+                             .create(device, registry)
+                             .getResult();
+    staging_buffer.stageBuffer(vertex_buffer, vertex_data, vertex_data_size);
 
     size_t meshlet_buffer_size = meshlets.size() * sizeof(Meshlet);
-    device_mesh.meshlet_buffer = BufferBuilder(meshlet_buffer_size)
-                                     .isShaderResource()
-                                     .isCopyDestination()
-                                     .create(device)
-                                     .getResult();
-    staging_buffer.stageBuffer(device_mesh.meshlet_buffer, meshlets.data(),
+    auto meshlet_buffer = BufferBuilder(meshlet_buffer_size)
+                              .isShaderResource()
+                              .isCopyDestination()
+                              .create(device, registry)
+                              .getResult();
+    staging_buffer.stageBuffer(meshlet_buffer, meshlets.data(),
                                meshlet_buffer_size);
 
     size_t meshlet_vertices_buffer_size =
         meshlet_vertices.size() * sizeof(uint32_t);
-    device_mesh.meshlet_vertices_buffer =
-        BufferBuilder(meshlet_vertices_buffer_size)
-            .isShaderResource()
-            .isCopyDestination()
-            .create(device)
-            .getResult();
-    staging_buffer.stageBuffer(device_mesh.meshlet_vertices_buffer,
-                               meshlet_vertices.data(),
+    auto meshlet_vertices_buffer = BufferBuilder(meshlet_vertices_buffer_size)
+                                       .isShaderResource()
+                                       .isCopyDestination()
+                                       .create(device, registry)
+                                       .getResult();
+    staging_buffer.stageBuffer(meshlet_vertices_buffer, meshlet_vertices.data(),
                                meshlet_vertices_buffer_size);
 
     size_t meshlet_indices_buffer_size =
         meshlet_triangles.size() * sizeof(uint8_t);
-    device_mesh.meshlet_triangles_buffer =
-        BufferBuilder(meshlet_indices_buffer_size)
-            .isShaderResource()
-            .isCopyDestination()
-            .create(device)
-            .getResult();
-    staging_buffer.stageBuffer(device_mesh.meshlet_triangles_buffer,
+    auto meshlet_triangles_buffer = BufferBuilder(meshlet_indices_buffer_size)
+                                        .isShaderResource()
+                                        .isCopyDestination()
+                                        .create(device, registry)
+                                        .getResult();
+    staging_buffer.stageBuffer(meshlet_triangles_buffer,
                                meshlet_triangles.data(),
                                meshlet_indices_buffer_size);
 
-    return device_mesh;
+    return Mesh(vertex_buffer, meshlet_buffer, meshlet_vertices_buffer,
+                meshlet_triangles_buffer, meshlet_count);
 }
 
 }  // namespace Graphics

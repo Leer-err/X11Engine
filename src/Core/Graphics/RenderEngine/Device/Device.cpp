@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
+#include <bit>
 #include <vector>
 
 #include "Buffer.h"
@@ -29,6 +30,7 @@ Device::Device(const vkb::Instance& instance, const vkb::Device& device,
     : instance(instance),
       device(device),
       allocator(allocator),
+      buffer_registry(allocator),
       logger(LoggerFactory::getLogger("GraphicsDevice")) {
     createDescriptorLayout();
     properties = DeviceProperties::readProperties(device.physical_device);
@@ -100,7 +102,7 @@ void Device::destroyTexture(const TextureState& state) {
 
 Result<BufferState, BufferError> Device::createBuffer(
     const VkBufferCreateInfo& buffer_info,
-    const VmaAllocationCreateInfo& alloc_info) {
+    const VmaAllocationCreateInfo& alloc_info, bool is_chained) {
     BufferState buffer = {};
 
     VmaAllocationInfo result_info = {};
@@ -116,9 +118,11 @@ Result<BufferState, BufferError> Device::createBuffer(
         buffer.device_address = vkGetBufferDeviceAddress(device, &info);
 
     if ((alloc_info.flags & VMA_ALLOCATION_CREATE_MAPPED_BIT) != 0)
-        buffer.mapped_address = result_info.pMappedData;
+        buffer.mapped_address =
+            std::bit_cast<uint8_t*>(result_info.pMappedData);
 
     buffer.size = buffer_info.size;
+
     return buffer;
 }
 

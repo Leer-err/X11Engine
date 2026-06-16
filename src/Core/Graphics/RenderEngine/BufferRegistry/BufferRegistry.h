@@ -13,7 +13,7 @@ class BufferRegistry {
     using BufferKey = uint32_t;
 
    public:
-    explicit BufferRegistry(Device& device);
+    explicit BufferRegistry(VmaAllocator allocator);
     ~BufferRegistry();
 
     BufferRegistry(const BufferRegistry&) = delete;
@@ -32,7 +32,7 @@ class BufferRegistry {
    private:
     using BufferChain = std::array<BufferKey, MAX_FRAMES_IN_FLIGHT>;
 
-    Device& device;
+    VmaAllocator allocator;
 
     std::unordered_map<BufferKey, BufferState> buffers;
     std::unordered_map<BufferHandle, BufferChain> buffer_chains;

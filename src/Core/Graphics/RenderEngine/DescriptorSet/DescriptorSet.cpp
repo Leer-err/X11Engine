@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include <bit>
+#include <cstddef>
 #include <cstdint>
 
 #include "Buffer.h"
@@ -10,9 +12,12 @@
 
 namespace Graphics {
 
-DescriptorSet::DescriptorSet(Device& device,
+DescriptorSet::DescriptorSet(Device& device, BufferRegistry& registry,
                              const DeviceProperties& device_properties)
-    : device(device) {
+    : device(device),
+      descriptors(createDescriptorBuffer(
+          device, registry, device.getDescriptorLayout().layout_size,
+          device_properties.descriptor_buffer_properties.alignment)) {
     auto& descriptor_properties =
         device_properties.descriptor_buffer_properties;
 
@@ -23,25 +28,15 @@ DescriptorSet::DescriptorSet(Device& device,
     texture_descriptors_offset = descriptor_layout.texture_descriptors_offset;
     sampler_descriptors_offset = descriptor_layout.sampler_descriptors_offset;
 
-    size_t set_size = descriptor_layout.layout_size;
-    auto alignment = descriptor_properties.alignment;
-    set_size = (set_size + alignment - 1) & ~(alignment - 1);
-
     current_sampler_index = 0;
     current_texture_index = 0;
-
-    descriptors = BufferBuilder(set_size)
-                      .isDescriptorBuffer()
-                      .isCPUWritable(true, true)
-                      .create(device)
-                      .getResult();
 }
 
 uint32_t DescriptorSet::addTexture(const Texture& texture) {
-    auto descriptors_ptr = descriptors.mapped_address;
+    auto descriptors_ptr = descriptors.getHostAddress();
 
     char* binding_ptr =
-        static_cast<char*>(descriptors_ptr) + texture_descriptors_offset;
+        std::bit_cast<char*>(descriptors_ptr) + texture_descriptors_offset;
     char* element_ptr =
         binding_ptr + (current_texture_index * texture_descriptor_size);
 
@@ -66,10 +61,10 @@ uint32_t DescriptorSet::addTexture(const Texture& texture) {
 }
 
 uint32_t DescriptorSet::addSampler(const VkSampler& sampler) {
-    auto descriptors_ptr = descriptors.mapped_address;
+    auto descriptors_ptr = descriptors.getHostAddress();
 
     char* binding_ptr =
-        static_cast<char*>(descriptors_ptr) + sampler_descriptors_offset;
+        std::bit_cast<char*>(descriptors_ptr) + sampler_descriptors_offset;
     char* element_ptr =
         binding_ptr + (current_sampler_index * sampler_descriptor_size);
 
@@ -97,7 +92,20 @@ std::optional<uint32_t> DescriptorSet::getIndex(TextureHandle texture) {
 }
 
 VkDeviceAddress DescriptorSet::getDescriptors() const {
-    return descriptors.device_address;
+    return descriptors.getDeviceAddress();
+}
+
+Buffer DescriptorSet::createDescriptorBuffer(Device& device,
+                                             BufferRegistry& registry,
+                                             size_t set_size,
+                                             size_t alignment) {
+    auto aligned_size = (set_size + alignment - 1) & ~(alignment - 1);
+
+    return BufferBuilder(aligned_size)
+        .isDescriptorBuffer()
+        .isCPUWritable(true, true)
+        .create(device, registry)
+        .getResult();
 }
 
 }  // namespace Graphics

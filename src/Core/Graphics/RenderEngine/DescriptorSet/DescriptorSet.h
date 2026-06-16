@@ -14,7 +14,8 @@ namespace Graphics {
 
 class DescriptorSet {
    public:
-    DescriptorSet(Device& device, const DeviceProperties& device_properties);
+    DescriptorSet(Device& device, BufferRegistry& registry,
+                  const DeviceProperties& device_properties);
 
     uint32_t addTexture(const Texture& texture);
     uint32_t addSampler(const VkSampler& sampler);
@@ -25,7 +26,9 @@ class DescriptorSet {
     VkDeviceAddress getDescriptors() const;
 
    private:
-    static Buffer createDescriptorBuffer(Device& device);
+    static Buffer createDescriptorBuffer(Device& device,
+                                         BufferRegistry& registry,
+                                         size_t set_size, size_t alignment);
 
     Device& device;
 

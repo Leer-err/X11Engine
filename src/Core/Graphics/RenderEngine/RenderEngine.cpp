@@ -29,6 +29,7 @@ RenderEngine::RenderEngine(const vkb::Instance& instance,
       shader_registry(this->backend.getDevice()),
       mesh_registry(),
       texture_registry(this->backend.getDevice()),
+      buffer_registry(this->backend.getDevice().get),
       staging_buffer(this->backend.getDevice()) {
     EngineData data = getEngineData();
     render_pass = std::make_unique<RenderPass>(this->backend.getDevice(), data);
@@ -74,8 +75,8 @@ MeshHandle RenderEngine::addMesh(const ::Mesh& mesh) {
 }
 
 EngineData RenderEngine::getEngineData() {
-    return EngineData{descriptor_set, shader_registry, mesh_registry,
-                      texture_registry, staging_buffer};
+    return EngineData{descriptor_set,   shader_registry, mesh_registry,
+                      texture_registry, buffer_registry, staging_buffer};
 }
 
 RenderWorld& RenderEngine::getRenderWorld() { return world; }

@@ -4,6 +4,7 @@
 
 #include <cstdint>
 
+#include "BufferRegistry.h"
 #include "CommandBuffer.h"
 #include "DescriptorSet.h"
 #include "Device.h"
@@ -52,6 +53,7 @@ class RenderEngine final : public IRenderEngine {
     ShaderRegistry shader_registry;
     MeshRegistry mesh_registry;
     TextureRegistry texture_registry;
+    BufferRegistry buffer_registry;
 
     StagingBuffer staging_buffer;
 
