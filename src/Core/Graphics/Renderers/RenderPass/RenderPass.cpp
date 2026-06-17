@@ -1,13 +1,12 @@
 #include "RenderPass.h"
 
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 #include <array>
 #include <tracy/Tracy.hpp>
 
 #include "AppConfig.h"
-#include "Buffer/BufferBuilder.h"
-#include "BufferRegistry/BufferRegistry.h"
+#include "BufferBuilder.h"
 #include "CameraData.h"
 #include "Device.h"
 #include "FrameGraph.h"
@@ -22,7 +21,7 @@ namespace Graphics {
 RenderPass::RenderPass(Device& device, const EngineData& engine_data)
     : engine_data(engine_data),
       camera_data_buffer(createCameraBuffer(device)),
-      //   star_renderer(device, engine_data),
+      star_renderer(device, engine_data),
       static_mesh_renderer(device, engine_data),
       overlay_renderer(),
       post_processing_pass(device, engine_data) {
@@ -35,23 +34,22 @@ Texture RenderPass::render(const FrameData& frame_data, FrameGraph& frame_graph,
 
     auto camera_data_address = camera_data_buffer.getDeviceAddress();
 
-    // star_renderer.setCameraData(camera_data_address);
+    star_renderer.setCameraData(camera_data_address);
     static_mesh_renderer.setCameraData(camera_data_address);
 
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Render pass");
 
-    updateCameraBuffer(frame_data, world);
+    updateCameraBuffer(world);
 
-    // star_renderer.render(frame_data, world);
-    static_mesh_renderer.render(frame_data, frame_graph, world);
+    star_renderer.render(frame_graph, world);
+    static_mesh_renderer.render(frame_graph, world);
 
-    postProcessing(frame_data, frame_graph, world);
+    postProcessing(frame_graph, world);
 
     return final_image;
 }
 
-void RenderPass::updateCameraBuffer(const FrameData& frame_data,
-                                    const RenderWorld& world) {
+void RenderPass::updateCameraBuffer(const RenderWorld& world) {
     auto camera_data = world.getCameraData();
 
     camera_data_buffer.update(camera_data);
@@ -94,11 +92,9 @@ void RenderPass::createRenderEnviroment(Device& device) {
                       .getResult();
 }
 
-void RenderPass::postProcessing(const FrameData& frame_data,
-                                FrameGraph& frame_graph,
+void RenderPass::postProcessing(FrameGraph& frame_graph,
                                 const RenderWorld& world) {
-    post_processing_pass.render(render_target_texture, frame_data, frame_graph,
-                                world);
+    post_processing_pass.render(render_target_texture, frame_graph, world);
 
     // frame_data.cmd.bindRenderEnviroment(post_process_env);
 

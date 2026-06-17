@@ -34,8 +34,7 @@ class StaticMeshRenderer {
    public:
     StaticMeshRenderer(Device& device, const EngineData& engine_data);
 
-    void render(const FrameData& frame_data, FrameGraph& frame_graph,
-                const RenderWorld& world);
+    void render(FrameGraph& frame_graph, const RenderWorld& world);
     void setCameraData(VkDeviceAddress camera_data);
 
    private:

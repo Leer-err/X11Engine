@@ -2,6 +2,7 @@
 
 #include "EngineData.h"
 #include "FrameData.h"
+#include "FrameGraph.h"
 #include "GraphicsPipeline.h"
 #include "Mesh.h"
 #include "RenderWorld/RenderWorld.h"
@@ -18,7 +19,7 @@ class StarRenderer {
    public:
     StarRenderer(Device& device, const EngineData& engine_data);
 
-    void render(const FrameData& frame_data, const RenderWorld& world);
+    void render(FrameGraph& frame_graph, const RenderWorld& world);
 
     void setCameraData(VkDeviceAddress camera_data);
 

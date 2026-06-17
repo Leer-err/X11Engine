@@ -49,7 +49,6 @@ PostProcessingPass::PostProcessingPass(Device& device,
 }
 
 void PostProcessingPass::render(const Texture& input_image,
-                                const FrameData& frame_data,
                                 FrameGraph& frame_graph,
                                 const RenderWorld& world) {
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Dithering");
@@ -60,12 +59,12 @@ void PostProcessingPass::render(const Texture& input_image,
     data.render_target_index = *render_target_opt;
     dithering_data_buffer.update(data);
 
-    auto pass = GraphicsPass(pipeline, [this](GraphicsPassExecution& execution,
-                                              const FrameData& frame_data) {
-        auto data_address = dithering_data_buffer.getDeviceAddress();
-        execution.appendData(data_address);
-        execution.draw(quad);
-    });
+    auto pass =
+        GraphicsPass(pipeline, [this](GraphicsPassExecution& execution) {
+            auto data_address = dithering_data_buffer.getDeviceAddress();
+            execution.appendData(data_address);
+            execution.draw(quad);
+        });
     auto render_target =
         engine_data.texture_registry.getTexture("RenderResult");
     pass.addColorAttachment(*render_target, false, {});

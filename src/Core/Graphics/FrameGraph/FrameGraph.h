@@ -48,9 +48,9 @@ class GraphicsPass {
     };
 
    public:
-    GraphicsPass(const GraphicsPipeline& pipeline,
-                 const std::function<void(GraphicsPassExecution&,
-                                          const FrameData&)>& pass_function);
+    GraphicsPass(
+        const GraphicsPipeline& pipeline,
+        const std::function<void(GraphicsPassExecution&)>& pass_function);
 
     void reads(const Texture& texture);
 
@@ -64,7 +64,7 @@ class GraphicsPass {
 
    private:
     GraphicsPipeline pipeline;
-    std::function<void(GraphicsPassExecution&, const FrameData&)> pass_function;
+    std::function<void(GraphicsPassExecution&)> pass_function;
 
     std::vector<Texture> read_textures;
     std::vector<Attachment> color_attachments;

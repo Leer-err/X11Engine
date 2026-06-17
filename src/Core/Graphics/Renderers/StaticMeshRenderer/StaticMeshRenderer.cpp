@@ -28,8 +28,7 @@ StaticMeshRenderer::StaticMeshRenderer(Device& device,
         engine_data.descriptor_set.addSampler(Sampler::linear(device));
 }
 
-void StaticMeshRenderer::render(const FrameData& frame_data,
-                                FrameGraph& frame_graph,
+void StaticMeshRenderer::render(FrameGraph& frame_graph,
                                 const RenderWorld& world) {
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Static mesh");
 
@@ -38,8 +37,7 @@ void StaticMeshRenderer::render(const FrameData& frame_data,
     auto objects = world.getOpaqueObjects();
 
     auto pass = GraphicsPass(pipeline, [this, objects](
-                                           GraphicsPassExecution& execution,
-                                           const FrameData& frame_data) {
+                                           GraphicsPassExecution& execution) {
         for (int i = 0; i < objects.size(); i++) {
             const auto& model = objects[i];
             auto mesh = engine_data.mesh_registry.getMesh(model.mesh);
@@ -63,10 +61,9 @@ void StaticMeshRenderer::render(const FrameData& frame_data,
         pass.reads(*engine_data.texture_registry.getTexture(model.albedo));
     }
     pass.addColorAttachment(*engine_data.texture_registry.getTexture("Color"),
-                            true, VkClearValue{.color = {0, 0, 0, 0}});
-    pass.addDepthAttachment(
-        *engine_data.texture_registry.getTexture("Depth"), true, true,
-        VkClearValue{.depthStencil = {.depth = 1, .stencil = 0}});
+                            false, VkClearValue{});
+    pass.addDepthAttachment(*engine_data.texture_registry.getTexture("Depth"),
+                            true, false, VkClearValue{});
 
     frame_graph.addGraphicsPass(pass);
 }

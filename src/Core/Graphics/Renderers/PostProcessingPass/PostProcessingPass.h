@@ -24,8 +24,8 @@ class PostProcessingPass {
    public:
     PostProcessingPass(Device& device, const EngineData& engine_data);
 
-    void render(const Texture& input_image, const FrameData& frame_data,
-                FrameGraph& frame_graph, const RenderWorld& world);
+    void render(const Texture& input_image, FrameGraph& frame_graph,
+                const RenderWorld& world);
 
    private:
     static Mesh createSqreenQuad(Device& device, const EngineData& engine_data);

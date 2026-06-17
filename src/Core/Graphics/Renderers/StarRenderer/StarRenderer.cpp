@@ -6,13 +6,13 @@
 #include <cstring>
 
 #include "BufferBuilder.h"
-#include "CommandBuffer.h"
 #include "Device.h"
 #include "EngineData.h"
+#include "FrameGraph.h"
 #include "GraphicsMesh.h"
 #include "GraphicsPipelineBuilder.h"
 #include "MeshBuilder.h"
-#include "RenderWorld/RenderWorld.h"
+#include "RenderWorld.h"
 #include "StarsData.h"
 #include "Vector2.h"
 #include "Vector3.h"
@@ -24,27 +24,32 @@ StarRenderer::StarRenderer(Device& device, const EngineData& engine_data)
       quad(createScreenQuad(device, engine_data)),
       stars_data_buffer(createStarsBuffer(device)) {
     pipeline = GraphicsPipelineBuilder(
-                   "./Assets/Shaders/Stars/Stars.spv", "vertex_main",
+                   "./Assets/Shaders/Stars/Stars.spv", "mesh_main",
                    "./Assets/Shaders/Stars/Stars.spv", "pixel_main")
                    .create(device, engine_data.shader_registry)
                    .getResult();
 }
 
-void StarRenderer::render(const FrameData& frame_data,
-                          const RenderWorld& world) {
-    // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Stars");
+void StarRenderer::render(FrameGraph& frame_graph, const RenderWorld& world) {
+    auto pass = GraphicsPass(
+        pipeline, [this, &world](GraphicsPassExecution& execution) {
+            auto stars_data = world.getStarsData();
+            stars_data_buffer.update(stars_data);
+            push_constants.stars_data = stars_data_buffer.getDeviceAddress();
 
-    auto command_buffer = frame_data.cmd;
+            execution.appendData(push_constants);
 
-    auto stars_data = world.getStarsData();
-    stars_data_buffer.update(stars_data);
-    push_constants.stars_data = stars_data_buffer.getDeviceAddress();
+            execution.draw(quad);
+        });
 
-    command_buffer.setPipeline(pipeline);
+    auto color_attachment = engine_data.texture_registry.getTexture("Color");
+    pass.addColorAttachment(color_attachment.value(), true, {});
+    auto depth_attachment = engine_data.texture_registry.getTexture("Depth");
+    pass.addDepthAttachment(
+        depth_attachment.value(), true, true,
+        VkClearValue{.depthStencil = {.depth = 1, .stencil = 0}});
 
-    command_buffer.pushConstants(pipeline, &push_constants, 0);
-
-    // command_buffer.draw(quad);
+    frame_graph.addGraphicsPass(pass);
 }
 
 void StarRenderer::setCameraData(VkDeviceAddress camera_data) {
@@ -56,11 +61,13 @@ Buffer StarRenderer::createStarsBuffer(Device& device) {
         .isConstantBuffer()
         .isChained()
         .isDeviceAddressable()
+        .isCPUWritable(true)
         .create(device)
         .getResult();
 }
 
-Mesh createScreenQuad(Device& device, const EngineData& engine_data) {
+Mesh StarRenderer::createScreenQuad(Device& device,
+                                    const EngineData& engine_data) {
     constexpr std::array<Vertex, 4> screen_quad_vertices = {
         Vertex{Vector3(-1, -1, 1), Vector2{0, 0}},
         Vertex{Vector3(-1, 1, 1), Vector2{0, 0}},

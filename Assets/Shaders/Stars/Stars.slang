@@ -4,13 +4,14 @@ struct CameraData
     float4x4 inverse_view_projection;
 };
 
-struct Vertex_Output{
+struct VertexOutput{
     float4 viewport_position : SV_POSITION;
     float3 position;
 };
 
-struct Vertex_input{
+struct VertexInput{
     float3 position;
+    float2 uv;
 };
 
 struct StarsData
@@ -21,20 +22,69 @@ struct StarsData
     float blink_strength;
 };
 
+struct Meshlet{
+    uint32_t vertex_offset; 
+    uint32_t triangle_offset;
+
+    uint8_t vertex_count;
+    uint8_t triangle_count;
+};
+
+struct MeshData{
+    VertexInput* vertices;
+    uint8_t* meshlet_triangles;
+    uint32_t* meshlet_vertices;
+    Meshlet* meshlets;
+};
+
+struct PushConstants{
+    MeshData mesh;
+
+    CameraData* camera_data;
+    StarsData* stars_data;
+};
+
+[vk::push_constant]
+PushConstants constants;
+
+static const uint GROUP_SIZE = 32;
+
 [shader("mesh")]
 [outputtopology("triangle")]
 [numthreads(32, 1, 1)]
-Vertex_Output vertex_main(out indices uint3 triangles[96], out vertices float3 vertices[64], 
-  uint3 groupId : SV_GroupID, uint3 gtid : SV_GroupThreadID)
+void mesh_main(
+    in uint3 group_tid : SV_GroupThreadID,
+    in uint3 group_index : SV_GroupID,
+    out vertices VertexOutput vertices[64],
+    out indices uint3 triangles[96])
 {
-    Vertex_Output output;
+    Meshlet meshlet = constants.mesh.meshlets[group_index.x];
+    SetMeshOutputCounts(meshlet.vertex_count, meshlet.triangle_count);
 
-    // output.viewport_position = float4(vertex.position, 1);
-    // float4 position = mul(camera_data->inverse_view_projection, output.viewport_position);
-    // position = position / position.w;
-    // output.position = position.xyz;
+    uint local_index = group_tid.x;
+    for(int i = local_index; i < meshlet.vertex_count; i += GROUP_SIZE){
+        uint meshlet_vertex_index = meshlet.vertex_offset + i;
+        uint vertex_index = constants.mesh.meshlet_vertices[meshlet_vertex_index];
+        VertexInput vertex = constants.mesh.vertices[vertex_index];
+        float4 vertex_position = float4(vertex.position, 1);
 
-    return output;
+        vertices[i].viewport_position = vertex_position;
+
+        float4 position = mul(constants.camera_data->inverse_view_projection, vertex_position);
+        position = position / position.w;
+        vertices[i].position = position.xyz;
+    }
+
+    for(int i = local_index; i < meshlet.triangle_count; i += GROUP_SIZE){
+        uint meshlet_triangle_index = meshlet.triangle_offset + i * 3;
+
+        uint3 triangle;
+        triangle.x = constants.mesh.meshlet_triangles[meshlet_triangle_index];
+        triangle.y = constants.mesh.meshlet_triangles[meshlet_triangle_index + 1];
+        triangle.z = constants.mesh.meshlet_triangles[meshlet_triangle_index + 2];
+
+        triangles[i] = triangle;
+    }
 }
 
 float3 hash(float3 p) {
@@ -148,8 +198,10 @@ float remap(float value, float in_min, float in_max, float out_min, float out_ma
 }
 
 [shader("pixel")]
-float4 pixel_main(in Vertex_Output data, uniform CameraData* camera_data, uniform StarsData* stars_data)
+float4 pixel_main(in VertexOutput data)
 {
+    StarsData stars_data = *constants.stars_data;
+
     float3 noise_position = normalize(data.position);
     float noise = 1 - voronoi3d(noise_position * stars_data.star_density).x;
     float stars = step(0.95, noise);

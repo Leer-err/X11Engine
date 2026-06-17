@@ -14,7 +14,7 @@ namespace Graphics {
 
 GraphicsPass::GraphicsPass(
     const GraphicsPipeline& pipeline,
-    const std::function<void(GraphicsPassExecution&, const FrameData&)>& pass)
+    const std::function<void(GraphicsPassExecution&)>& pass)
     : pipeline(pipeline), pass_function(pass), writes_depth(false) {}
 
 void GraphicsPass::reads(const Texture& texture) {
@@ -104,7 +104,7 @@ void GraphicsPass::execute(const DescriptorSet& descriptor_set,
 
     GraphicsPassExecution execution(descriptor_set, command_buffer, pipeline);
 
-    pass_function(execution, frame_data);
+    pass_function(execution);
 }
 
 struct MeshBuffers {
