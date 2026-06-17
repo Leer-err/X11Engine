@@ -73,6 +73,24 @@ class GraphicsPass {
     bool writes_depth;
 };
 
+class Pass {
+    struct PassTexture {
+        VkImageLayout layout;
+        Texture texture;
+    };
+
+   public:
+    void reads(const Texture& texture, VkImageLayout layout);
+    void writes(const Texture& texture, VkImageLayout layout);
+
+    void setGeneralExecutor();
+    void setGraphicsExecutor(
+        std::function<void(const GraphicsPassExecution&)> executor);
+
+   private:
+    std::vector<PassTexture> pass_textures;
+};
+
 class FrameGraph {
    public:
     explicit FrameGraph(const EngineData& engine_data);
