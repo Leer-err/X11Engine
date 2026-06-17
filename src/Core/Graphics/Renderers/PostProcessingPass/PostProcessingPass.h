@@ -28,6 +28,9 @@ class PostProcessingPass {
                 FrameGraph& frame_graph, const RenderWorld& world);
 
    private:
+    static Mesh createSqreenQuad(Device& device, const EngineData& engine_data);
+    static Buffer createDataBuffer(Device& device);
+
     EngineData engine_data;
 
     GraphicsPipeline pipeline;

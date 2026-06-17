@@ -146,6 +146,10 @@ void RenderingBackend::prepareBackbufferForPresentation(
     cmd.barrier(&render_finished, 1, nullptr, 0);
 }
 
+void RenderingBackend::setCurrentFrameIndex(uint32_t index) {
+    device.getBufferRegistry().setFrameInFlight(index);
+}
+
 void RenderingBackend::createSwapChain() {
     swap_chain = SwapChain(device, presentation_queue, 1280, 720,
                            Config::BufferingMode::NoBuffering);

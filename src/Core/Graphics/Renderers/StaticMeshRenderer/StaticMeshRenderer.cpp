@@ -2,6 +2,10 @@
 
 #include <vulkan/vulkan.h>
 
+#include <bit>
+
+#include "BufferBuilder.h"
+#include "Device.h"
 #include "FrameData.h"
 #include "FrameGraph.h"
 #include "GraphicsPipelineBuilder.h"
@@ -13,7 +17,7 @@ namespace Graphics {
 
 StaticMeshRenderer::StaticMeshRenderer(Device& device,
                                        const EngineData& engine_data)
-    : engine_data(engine_data), model_data_buffer(device) {
+    : engine_data(engine_data), model_data_buffer(createModelBuffer(device)) {
     pipeline = GraphicsPipelineBuilder(
                    "./Assets/Shaders/StaticModel/StaticModel.spv", "mesh_main",
                    "./Assets/Shaders/StaticModel/StaticModel.spv", "pixel_main")
@@ -29,23 +33,23 @@ void StaticMeshRenderer::render(const FrameData& frame_data,
                                 const RenderWorld& world) {
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Static mesh");
 
-    auto buffer_ptr = model_data_buffer.getHostAddress(frame_data);
+    auto buffer_ptr =
+        std::bit_cast<ModelBuffer*>(model_data_buffer.getHostAddress());
     auto objects = world.getOpaqueObjects();
 
-    auto pass =
-        GraphicsPass(pipeline, [this, objects](GraphicsPassExecution& execution,
-                                               const FrameData& frame_data) {
-            for (int i = 0; i < objects.size(); i++) {
-                const auto& model = objects[i];
-                auto mesh = engine_data.mesh_registry.getMesh(model.mesh);
+    auto pass = GraphicsPass(pipeline, [this, objects](
+                                           GraphicsPassExecution& execution,
+                                           const FrameData& frame_data) {
+        for (int i = 0; i < objects.size(); i++) {
+            const auto& model = objects[i];
+            auto mesh = engine_data.mesh_registry.getMesh(model.mesh);
 
-                push_constants.model_data =
-                    model_data_buffer.getDeviceAddress(frame_data) +
-                    sizeof(StaticModelBuffer) * i;
-                execution.appendData(push_constants);
-                execution.draw(*mesh);
-            }
-        });
+            push_constants.model_data =
+                model_data_buffer.getDeviceAddress() + sizeof(ModelBuffer) * i;
+            execution.appendData(push_constants);
+            execution.draw(*mesh);
+        }
+    });
 
     for (int i = 0; i < objects.size(); i++) {
         const auto& model = objects[i];
@@ -69,6 +73,16 @@ void StaticMeshRenderer::render(const FrameData& frame_data,
 
 void StaticMeshRenderer::setCameraData(const VkDeviceAddress camera_data) {
     push_constants.camera_data = camera_data;
+}
+
+Buffer StaticMeshRenderer::createModelBuffer(Device& device) {
+    return BufferBuilder(sizeof(ModelData))
+        .isConstantBuffer()
+        .isDeviceAddressable()
+        .isCPUWritable(true)
+        .isChained()
+        .create(device)
+        .getResult();
 }
 
 }  // namespace Graphics

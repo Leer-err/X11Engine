@@ -37,10 +37,10 @@ class Device {
         const VmaAllocationCreateInfo& alloc_info);
     void destroyTexture(const TextureState& state);
 
-    Result<BufferState, BufferError> createBuffer(
+    Result<Buffer, BufferError> createBuffer(
         const VkBufferCreateInfo& buffer_info,
-        const VmaAllocationCreateInfo& alloc_info);
-    void destroyBuffer(const BufferState& state);
+        const VmaAllocationCreateInfo& alloc_info, bool is_chained);
+    void destroyBuffer(const Buffer& state);
 
     VkCommandPool createCommandPool(uint32_t queue_index);
     void resetCommandPool(VkCommandPool pool) const;
@@ -73,6 +73,7 @@ class Device {
     VkInstance getInstance() const;
     VkDevice getDevice() const;
     VkPhysicalDevice getPhysicalDevice() const;
+    BufferRegistry& getBufferRegistry();
 
     TracyVkCtx createTracingContext(const Queue& queue,
                                     const CommandBuffer& command_buffer) const;
@@ -85,6 +86,7 @@ class Device {
 
     VmaAllocator allocator;
 
+    BufferAllocator buffer_allocator;
     BufferRegistry buffer_registry;
 
     DescriptorLayout descriptor_layout;

@@ -39,13 +39,14 @@ class StagingBuffer {
     void flush(const CommandBuffer& cmd);
 
    private:
+    static size_t getTexelBlockSize(VkFormat format);
+    static Buffer createBuffer(Device& device);
+
     Device& device;
 
     size_t host_data_used;
 
     Buffer buffer;
-
-    size_t getTexelBlockSize(VkFormat format) const;
 
     std::vector<BufferData> buffers;
     std::vector<TextureData> textures;

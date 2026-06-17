@@ -1,12 +1,16 @@
 #include "PostProcessingPass.h"
 
+#include <array>
+
 #include "AppConfig.h"
+#include "BufferBuilder.h"
 #include "Device.h"
 #include "EngineData.h"
 #include "FrameGraph.h"
 #include "GraphicsPipelineBuilder.h"
 #include "MeshBuilder.h"
 #include "Overlay.h"
+#include "PostProcessingData.h"
 #include "RenderWorld.h"
 #include "Sampler.h"
 #include "Vector3.h"
@@ -15,19 +19,9 @@ namespace Graphics {
 
 PostProcessingPass::PostProcessingPass(Device& device,
                                        const EngineData& engine_data)
-    : engine_data(engine_data), dithering_data_buffer(device) {
-    constexpr Vertex screen_quad_vertices[] = {
-        Vertex(Vector3(-1, -1, 0), Vector2(0, 0)),
-        Vertex(Vector3(-1, 1, 0), Vector2(0, 1)),
-        Vertex(Vector3(1, -1, 0), Vector2(1, 0)),
-        Vertex(Vector3(1, 1, 0), Vector2(1, 1))};
-
-    constexpr uint32_t screen_quad_indices[] = {0, 1, 2, 1, 3, 2};
-
-    quad = MeshBuilder(screen_quad_vertices, sizeof(screen_quad_vertices),
-                       screen_quad_indices, sizeof(screen_quad_indices))
-               .create(device, engine_data.staging_buffer);
-
+    : engine_data(engine_data),
+      quad(createSqreenQuad(device, engine_data)),
+      dithering_data_buffer(createDataBuffer(device)) {
     pipeline =
         GraphicsPipelineBuilder(
             "./Assets/Shaders/PostProcess/PostProcessing.spv", "mesh_main",
@@ -64,11 +58,11 @@ void PostProcessingPass::render(const Texture& input_image,
     if (render_target_opt.has_value() == false) return;
 
     data.render_target_index = *render_target_opt;
-    dithering_data_buffer.update(frame_data, data);
+    dithering_data_buffer.update(data);
 
     auto pass = GraphicsPass(pipeline, [this](GraphicsPassExecution& execution,
                                               const FrameData& frame_data) {
-        auto data_address = dithering_data_buffer.getDeviceAddress(frame_data);
+        auto data_address = dithering_data_buffer.getDeviceAddress();
         execution.appendData(data_address);
         execution.draw(quad);
     });
@@ -78,6 +72,32 @@ void PostProcessingPass::render(const Texture& input_image,
     pass.reads(input_image);
 
     frame_graph.addGraphicsPass(pass);
+}
+
+Mesh PostProcessingPass::createSqreenQuad(Device& device,
+                                          const EngineData& engine_data) {
+    constexpr std::array<Vertex, 4> screen_quad_vertices = {
+        Vertex{Vector3{-1, -1, 0}, Vector2{0, 0}},
+        Vertex{Vector3{-1, 1, 0}, Vector2{0, 1}},
+        Vertex{Vector3{1, -1, 0}, Vector2{1, 0}},
+        Vertex{Vector3{1, 1, 0}, Vector2{1, 1}}};
+
+    constexpr std::array<uint32_t, 6> screen_quad_indices = {0, 1, 2, 1, 3, 2};
+
+    return MeshBuilder(screen_quad_vertices.data(),
+                       sizeof(screen_quad_vertices), screen_quad_indices.data(),
+                       sizeof(screen_quad_indices))
+        .create(device, engine_data.staging_buffer);
+}
+
+Buffer PostProcessingPass::createDataBuffer(Device& device) {
+    return BufferBuilder(sizeof(PostProcessingData))
+        .isConstantBuffer()
+        .isDeviceAddressable()
+        .isChained()
+        .isCPUWritable(true)
+        .create(device)
+        .getResult();
 }
 
 }  // namespace Graphics

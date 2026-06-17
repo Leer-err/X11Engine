@@ -5,6 +5,7 @@
 #include <cstring>
 #include <vector>
 
+#include "Buffer.h"
 #include "BufferBuilder.h"
 #include "Device.h"
 
@@ -13,14 +14,7 @@ namespace Graphics {
 constexpr size_t BUFFER_SIZE = 128 * 1024 * 1024;
 
 StagingBuffer::StagingBuffer(Device& device)
-    : device(device), host_data_used(0) {
-    buffer = BufferBuilder(BUFFER_SIZE)
-                 .isCopySource()
-                 .isDeviceAddressable()
-                 .isCPUWritable(true, true)
-                 .create(device)
-                 .getResult();
-}
+    : device(device), host_data_used(0), buffer(createBuffer(device)) {}
 
 void StagingBuffer::stageTexture(const Texture& destination, const void* data,
                                  size_t data_size) {
@@ -29,8 +23,7 @@ void StagingBuffer::stageTexture(const Texture& destination, const void* data,
     size_t aligned_host_offset =
         (host_data_used + alignment - 1) & ~(alignment - 1);
 
-    memcpy(std::bit_cast<uint8_t*>(buffer.mapped_address) + aligned_host_offset,
-           data, data_size);
+    memcpy(buffer.getHostAddress() + aligned_host_offset, data, data_size);
 
     TextureData image_data = {};
     image_data.texture = destination;
@@ -43,19 +36,17 @@ void StagingBuffer::stageTexture(const Texture& destination, const void* data,
 
 void StagingBuffer::stageBuffer(const Buffer& destination, const void* data,
                                 size_t data_size) {
-    memcpy(reinterpret_cast<char*>(buffer.mapped_address) + host_data_used,
-           data, data_size);
+    memcpy(buffer.getHostAddress() + host_data_used, data, data_size);
 
-    BufferData buffer_data = {};
-    buffer_data.buffer = destination;
-    buffer_data.data_size = data_size;
-    buffer_data.host_offset = host_data_used;
+    BufferData buffer_data = {.buffer = destination,
+                              .host_offset = host_data_used,
+                              .data_size = data_size};
     buffers.push_back(buffer_data);
 
     host_data_used += data_size;
 }
 
-size_t StagingBuffer::getTexelBlockSize(VkFormat format) const {
+size_t StagingBuffer::getTexelBlockSize(VkFormat format) {
     if (format == VK_FORMAT_R8G8B8A8_SRGB) return 4;
 
     return 1;
@@ -98,13 +89,15 @@ void StagingBuffer::flush(const CommandBuffer& cmd) {
     cmd.barrier(image_barriers_ptr, image_barriers.size(), buffer_barriers_ptr,
                 buffer_barriers.size());
 
+    auto buffer_handle = buffer.getState().buffer;
+
     for (auto& buffer_data : buffers) {
         VkBufferCopy copy = {};
         copy.srcOffset = buffer_data.host_offset;
         copy.size = buffer_data.data_size;
 
-        vkCmdCopyBuffer(cmd.buffer, buffer.buffer, buffer_data.buffer.buffer, 1,
-                        &copy);
+        vkCmdCopyBuffer(cmd.buffer, buffer_handle,
+                        buffer_data.buffer.getState().buffer, 1, &copy);
     }
 
     for (auto& image_data : textures) {
@@ -118,13 +111,22 @@ void StagingBuffer::flush(const CommandBuffer& cmd) {
         copy.imageExtent.height = state.height;
         copy.imageExtent.depth = 1;
 
-        vkCmdCopyBufferToImage(cmd.buffer, buffer.buffer, state.texture,
+        vkCmdCopyBufferToImage(cmd.buffer, buffer_handle, state.texture,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
     }
 
     textures.clear();
     buffers.clear();
     host_data_used = 0;
+}
+
+Buffer StagingBuffer::createBuffer(Device& device) {
+    return BufferBuilder(BUFFER_SIZE)
+        .isCopySource()
+        .isDeviceAddressable()
+        .isCPUWritable(true, true)
+        .create(device)
+        .getResult();
 }
 
 }  // namespace Graphics

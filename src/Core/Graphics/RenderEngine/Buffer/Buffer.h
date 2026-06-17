@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
+#include <bit>
 #include <cstddef>
 #include <cstdint>
 
@@ -12,14 +13,16 @@ namespace Graphics {
 using BufferHandle = uint32_t;
 
 class BufferRegistry;
+class BufferAllocator;
 
 class Buffer {
    public:
-    Buffer(BufferRegistry* registry, BufferHandle handle);
+    Buffer(BufferRegistry* registry, BufferAllocator* allocator,
+           BufferHandle handle);
 
     template <typename T>
     void update(const T& data, size_t offset = 0) {
-        update(&data, sizeof(T), offset);
+        update(std::bit_cast<uint8_t*>(&data), sizeof(T), offset);
     }
     void update(const uint8_t* data, size_t size, size_t offset = 0);
 
@@ -36,6 +39,7 @@ class Buffer {
    private:
     BufferHandle handle;
     BufferRegistry* registry;
+    BufferAllocator* allocator;
 };
 
 }  // namespace Graphics

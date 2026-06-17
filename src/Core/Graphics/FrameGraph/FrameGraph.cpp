@@ -137,10 +137,12 @@ void GraphicsPassExecution::appendData(const uint8_t* data, size_t data_size) {
 void GraphicsPassExecution::draw(const Mesh& mesh) {
     MeshBuffers push_data = {};
 
-    push_data.vertices = mesh.vertex_buffer.device_address;
-    push_data.meshlet_triangles = mesh.meshlet_triangles_buffer.device_address;
-    push_data.meshlet_vertices = mesh.meshlet_vertices_buffer.device_address;
-    push_data.meshlets = mesh.meshlet_buffer.device_address;
+    push_data.vertices = mesh.vertex_buffer.getDeviceAddress();
+    push_data.meshlet_triangles =
+        mesh.meshlet_triangles_buffer.getDeviceAddress();
+    push_data.meshlet_vertices =
+        mesh.meshlet_vertices_buffer.getDeviceAddress();
+    push_data.meshlets = mesh.meshlet_buffer.getDeviceAddress();
 
     command_buffer.pushConstants(pipeline, &push_data, 0);
 

@@ -4,6 +4,8 @@
 
 #include <cstring>
 
+#include "Buffer.h"
+#include "BufferBuilder.h"
 #include "CloudsData.h"
 #include "DescriptorSet.h"
 #include "Device.h"
@@ -14,6 +16,7 @@
 #include "TextureBuilder.h"
 #include "Vector2.h"
 #include "Vector3.h"
+#include "VertexFormats.h"
 
 namespace Graphics {
 
@@ -23,29 +26,10 @@ struct Vertex {
 };
 
 CloudsRenderer::CloudsRenderer(Device& device, const EngineData& engine_data)
-    : engine_data(engine_data), env({}), clouds_data_buffer(device) {
-    constexpr Vertex cloud_plane_vertex_data[] = {
-        {Vector3(-1, 0, -1), Vector2(0, 0)},
-        {Vector3(-1, 0, 1), Vector2(0, 1)},
-        {Vector3(1, 0, -1), Vector2(1, 0)},
-        {Vector3(1, 0, 1), Vector2(1, 1)}};
-
-    constexpr Vertex screen_quad_vertices[] = {
-        {Vector3(-1, -1, 1), Vector2(0, 0)},
-        {Vector3(-1, 1, 1), Vector2(0, 1)},
-        {Vector3(1, -1, 1), Vector2(0, 1)},
-        {Vector3(1, 1, 1), Vector2(0, 1)}};
-
-    constexpr uint32_t screen_quad_indices[] = {0, 1, 2, 1, 3, 2};
-
-    cloud_plane =
-        MeshBuilder(cloud_plane_vertex_data, sizeof(cloud_plane_vertex_data),
-                    screen_quad_indices, sizeof(screen_quad_indices))
-            .create(device, engine_data.staging_buffer);
-    quad = MeshBuilder(&screen_quad_vertices[0], sizeof(screen_quad_vertices),
-                       &screen_quad_indices[0], sizeof(screen_quad_indices))
-               .create(device, engine_data.staging_buffer);
-
+    : engine_data(engine_data),
+      quad(createScreenQuad(device, engine_data)),
+      cloud_plane(createCloudPlane(device, engine_data)),
+      clouds_data_buffer(createCloudDataBuffer(device)) {
     clouds_texture = TextureBuilder(VK_FORMAT_R8G8B8A8_UNORM, 512, 512)
                          .isRenderTarget()
                          .isShaderResource()
@@ -74,8 +58,7 @@ void CloudsRenderer::render(const FrameData& frame_data,
 
     auto command_buffer = frame_data.cmd;
 
-    push_constants.clouds_address =
-        clouds_data_buffer.getDeviceAddress(frame_data);
+    push_constants.clouds_address = clouds_data_buffer.getDeviceAddress();
 
     command_buffer.setPipeline(cloud_pipeline);
     command_buffer.bindDescriptorSet(cloud_pipeline,
@@ -129,6 +112,46 @@ void CloudsRenderer::render(const FrameData& frame_data,
 
 void CloudsRenderer::setCameraData(VkDeviceAddress camera_data) {
     push_constants.camera_address = camera_data;
+}
+
+Buffer CloudsRenderer::createCloudDataBuffer(Device& device) {
+    return BufferBuilder(sizeof(CloudsData))
+        .isConstantBuffer()
+        .isDeviceAddressable()
+        .isChained()
+        .create(device)
+        .getResult();
+}
+
+Mesh CloudsRenderer::createScreenQuad(Device& device,
+                                      const EngineData& engine_data) {
+    constexpr std::array<Vertex, 4> screen_quad_vertices = {
+        Vertex{Vector3(-1, -1, 1), Vector2(0, 0)},
+        Vertex{Vector3(-1, 1, 1), Vector2(0, 1)},
+        Vertex{Vector3(1, -1, 1), Vector2(0, 1)},
+        Vertex{Vector3(1, 1, 1), Vector2(0, 1)}};
+
+    constexpr std::array<uint32_t, 6> screen_quad_indices = {0, 1, 2, 1, 3, 2};
+
+    return MeshBuilder(&screen_quad_vertices[0], sizeof(screen_quad_vertices),
+                       &screen_quad_indices[0], sizeof(screen_quad_indices))
+        .create(device, engine_data.staging_buffer);
+}
+
+Mesh CloudsRenderer::createCloudPlane(Device& device,
+                                      const EngineData& engine_data) {
+    constexpr std::array<Vertex, 4> cloud_plane_vertex_data = {
+        Vertex{Vector3(-1, 0, -1), Vector2(0, 0)},
+        Vertex{Vector3(-1, 0, 1), Vector2(0, 1)},
+        Vertex{Vector3(1, 0, -1), Vector2(1, 0)},
+        Vertex{Vector3(1, 0, 1), Vector2(1, 1)}};
+
+    constexpr std::array<uint32_t, 6> screen_quad_indices = {0, 1, 2, 1, 3, 2};
+
+    return MeshBuilder(cloud_plane_vertex_data.data(),
+                       sizeof(cloud_plane_vertex_data),
+                       screen_quad_indices.data(), sizeof(screen_quad_indices))
+        .create(device, engine_data.staging_buffer);
 }
 
 }  // namespace Graphics

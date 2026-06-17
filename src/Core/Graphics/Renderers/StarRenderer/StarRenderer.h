@@ -23,6 +23,9 @@ class StarRenderer {
     void setCameraData(VkDeviceAddress camera_data);
 
    private:
+    static Buffer createStarsBuffer(Device& device);
+    static Mesh createScreenQuad(Device& device, const EngineData& engine_data);
+
     EngineData engine_data;
 
     Mesh quad;

@@ -2,15 +2,18 @@
 
 #include <cstring>
 
+#include "BufferAllocator.h"
 #include "BufferRegistry.h"
 
 namespace Graphics {
 
-Buffer::Buffer(BufferRegistry* registry, BufferHandle handle)
-    : handle(handle), registry(registry) {}
+Buffer::Buffer(BufferRegistry* registry, BufferAllocator* allocator,
+               BufferHandle handle)
+    : handle(handle), registry(registry), allocator(allocator) {}
 
 void Buffer::update(const uint8_t* data, size_t size, size_t offset) {
-    memcpy(getHostAddress() + offset, data, size);
+    auto mapped_address = getHostAddress();
+    memcpy(mapped_address + offset, data, size);
 }
 
 uint8_t* Buffer::getHostAddress() const { return getState().mapped_address; }
@@ -19,7 +22,10 @@ VkDeviceAddress Buffer::getDeviceAddress() const {
     return getState().device_address;
 }
 
-BufferState Buffer::getState() const { return registry->getState(handle); }
+BufferState Buffer::getState() const {
+    auto raw_buffer = registry->getRawBuffer(handle);
+    return *allocator->getBufferState(raw_buffer);
+}
 
 VkBufferMemoryBarrier2 Buffer::createBarrier(VkPipelineStageFlags2 src_stages,
                                              VkAccessFlags2 src_access,

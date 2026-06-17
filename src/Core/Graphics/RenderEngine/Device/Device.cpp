@@ -4,12 +4,15 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
+#include <array>
 #include <bit>
 #include <vector>
 
 #include "Buffer.h"
+#include "BufferAllocator.h"
 #include "CommandBuffer.h"
 #include "DeviceProperties.h"
+#include "EngineConstants.h"
 #include "ExtensionFunctions.h"
 #include "GraphicsPipeline.h"
 #include "Logger.h"
@@ -30,7 +33,8 @@ Device::Device(const vkb::Instance& instance, const vkb::Device& device,
     : instance(instance),
       device(device),
       allocator(allocator),
-      buffer_registry(allocator),
+      buffer_allocator(device, allocator),
+      buffer_registry(),
       logger(LoggerFactory::getLogger("GraphicsDevice")) {
     createDescriptorLayout();
     properties = DeviceProperties::readProperties(device.physical_device);
@@ -100,34 +104,32 @@ void Device::destroyTexture(const TextureState& state) {
     vmaDestroyImage(allocator, state.texture, state.allocation);
 }
 
-Result<BufferState, BufferError> Device::createBuffer(
+Result<Buffer, BufferError> Device::createBuffer(
     const VkBufferCreateInfo& buffer_info,
     const VmaAllocationCreateInfo& alloc_info, bool is_chained) {
-    BufferState buffer = {};
+    BufferHandle handle;
 
-    VmaAllocationInfo result_info = {};
+    if (is_chained) {
+        auto buffer_opt =
+            buffer_allocator.createBuffer(buffer_info, alloc_info);
+        if (buffer_opt.has_value() == false) return BufferError{};
 
-    vmaCreateBuffer(allocator, &buffer_info, &alloc_info, &buffer.buffer,
-                    &buffer.allocation, &result_info);
+        handle = buffer_registry.registerBuffer(buffer_opt.value());
+    } else {
+        std::array<RawBufferHandle, MAX_FRAMES_IN_FLIGHT> buffers;
 
-    VkBufferDeviceAddressInfo info = {};
-    info.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    info.buffer = buffer.buffer;
+        for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            auto buffer_opt =
+                buffer_allocator.createBuffer(buffer_info, alloc_info);
+            if (buffer_opt.has_value() == false) return BufferError{};
 
-    if ((buffer_info.usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) != 0)
-        buffer.device_address = vkGetBufferDeviceAddress(device, &info);
+            buffers[i] = buffer_opt.value();
+        }
 
-    if ((alloc_info.flags & VMA_ALLOCATION_CREATE_MAPPED_BIT) != 0)
-        buffer.mapped_address =
-            std::bit_cast<uint8_t*>(result_info.pMappedData);
+        handle = buffer_registry.registerBufferChain(buffers);
+    }
 
-    buffer.size = buffer_info.size;
-
-    return buffer;
-}
-
-void Device::destroyBuffer(const BufferState& state) {
-    vmaDestroyBuffer(allocator, state.buffer, state.allocation);
+    return Buffer(&buffer_registry, &buffer_allocator, handle);
 }
 
 VkCommandPool Device::createCommandPool(uint32_t queue_index) {
@@ -322,6 +324,8 @@ VkDevice Device::getDevice() const { return device; }
 VkPhysicalDevice Device::getPhysicalDevice() const {
     return device.physical_device;
 }
+
+BufferRegistry& Device::getBufferRegistry() { return buffer_registry; }
 
 TracyVkCtx Device::createTracingContext(
     const Queue& queue, const CommandBuffer& command_buffer) const {

@@ -53,7 +53,6 @@ class RenderEngine final : public IRenderEngine {
     ShaderRegistry shader_registry;
     MeshRegistry mesh_registry;
     TextureRegistry texture_registry;
-    BufferRegistry buffer_registry;
 
     StagingBuffer staging_buffer;
 

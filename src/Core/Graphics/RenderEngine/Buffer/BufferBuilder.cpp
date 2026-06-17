@@ -80,34 +80,8 @@ BufferBuilder& BufferBuilder::isChained() {
     return *this;
 }
 
-Result<Buffer, BufferError> BufferBuilder::create(
-    Device& device, BufferRegistry& registry) const {
-    if (is_chained)
-        createChained(device, registry);
-    else
-        createSingle(device, registry);
-}
-
-Result<Buffer, BufferError> BufferBuilder::createSingle(
-    Device& device, BufferRegistry& registry) const {
-    auto state_opt = device.createBuffer(buffer_info, alloc_info);
-    if (state_opt.isError()) return state_opt.getError();
-
-    registry.registerBuffer(state_opt.getResult());
-}
-
-Result<Buffer, BufferError> BufferBuilder::createChained(
-    Device& device, BufferRegistry& registry) const {
-    std::array<BufferState, MAX_FRAMES_IN_FLIGHT> buffer_states;
-
-    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        auto state_opt = device.createBuffer(buffer_info, alloc_info);
-        if (state_opt.isError()) return state_opt.getError();
-
-        buffer_states[i] = state_opt.getResult();
-    }
-
-    registry.registerBufferChain(buffer_states);
+Result<Buffer, BufferError> BufferBuilder::create(Device& device) const {
+    return device.createBuffer(buffer_info, alloc_info, is_chained);
 }
 
 }  // namespace Graphics

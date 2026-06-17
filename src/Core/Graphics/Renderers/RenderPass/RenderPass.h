@@ -31,8 +31,7 @@ class RenderPass {
 
     void createRenderEnviroment(Device& device);
 
-    static Buffer createCameraBuffer(Device& device,
-                                     BufferRegistry& buffer_registry);
+    static Buffer createCameraBuffer(Device& device);
 
     EngineData engine_data;
 

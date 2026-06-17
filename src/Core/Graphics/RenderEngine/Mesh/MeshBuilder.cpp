@@ -26,7 +26,7 @@ MeshBuilder::MeshBuilder(const ::Mesh& mesh)
       index_data(mesh.indices.data()),
       index_data_size(mesh.indices.size() * sizeof(uint32_t)) {}
 
-Graphics::Mesh MeshBuilder::create(Device& device, BufferRegistry& registry,
+Graphics::Mesh MeshBuilder::create(Device& device,
                                    StagingBuffer& staging_buffer) {
     const size_t max_vertices = 64;
     const size_t max_triangles = 96;
@@ -73,7 +73,7 @@ Graphics::Mesh MeshBuilder::create(Device& device, BufferRegistry& registry,
     auto vertex_buffer = BufferBuilder(vertex_data_size)
                              .isShaderResource()
                              .isCopyDestination()
-                             .create(device, registry)
+                             .create(device)
                              .getResult();
     staging_buffer.stageBuffer(vertex_buffer, vertex_data, vertex_data_size);
 
@@ -81,7 +81,7 @@ Graphics::Mesh MeshBuilder::create(Device& device, BufferRegistry& registry,
     auto meshlet_buffer = BufferBuilder(meshlet_buffer_size)
                               .isShaderResource()
                               .isCopyDestination()
-                              .create(device, registry)
+                              .create(device)
                               .getResult();
     staging_buffer.stageBuffer(meshlet_buffer, meshlets.data(),
                                meshlet_buffer_size);
@@ -91,7 +91,7 @@ Graphics::Mesh MeshBuilder::create(Device& device, BufferRegistry& registry,
     auto meshlet_vertices_buffer = BufferBuilder(meshlet_vertices_buffer_size)
                                        .isShaderResource()
                                        .isCopyDestination()
-                                       .create(device, registry)
+                                       .create(device)
                                        .getResult();
     staging_buffer.stageBuffer(meshlet_vertices_buffer, meshlet_vertices.data(),
                                meshlet_vertices_buffer_size);
@@ -101,7 +101,7 @@ Graphics::Mesh MeshBuilder::create(Device& device, BufferRegistry& registry,
     auto meshlet_triangles_buffer = BufferBuilder(meshlet_indices_buffer_size)
                                         .isShaderResource()
                                         .isCopyDestination()
-                                        .create(device, registry)
+                                        .create(device)
                                         .getResult();
     staging_buffer.stageBuffer(meshlet_triangles_buffer,
                                meshlet_triangles.data(),

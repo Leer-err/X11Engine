@@ -16,12 +16,15 @@ namespace Graphics {
 
 class StaticMeshRenderer {
     static constexpr auto MAX_STATIC_MESHES_PER_DRAW = 1000000;
-    struct StaticModelBuffer {
+
+    struct ModelData {
         Matrix model;
 
         uint32_t albedo_descriptor;
         uint32_t albedo_sampler;
     };
+
+    using ModelBuffer = std::array<ModelData, MAX_STATIC_MESHES_PER_DRAW>;
 
     struct PushConstants {
         VkDeviceAddress camera_data;
@@ -36,6 +39,7 @@ class StaticMeshRenderer {
     void setCameraData(VkDeviceAddress camera_data);
 
    private:
+    static Buffer createModelBuffer(Device& device);
     EngineData engine_data;
 
     GraphicsPipeline pipeline;

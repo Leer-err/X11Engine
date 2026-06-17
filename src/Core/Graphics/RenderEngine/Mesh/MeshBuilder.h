@@ -15,8 +15,7 @@ class MeshBuilder {
                 const void* index_data, size_t index_data_size);
     MeshBuilder(const ::Mesh& mesh);
 
-    Mesh create(Device& device, BufferRegistry& registry,
-                StagingBuffer& staging_buffer);
+    Mesh create(Device& device, StagingBuffer& staging_buffer);
 
    private:
     const void* vertex_data;

@@ -1,5 +1,6 @@
 target_sources(Graphics PRIVATE
     BufferRegistry.cpp
+    BufferAllocator.cpp
 )
 
 target_include_directories(Graphics PRIVATE

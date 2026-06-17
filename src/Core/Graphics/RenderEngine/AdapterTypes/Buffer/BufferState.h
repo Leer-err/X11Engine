@@ -3,18 +3,19 @@
 #include <stddef.h>
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 namespace Graphics {
 
-enum class BufferError { NoDataForImmutableResource, WriteFromGPUAndCPU };
+enum class BufferError {};
 
 struct BufferState {
-    VkBuffer buffer;
-    VmaAllocation allocation;
+    VkBuffer buffer = VK_NULL_HANDLE;
+    VmaAllocation allocation = nullptr;
 
-    uint8_t* mapped_address;
-    VkDeviceAddress device_address;
-    size_t size;
+    uint8_t* mapped_address = nullptr;
+    VkDeviceAddress device_address = 0;
+    size_t size = 0;
 };
 
 }  // namespace Graphics

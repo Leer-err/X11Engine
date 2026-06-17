@@ -14,7 +14,7 @@ using RawBufferHandle = uint32_t;
 
 class BufferAllocator {
    public:
-    BufferAllocator(VmaAllocator allocator);
+    explicit BufferAllocator(VkDevice device, VmaAllocator allocator);
     ~BufferAllocator();
 
     std::optional<RawBufferHandle> createBuffer(
@@ -32,6 +32,7 @@ class BufferAllocator {
 
    private:
     VmaAllocator allocator;
+    VkDevice device;
 
     std::unordered_map<RawBufferHandle, BufferState> buffers;
 

@@ -4,42 +4,28 @@
 #include <unordered_map>
 
 #include "Buffer.h"
-#include "Device.h"
+#include "BufferAllocator.h"
 #include "EngineConstants.h"
 
 namespace Graphics {
 
 class BufferRegistry {
-    using BufferKey = uint32_t;
-
    public:
-    explicit BufferRegistry(VmaAllocator allocator);
-    ~BufferRegistry();
+    BufferHandle registerBuffer(RawBufferHandle buffer);
+    BufferHandle registerBufferChain(
+        const std::array<RawBufferHandle, MAX_FRAMES_IN_FLIGHT>& buffers);
 
-    BufferRegistry(const BufferRegistry&) = delete;
-    BufferRegistry& operator=(const BufferRegistry&) = delete;
-    BufferRegistry(BufferRegistry&&) = delete;
-    BufferRegistry& operator=(BufferRegistry&&) = delete;
-
-    Buffer registerBuffer(const BufferState& buffer);
-    Buffer registerBufferChain(
-        const std::array<BufferState, MAX_FRAMES_IN_FLIGHT>& buffer);
-
-    BufferState getState(BufferHandle handle) const;
+    RawBufferHandle getRawBuffer(BufferHandle handle) const;
 
     void setFrameInFlight(uint32_t frame_index);
 
    private:
-    using BufferChain = std::array<BufferKey, MAX_FRAMES_IN_FLIGHT>;
+    using BufferChain = std::array<RawBufferHandle, MAX_FRAMES_IN_FLIGHT>;
 
-    VmaAllocator allocator;
-
-    std::unordered_map<BufferKey, BufferState> buffers;
     std::unordered_map<BufferHandle, BufferChain> buffer_chains;
     std::unordered_map<BufferHandle, bool> buffer_chain_flags;
 
     BufferHandle next_handle = 1;
-    BufferKey next_key = 1;
 
     uint32_t frame_index = 0;
 };

@@ -33,6 +33,8 @@ class RenderingBackend {
 
     Device& getDevice();
 
+    void setCurrentFrameIndex(uint32_t index);
+
    private:
     void copyToBackbuffer(const CommandBuffer& cmd, Texture& render_target,
                           TextureState& backbuffer);

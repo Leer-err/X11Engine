@@ -21,8 +21,7 @@ namespace Graphics {
 
 RenderPass::RenderPass(Device& device, const EngineData& engine_data)
     : engine_data(engine_data),
-      camera_data_buffer(
-          createCameraBuffer(device, engine_data.buffer_registry)),
+      camera_data_buffer(createCameraBuffer(device)),
       //   star_renderer(device, engine_data),
       static_mesh_renderer(device, engine_data),
       overlay_renderer(),
@@ -34,7 +33,7 @@ Texture RenderPass::render(const FrameData& frame_data, FrameGraph& frame_graph,
                            const RenderWorld& world) {
     ZoneScoped;
 
-    auto camera_data_address = camera_data_buffer.getDeviceAddress(frame_data);
+    auto camera_data_address = camera_data_buffer.getDeviceAddress();
 
     // star_renderer.setCameraData(camera_data_address);
     static_mesh_renderer.setCameraData(camera_data_address);
@@ -55,7 +54,7 @@ void RenderPass::updateCameraBuffer(const FrameData& frame_data,
                                     const RenderWorld& world) {
     auto camera_data = world.getCameraData();
 
-    camera_data_buffer.update(frame_data, camera_data);
+    camera_data_buffer.update(camera_data);
 }
 
 void RenderPass::createRenderEnviroment(Device& device) {
@@ -108,15 +107,14 @@ void RenderPass::postProcessing(const FrameData& frame_data,
     // frame_data.cmd.unbindRenderEnviroment();
 }
 
-Buffer RenderPass::createCameraBuffer(Device& device,
-                                      BufferRegistry& buffer_registry) {
+Buffer RenderPass::createCameraBuffer(Device& device) {
     auto builder = BufferBuilder(sizeof(CameraData))
                        .isConstantBuffer()
                        .isDeviceAddressable()
                        .isCPUWritable(true)
                        .isChained();
 
-    return builder.create(device, buffer_registry).getResult();
+    return builder.create(device).getResult();
 }
 
 }  // namespace Graphics

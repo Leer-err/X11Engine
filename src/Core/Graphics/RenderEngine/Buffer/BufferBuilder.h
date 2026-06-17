@@ -30,15 +30,9 @@ class BufferBuilder {
 
     BufferBuilder& isChained();
 
-    Result<Buffer, BufferError> create(Device& device,
-                                       BufferRegistry& registry) const;
+    Result<Buffer, BufferError> create(Device& device) const;
 
    private:
-    Result<Buffer, BufferError> createSingle(Device& device,
-                                             BufferRegistry& registry) const;
-    Result<Buffer, BufferError> createChained(Device& device,
-                                              BufferRegistry& registry) const;
-
     VkBufferCreateInfo buffer_info;
     VmaAllocationCreateInfo alloc_info;
 

@@ -12,11 +12,11 @@
 
 namespace Graphics {
 
-DescriptorSet::DescriptorSet(Device& device, BufferRegistry& registry,
+DescriptorSet::DescriptorSet(Device& device,
                              const DeviceProperties& device_properties)
     : device(device),
       descriptors(createDescriptorBuffer(
-          device, registry, device.getDescriptorLayout().layout_size,
+          device, device.getDescriptorLayout().layout_size,
           device_properties.descriptor_buffer_properties.alignment)) {
     auto& descriptor_properties =
         device_properties.descriptor_buffer_properties;
@@ -95,16 +95,14 @@ VkDeviceAddress DescriptorSet::getDescriptors() const {
     return descriptors.getDeviceAddress();
 }
 
-Buffer DescriptorSet::createDescriptorBuffer(Device& device,
-                                             BufferRegistry& registry,
-                                             size_t set_size,
+Buffer DescriptorSet::createDescriptorBuffer(Device& device, size_t set_size,
                                              size_t alignment) {
     auto aligned_size = (set_size + alignment - 1) & ~(alignment - 1);
 
     return BufferBuilder(aligned_size)
         .isDescriptorBuffer()
         .isCPUWritable(true, true)
-        .create(device, registry)
+        .create(device)
         .getResult();
 }
 
