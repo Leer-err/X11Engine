@@ -2,10 +2,13 @@
 
 #include "Buffer.h"
 #include "CameraData.h"
+#include "CloudsRenderer.h"
 #include "Device.h"
 #include "FrameData.h"
 #include "FrameGraph.h"
 #include "OverlayRenderer.h"
+#include "ParticlePool.h"
+#include "ParticleRenderer.h"
 #include "PostProcessingPass.h"
 #include "RenderEnviroment.h"
 #include "RenderWorld.h"
@@ -37,6 +40,8 @@ class RenderPass {
 
     StarRenderer star_renderer;
     StaticMeshRenderer static_mesh_renderer;
+    CloudsRenderer clouds_renderer;
+    ParticleRenderer particle_renderer;
     OverlayRenderer overlay_renderer;
 
     PostProcessingPass post_processing_pass;

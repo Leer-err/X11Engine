@@ -89,6 +89,7 @@ static Result<vkb::Device, Error> createDevice(const vkb::Instance& instance,
 
     VkPhysicalDeviceMeshShaderFeaturesEXT mesh_shader{
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT};
+    mesh_shader.taskShader = VK_TRUE;
     mesh_shader.meshShader = VK_TRUE;
     device_builder.add_pNext(&mesh_shader);
 

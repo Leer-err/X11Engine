@@ -1,6 +1,7 @@
 #include "CloudsRenderer.h"
 
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 #include <cstring>
 
@@ -12,6 +13,7 @@
 #include "EngineData.h"
 #include "GraphicsPipelineBuilder.h"
 #include "MeshBuilder.h"
+#include "RenderWorld.h"
 #include "Sampler.h"
 #include "TextureBuilder.h"
 #include "Vector2.h"
@@ -52,63 +54,36 @@ CloudsRenderer::CloudsRenderer(Device& device, const EngineData& engine_data)
                          .getResult();
 }
 
-void CloudsRenderer::render(const FrameData& frame_data,
-                            FrameGraph& frame_grapha) {
+void CloudsRenderer::render(FrameGraph& frame_graph, const RenderWorld& world) {
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Clouds");
 
-    auto command_buffer = frame_data.cmd;
+    clouds_data_buffer.update(world.getCloudsData());
 
-    push_constants.clouds_address = clouds_data_buffer.getDeviceAddress();
+    auto cloud_prepass =
+        GraphicsPass(cloud_pipeline, [this](GraphicsPassExecution& execution) {
+            auto clouds_address = clouds_data_buffer.getDeviceAddress();
 
-    command_buffer.setPipeline(cloud_pipeline);
-    command_buffer.bindDescriptorSet(cloud_pipeline,
-                                     engine_data.descriptor_set);
+            execution.appendData(clouds_address);
+            execution.draw(quad);
+        });
+    cloud_prepass.addColorAttachment(clouds_texture);
+    frame_graph.addGraphicsPass(cloud_prepass);
 
-    command_buffer.pushConstants(cloud_pipeline, &push_constants, 0);
+    auto pass =
+        GraphicsPass(cloud_pipeline, [this](GraphicsPassExecution& execution) {
+            push_constants.clouds_address =
+                clouds_data_buffer.getDeviceAddress();
 
-    // command_buffer.draw(cloud_plane);
+            execution.appendData(push_constants);
+            execution.draw(cloud_plane);
+        });
+    pass.reads(clouds_texture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    auto color_texture = *engine_data.texture_registry.getTexture("Color");
+    pass.addColorAttachment(color_texture);
+    auto depth_texture = *engine_data.texture_registry.getTexture("Depth");
+    pass.setDepthAttachment(depth_texture);
+    frame_graph.addGraphicsPass(pass);
 }
-
-// void CloudsRenderer::preRender(const FrameData& frame_data,
-//                                const CloudsData& clouds_data) {
-//     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer,
-//     //             "Cloud texture bake");
-
-//     clouds_data_buffer.update(frame_data, clouds_data);
-
-//     auto command_buffer = frame_data.cmd;
-
-//     auto render_target_barrier = clouds_texture.createBarrier(
-//         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_2_NONE,
-//         VK_ACCESS_2_NONE, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-//         VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
-
-//     command_buffer.barrier(&render_target_barrier, 1, nullptr, 0);
-
-//     command_buffer.bindRenderEnviroment(env);
-
-//     command_buffer.setPipeline(cloud_texture_pipeline);
-//     command_buffer.bindDescriptorSet(cloud_texture_pipeline,
-//                                      engine_data.descriptor_set);
-
-//     auto clouds_device_address =
-//         clouds_data_buffer.getDeviceAddress(frame_data);
-//     command_buffer.pushConstants(cloud_texture_pipeline,
-//     &clouds_device_address,
-//                                  0);
-
-//     // command_buffer.draw(quad);
-
-//     command_buffer.unbindRenderEnviroment();
-
-//     auto cloud_texture_barrier = clouds_texture.createBarrier(
-//         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-//         VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-//         VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-//         VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
-//         VK_ACCESS_2_SHADER_READ_BIT);
-//     command_buffer.barrier(&cloud_texture_barrier, 1, nullptr, 0);
-// }
 
 void CloudsRenderer::setCameraData(VkDeviceAddress camera_data) {
     push_constants.camera_address = camera_data;
@@ -119,6 +94,7 @@ Buffer CloudsRenderer::createCloudDataBuffer(Device& device) {
         .isConstantBuffer()
         .isDeviceAddressable()
         .isChained()
+        .isCPUWritable(true)
         .create(device)
         .getResult();
 }

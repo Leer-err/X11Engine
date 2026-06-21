@@ -40,55 +40,68 @@ class GraphicsPassExecution {
     size_t current_push_constant_offset;
 };
 
-class GraphicsPass {
-    struct Attachment {
-        Texture texture;
-        bool clear;
-        VkClearValue clear_value;
-    };
-
-   public:
-    GraphicsPass(
-        const GraphicsPipeline& pipeline,
-        const std::function<void(GraphicsPassExecution&)>& pass_function);
-
-    void reads(const Texture& texture);
-
-    void addColorAttachment(const Texture& texture, bool clear,
-                            VkClearValue clear_color);
-    void addDepthAttachment(const Texture& texture, bool writes, bool clear,
-                            VkClearValue clear_value);
-
-    void execute(const DescriptorSet& descriptor_set,
-                 const FrameData& frame_data);
-
-   private:
-    GraphicsPipeline pipeline;
-    std::function<void(GraphicsPassExecution&)> pass_function;
-
-    std::vector<Texture> read_textures;
-    std::vector<Attachment> color_attachments;
-
-    std::optional<Attachment> depth_attachment;
-    bool writes_depth;
-};
-
 class Pass {
+   public:
     struct PassTexture {
         VkImageLayout layout;
         Texture texture;
     };
 
-   public:
     void reads(const Texture& texture, VkImageLayout layout);
     void writes(const Texture& texture, VkImageLayout layout);
 
-    void setGeneralExecutor();
-    void setGraphicsExecutor(
-        std::function<void(const GraphicsPassExecution&)> executor);
+    void prepareTextures(const CommandBuffer& command_buffer);
 
    private:
+    static VkImageMemoryBarrier2 barrierFromLayout(PassTexture& texture);
+    static VkImageMemoryBarrier2 fullBarrier(Texture& texture,
+                                             VkImageLayout layout);
+    static VkImageMemoryBarrier2 depthStencilBarrier(Texture& texture);
+    static VkImageMemoryBarrier2 colorAttachmentBarrier(Texture& texture);
+    static VkImageMemoryBarrier2 shaderResourceBarrier(Texture& texture);
+    static VkImageMemoryBarrier2 copySourceBarrier(Texture& texture);
+    static VkImageMemoryBarrier2 copyDestinatonBarrier(Texture& texture);
+
     std::vector<PassTexture> pass_textures;
+};
+
+class GraphicsPass : public Pass {
+    struct Attachment {
+        Texture texture;
+        VkClearValue clear_value;
+        bool clear;
+    };
+
+   public:
+    GraphicsPass(const GraphicsPipeline& pipeline,
+                 const std::function<void(GraphicsPassExecution&)>& executor);
+
+    void addColorAttachment(const Texture& texture);
+    void addColorAttachment(const Texture& texture, VkClearValue clear_color);
+
+    void setDepthAttachment(const Texture& texture);
+    void setDepthAttachment(const Texture& texture, VkClearValue clear_color);
+
+    void execute(const DescriptorSet& descriptor_set,
+                 const CommandBuffer& command_buffer);
+
+   private:
+    GraphicsPipeline pipeline;
+
+    std::vector<Attachment> color_attachments;
+    std::optional<Attachment> depth_attachment;
+
+    std::function<void(GraphicsPassExecution&)> executor;
+};
+
+class GeneralPass : public Pass {
+   public:
+    GeneralPass(std::function<void(const CommandBuffer&)> executor);
+
+    void execute(const CommandBuffer& command_buffer);
+
+   private:
+    std::function<void(const CommandBuffer&)> executor;
 };
 
 class FrameGraph {

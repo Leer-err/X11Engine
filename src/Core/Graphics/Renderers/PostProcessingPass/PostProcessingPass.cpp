@@ -1,5 +1,7 @@
 #include "PostProcessingPass.h"
 
+#include <vulkan/vulkan_core.h>
+
 #include <array>
 
 #include "AppConfig.h"
@@ -67,8 +69,8 @@ void PostProcessingPass::render(const Texture& input_image,
         });
     auto render_target =
         engine_data.texture_registry.getTexture("RenderResult");
-    pass.addColorAttachment(*render_target, false, {});
-    pass.reads(input_image);
+    pass.addColorAttachment(*render_target);
+    pass.reads(input_image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     frame_graph.addGraphicsPass(pass);
 }

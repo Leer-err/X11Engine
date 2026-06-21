@@ -43,10 +43,10 @@ void StarRenderer::render(FrameGraph& frame_graph, const RenderWorld& world) {
         });
 
     auto color_attachment = engine_data.texture_registry.getTexture("Color");
-    pass.addColorAttachment(color_attachment.value(), true, {});
+    pass.addColorAttachment(color_attachment.value(), {});
     auto depth_attachment = engine_data.texture_registry.getTexture("Depth");
-    pass.addDepthAttachment(
-        depth_attachment.value(), true, true,
+    pass.setDepthAttachment(
+        depth_attachment.value(),
         VkClearValue{.depthStencil = {.depth = 1, .stencil = 0}});
 
     frame_graph.addGraphicsPass(pass);

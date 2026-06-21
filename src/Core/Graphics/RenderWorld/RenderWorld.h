@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "CameraData.h"
+#include "CloudsData.h"
 #include "OpaqueRenderObjectData.h"
 #include "ParticlePool.h"
 #include "PostProcessingData.h"
@@ -24,6 +25,8 @@ class RenderWorld {
     StarsData getStarsData() const;
     void setPostProcessingData(const PostProcessingData& data);
     PostProcessingData getPostProcessingData() const;
+    void setCloudsData(const CloudsData& data);
+    CloudsData getCloudsData() const;
 
     OpaqueObjectHandle addOpaqueObject(const OpaqueRenderObjectData& data);
     OpaqueRenderObjectData& getOpaqueObject(const OpaqueObjectHandle& handle);
@@ -39,6 +42,7 @@ class RenderWorld {
     std::vector<Effect> effects;
 
     StarsData stars_data;
+    CloudsData clouds_data;
     PostProcessingData post_processing_data;
     CameraData camera_data;
 };

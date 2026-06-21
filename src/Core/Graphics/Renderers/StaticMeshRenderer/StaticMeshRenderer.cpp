@@ -1,6 +1,7 @@
 #include "StaticMeshRenderer.h"
 
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 #include <bit>
 
@@ -36,18 +37,20 @@ void StaticMeshRenderer::render(FrameGraph& frame_graph,
         std::bit_cast<ModelBuffer*>(model_data_buffer.getHostAddress());
     auto objects = world.getOpaqueObjects();
 
-    auto pass = GraphicsPass(pipeline, [this, objects](
-                                           GraphicsPassExecution& execution) {
-        for (int i = 0; i < objects.size(); i++) {
-            const auto& model = objects[i];
-            auto mesh = engine_data.mesh_registry.getMesh(model.mesh);
+    auto pass = GraphicsPass(
+        pipeline, [this, objects](GraphicsPassExecution& execution) {
+            auto buffer_address = model_data_buffer.getDeviceAddress();
 
-            push_constants.model_data =
-                model_data_buffer.getDeviceAddress() + sizeof(ModelBuffer) * i;
-            execution.appendData(push_constants);
-            execution.draw(*mesh);
-        }
-    });
+            for (int i = 0; i < objects.size(); i++) {
+                const auto& model = objects[i];
+                auto mesh = engine_data.mesh_registry.getMesh(model.mesh);
+
+                push_constants.model_data =
+                    buffer_address + sizeof(ModelData) * i;
+                execution.appendData(push_constants);
+                execution.draw(*mesh);
+            }
+        });
 
     for (int i = 0; i < objects.size(); i++) {
         const auto& model = objects[i];
@@ -58,12 +61,11 @@ void StaticMeshRenderer::render(FrameGraph& frame_graph,
             *engine_data.descriptor_set.getIndex(model.albedo);
         model_data.albedo_sampler = sampler_index;
 
-        pass.reads(*engine_data.texture_registry.getTexture(model.albedo));
+        pass.reads(*engine_data.texture_registry.getTexture(model.albedo),
+                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
-    pass.addColorAttachment(*engine_data.texture_registry.getTexture("Color"),
-                            false, VkClearValue{});
-    pass.addDepthAttachment(*engine_data.texture_registry.getTexture("Depth"),
-                            true, false, VkClearValue{});
+    pass.addColorAttachment(*engine_data.texture_registry.getTexture("Color"));
+    pass.setDepthAttachment(*engine_data.texture_registry.getTexture("Depth"));
 
     frame_graph.addGraphicsPass(pass);
 }
@@ -73,7 +75,7 @@ void StaticMeshRenderer::setCameraData(const VkDeviceAddress camera_data) {
 }
 
 Buffer StaticMeshRenderer::createModelBuffer(Device& device) {
-    return BufferBuilder(sizeof(ModelData))
+    return BufferBuilder(sizeof(ModelBuffer))
         .isConstantBuffer()
         .isDeviceAddressable()
         .isCPUWritable(true)

@@ -9,6 +9,7 @@
 #include "FrameGraph.h"
 #include "GraphicsPipeline.h"
 #include "RenderEnviroment.h"
+#include "RenderWorld.h"
 
 namespace Graphics {
 
@@ -21,7 +22,7 @@ class CloudsRenderer {
    public:
     CloudsRenderer(Device& device, const EngineData& engine_data);
 
-    void render(const FrameData& frame_data, FrameGraph& frame_graph);
+    void render(FrameGraph& frame_graph, const RenderWorld& world);
 
     void setCameraData(VkDeviceAddress camera_data);
 

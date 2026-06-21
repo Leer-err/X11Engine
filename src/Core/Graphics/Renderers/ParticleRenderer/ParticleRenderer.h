@@ -3,6 +3,7 @@
 #include "EngineData.h"
 #include "FrameData.h"
 #include "RenderWorld.h"
+#include "StagingBuffer.h"
 
 namespace Graphics {
 
@@ -13,6 +14,8 @@ class ParticleRenderer {
     void render(const FrameData& frame_data, const RenderWorld& world);
 
    private:
+    static Mesh createQuadMesh(Device& device, StagingBuffer& staging_buffer);
+
     EngineData engine_data;
 
     GraphicsPipeline pipeline;

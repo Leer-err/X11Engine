@@ -27,6 +27,10 @@ PostProcessingData RenderWorld::getPostProcessingData() const {
     return post_processing_data;
 }
 
+void RenderWorld::setCloudsData(const CloudsData& data) { clouds_data = data; }
+
+CloudsData RenderWorld::getCloudsData() const { return clouds_data; }
+
 OpaqueObjectHandle RenderWorld::addOpaqueObject(
     const OpaqueRenderObjectData& data) {
     opaque_objects.emplace_back(data);

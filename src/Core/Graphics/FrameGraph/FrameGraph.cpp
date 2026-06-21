@@ -1,5 +1,6 @@
 #include "FrameGraph.h"
 
+#include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
 #include <vector>
@@ -12,71 +13,132 @@
 
 namespace Graphics {
 
-GraphicsPass::GraphicsPass(
-    const GraphicsPipeline& pipeline,
-    const std::function<void(GraphicsPassExecution&)>& pass)
-    : pipeline(pipeline), pass_function(pass), writes_depth(false) {}
-
-void GraphicsPass::reads(const Texture& texture) {
-    read_textures.emplace_back(texture);
+VkImageMemoryBarrier2 Pass::fullBarrier(Texture& texture,
+                                        VkImageLayout layout) {
+    return texture.createBarrier(
+        layout, VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+        VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+        VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+        VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT);
 }
 
-void GraphicsPass::addColorAttachment(const Texture& texture, bool clear,
-                                      VkClearValue clear_color) {
-    color_attachments.emplace_back(texture, clear, clear_color);
+VkImageMemoryBarrier2 Pass::depthStencilBarrier(Texture& texture) {
+    return texture.createBarrier(
+        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+        VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+        VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT,
+        VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+            VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
 }
 
-void GraphicsPass::addDepthAttachment(const Texture& texture, bool writes,
-                                      bool clear, VkClearValue clear_value) {
-    depth_attachment = Attachment{texture, clear, clear_value};
-    writes_depth = writes;
+VkImageMemoryBarrier2 Pass::colorAttachmentBarrier(Texture& texture) {
+    return texture.createBarrier(
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+        VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+        VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT |
+            VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
 }
 
-void GraphicsPass::execute(const DescriptorSet& descriptor_set,
-                           const FrameData& frame_data) {
-    auto& command_buffer = frame_data.cmd;
+VkImageMemoryBarrier2 Pass::shaderResourceBarrier(Texture& texture) {
+    return texture.createBarrier(
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+        VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+        VK_PIPELINE_STAGE_TASK_SHADER_BIT_EXT |
+            VK_PIPELINE_STAGE_MESH_SHADER_BIT_EXT |
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+        VK_ACCESS_2_SHADER_READ_BIT);
+}
 
-    auto barrier_count_bound = read_textures.size() + color_attachments.size();
-    if (depth_attachment) barrier_count_bound++;
+VkImageMemoryBarrier2 Pass::copySourceBarrier(Texture& texture) {
+    return texture.createBarrier(
+        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+        VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+        VK_PIPELINE_STAGE_2_COPY_BIT, VK_ACCESS_2_TRANSFER_READ_BIT);
+}
+
+VkImageMemoryBarrier2 Pass::copyDestinatonBarrier(Texture& texture) {
+    return texture.createBarrier(
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
+        VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+        VK_PIPELINE_STAGE_2_COPY_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT);
+}
+
+VkImageMemoryBarrier2 Pass::barrierFromLayout(PassTexture& texture) {
+    switch (texture.layout) {
+        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+            return depthStencilBarrier(texture.texture);
+        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+            return colorAttachmentBarrier(texture.texture);
+        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+            return shaderResourceBarrier(texture.texture);
+        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+            return copySourceBarrier(texture.texture);
+        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+            return copyDestinatonBarrier(texture.texture);
+        default:
+            return fullBarrier(texture.texture, texture.layout);
+    }
+}
+
+void Pass::prepareTextures(const CommandBuffer& command_buffer) {
+    auto barrier_count_bound = pass_textures.size();
 
     auto barriers = std::vector<VkImageMemoryBarrier2>();
     barriers.reserve(barrier_count_bound);
 
-    for (auto& texture : read_textures) {
-        auto barrier = texture.createBarrier(
-            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-            VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
-            VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
-            VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
-            VK_ACCESS_2_SHADER_SAMPLED_READ_BIT);
-        barriers.push_back(barrier);
-    }
-
-    for (auto& attachment : color_attachments) {
-        auto barrier = attachment.texture.createBarrier(
-            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
-            VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
-            VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-            VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
-        barriers.push_back(barrier);
-    }
-
-    if (depth_attachment) {
-        auto barrier = depth_attachment->texture.createBarrier(
-            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-            VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
-            VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
-            VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT_KHR,
-            VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT);
-        if (writes_depth)
-            barrier.dstAccessMask |=
-                VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-        barriers.push_back(barrier);
+    for (auto& texture : pass_textures) {
+        auto barrier = barrierFromLayout(texture);
+        barriers.emplace_back(barrier);
     }
 
     command_buffer.barrier(barriers);
+}
+
+void Pass::reads(const Texture& texture, VkImageLayout layout) {
+    pass_textures.emplace_back(layout, texture);
+}
+
+void Pass::writes(const Texture& texture, VkImageLayout layout) {
+    pass_textures.emplace_back(layout, texture);
+}
+
+GraphicsPass::GraphicsPass(
+    const GraphicsPipeline& pipeline,
+    const std::function<void(GraphicsPassExecution&)>& executor)
+    : pipeline(pipeline), executor(executor) {}
+
+void GraphicsPass::addColorAttachment(const Texture& texture) {
+    color_attachments.emplace_back(texture, VkClearValue{}, false);
+    writes(texture, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+}
+
+void GraphicsPass::addColorAttachment(const Texture& texture,
+                                      VkClearValue clear_color) {
+    color_attachments.emplace_back(texture, clear_color, true);
+    writes(texture, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+}
+
+void GraphicsPass::setDepthAttachment(const Texture& texture) {
+    depth_attachment = Attachment{texture, VkClearValue{}, false};
+    writes(texture, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+}
+
+void GraphicsPass::setDepthAttachment(const Texture& texture,
+                                      VkClearValue clear_value) {
+    depth_attachment = Attachment{texture, clear_value, true};
+    writes(texture, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+}
+
+void GraphicsPass::execute(const DescriptorSet& descriptor_set,
+                           const CommandBuffer& command_buffer) {
+    prepareTextures(command_buffer);
 
     RenderEnviroment env = {};
     if (!color_attachments.empty()) {
@@ -104,7 +166,7 @@ void GraphicsPass::execute(const DescriptorSet& descriptor_set,
 
     GraphicsPassExecution execution(descriptor_set, command_buffer, pipeline);
 
-    pass_function(execution);
+    executor(execution);
 }
 
 struct MeshBuffers {
@@ -160,7 +222,7 @@ void FrameGraph::addGraphicsPass(const GraphicsPass& pass) {
 
 void FrameGraph::execute(const FrameData& frame_data) {
     for (auto& pass : passes) {
-        pass.execute(engine_data.descriptor_set, frame_data);
+        pass.execute(engine_data.descriptor_set, frame_data.cmd);
     }
 }
 

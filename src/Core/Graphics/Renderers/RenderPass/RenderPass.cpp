@@ -8,9 +8,11 @@
 #include "AppConfig.h"
 #include "BufferBuilder.h"
 #include "CameraData.h"
+#include "CloudsRenderer.h"
 #include "Device.h"
 #include "FrameGraph.h"
 #include "OverlayRenderer.h"
+#include "ParticlePool.h"
 #include "PostProcessingPass.h"
 #include "RenderEnviroment.h"
 #include "RenderWorld.h"
@@ -23,6 +25,8 @@ RenderPass::RenderPass(Device& device, const EngineData& engine_data)
       camera_data_buffer(createCameraBuffer(device)),
       star_renderer(device, engine_data),
       static_mesh_renderer(device, engine_data),
+      clouds_renderer(device, engine_data),
+      particle_renderer(device, engine_data),
       overlay_renderer(),
       post_processing_pass(device, engine_data) {
     createRenderEnviroment(device);
@@ -43,6 +47,7 @@ Texture RenderPass::render(const FrameData& frame_data, FrameGraph& frame_graph,
 
     star_renderer.render(frame_graph, world);
     static_mesh_renderer.render(frame_graph, world);
+    // clouds_renderer.render(frame_graph, world);
 
     postProcessing(frame_graph, world);
 
