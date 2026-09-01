@@ -1,8 +1,4 @@
-struct CameraData
-{
-    matrix view_projection;
-    matrix inverse_view_projection;
-};
+import camera;
 
 struct StaticModelData
 {
@@ -10,7 +6,7 @@ struct StaticModelData
 
     uint32_t albedo_descriptor;
     uint32_t sampler_descriptor;
-}
+};
 
 struct Meshlet{
     uint32_t vertex_offset; 

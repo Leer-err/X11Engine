@@ -5,8 +5,7 @@
 #include "FrameGraph.h"
 #include "GraphicsPipeline.h"
 #include "Mesh.h"
-#include "RenderWorld/RenderWorld.h"
-#include "StarsData.h"
+#include "RenderWorld.h"
 
 namespace Graphics {
 
@@ -25,7 +24,7 @@ class StarRenderer {
 
    private:
     static Buffer createStarsBuffer(Device& device);
-    static Mesh createScreenQuad(Device& device, const EngineData& engine_data);
+    static Mesh createSkyMesh(const EngineData& engine_data);
 
     EngineData engine_data;
 

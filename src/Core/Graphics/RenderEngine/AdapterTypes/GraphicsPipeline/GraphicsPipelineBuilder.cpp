@@ -41,6 +41,16 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::setRenderTargetFormat(
     return *this;
 }
 
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::disableDepthTest() {
+    depth_enabled = false;
+    return *this;
+}
+
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::writesDepth() {
+    depth_write = true;
+    return *this;
+}
+
 Result<GraphicsPipeline, GraphicsPipelineBuilder::Error>
 GraphicsPipelineBuilder::create(Device& device,
                                 ShaderRegistry& shader_registry) {
@@ -105,8 +115,8 @@ GraphicsPipelineBuilder::create(Device& device,
     VkPipelineDepthStencilStateCreateInfo depth_stencil_state = {};
     depth_stencil_state.sType =
         VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    depth_stencil_state.depthTestEnable = VK_TRUE;
-    depth_stencil_state.depthWriteEnable = VK_TRUE;
+    depth_stencil_state.depthTestEnable = depth_enabled;
+    depth_stencil_state.depthWriteEnable = depth_write;
     depth_stencil_state.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 
     VkPipelineRenderingCreateInfo rendering = {};

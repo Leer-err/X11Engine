@@ -1,8 +1,4 @@
-struct CameraData
-{
-    float4x4 view_projection;
-    float4x4 inverse_view_projection;
-};
+import camera;
 
 struct VertexOutput{
     float4 viewport_position : SV_POSITION;
@@ -67,12 +63,10 @@ void mesh_main(
         uint vertex_index = constants.mesh.meshlet_vertices[meshlet_vertex_index];
         VertexInput vertex = constants.mesh.vertices[vertex_index];
         float4 vertex_position = float4(vertex.position, 1);
+        float4 world_position = mul(constants.camera_data.view_projection_no_camera_position, vertex_position);
 
-        vertices[i].viewport_position = vertex_position;
-
-        float4 position = mul(constants.camera_data->inverse_view_projection, vertex_position);
-        position = position / position.w;
-        vertices[i].position = position.xyz;
+        vertices[i].viewport_position = world_position;
+        vertices[i].position = vertex_position.xyz;
     }
 
     for(int i = local_index; i < meshlet.triangle_count; i += GROUP_SIZE){

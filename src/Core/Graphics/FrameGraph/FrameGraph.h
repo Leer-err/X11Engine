@@ -32,6 +32,7 @@ class GraphicsPassExecution {
     }
     void appendData(const uint8_t* data, size_t data_size);
     void draw(const Mesh& mesh);
+    void draw(const Mesh& mesh, size_t count);
 
    private:
     CommandBuffer command_buffer;

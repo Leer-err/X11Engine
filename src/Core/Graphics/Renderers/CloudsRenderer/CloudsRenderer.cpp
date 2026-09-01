@@ -50,6 +50,7 @@ CloudsRenderer::CloudsRenderer(Device& device, const EngineData& engine_data)
     cloud_pipeline = GraphicsPipelineBuilder(
                          "./Assets/Shaders/Clouds/Clouds.spv", "vertex_main",
                          "./Assets/Shaders/Clouds/Clouds.spv", "pixel_main")
+                         .writesDepth()
                          .create(device, engine_data.shader_registry)
                          .getResult();
 }

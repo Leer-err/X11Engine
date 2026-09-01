@@ -28,14 +28,15 @@ PostProcessingPass::PostProcessingPass(Device& device,
         GraphicsPipelineBuilder(
             "./Assets/Shaders/PostProcess/PostProcessing.spv", "mesh_main",
             "./Assets/Shaders/PostProcess/PostProcessing.spv", "pixel_main")
+            .disableDepthTest()
             .create(device, engine_data.shader_registry)
             .getResult();
 
     auto config = Config::App::get().getGraphicsConfig();
 
-    data.spread = 0.1f;
+    data.spread = 0.03f;
     data.camera_dimensions = {config.render_width, config.render_height};
-    data.color_count = 16;
+    data.color_count = 32;
     data.sampler_index = 0;
 
     data.sampler_index =
@@ -77,18 +78,7 @@ void PostProcessingPass::render(const Texture& input_image,
 
 Mesh PostProcessingPass::createSqreenQuad(Device& device,
                                           const EngineData& engine_data) {
-    constexpr std::array<Vertex, 4> screen_quad_vertices = {
-        Vertex{Vector3{-1, -1, 0}, Vector2{0, 0}},
-        Vertex{Vector3{-1, 1, 0}, Vector2{0, 1}},
-        Vertex{Vector3{1, -1, 0}, Vector2{1, 0}},
-        Vertex{Vector3{1, 1, 0}, Vector2{1, 1}}};
-
-    constexpr std::array<uint32_t, 6> screen_quad_indices = {0, 1, 2, 1, 3, 2};
-
-    return MeshBuilder(screen_quad_vertices.data(),
-                       sizeof(screen_quad_vertices), screen_quad_indices.data(),
-                       sizeof(screen_quad_indices))
-        .create(device, engine_data.staging_buffer);
+    return *engine_data.mesh_registry.getMesh("Quad");
 }
 
 Buffer PostProcessingPass::createDataBuffer(Device& device) {

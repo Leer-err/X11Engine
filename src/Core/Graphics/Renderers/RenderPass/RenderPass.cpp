@@ -40,6 +40,7 @@ Texture RenderPass::render(const FrameData& frame_data, FrameGraph& frame_graph,
 
     star_renderer.setCameraData(camera_data_address);
     static_mesh_renderer.setCameraData(camera_data_address);
+    particle_renderer.setCameraData(camera_data_address);
 
     // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Render pass");
 
@@ -48,6 +49,7 @@ Texture RenderPass::render(const FrameData& frame_data, FrameGraph& frame_graph,
     star_renderer.render(frame_graph, world);
     static_mesh_renderer.render(frame_graph, world);
     // clouds_renderer.render(frame_graph, world);
+    particle_renderer.render(frame_graph, world);
 
     postProcessing(frame_graph, world);
 

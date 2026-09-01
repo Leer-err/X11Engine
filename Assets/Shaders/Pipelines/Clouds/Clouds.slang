@@ -1,8 +1,4 @@
-struct CameraData
-{
-    matrix view_projection;
-    matrix inverse_view_projection;
-};
+import camera;
 
 struct CloudsData
 {
@@ -38,7 +34,7 @@ Vertex_Output vertex_main(Vertex_input vertex)
     float4 vertex_position = float4(vertex.position, 1);
     vertex_position.xz = vertex_position.xz * constants.cloud_data->cloud_plane_scale;
     vertex_position.y = constants.cloud_data->height;
-    output.viewport_position = mul(constants.camera_data->view_projection, vertex_position);
+    output.viewport_position = mul(constants.camera_data.view_projection, vertex_position);
     output.uv = vertex.uv;
 
     return output;

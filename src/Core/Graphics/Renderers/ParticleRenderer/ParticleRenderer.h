@@ -1,27 +1,46 @@
 #pragma once
 
+#include <vulkan/vulkan_core.h>
+
 #include "EngineData.h"
-#include "FrameData.h"
+#include "FrameGraph.h"
 #include "RenderWorld.h"
 #include "StagingBuffer.h"
 
 namespace Graphics {
 
 class ParticleRenderer {
+    static constexpr size_t MAX_PARTICLE_COUNT = 10000;
+
+    struct PushConstants {
+        VkDeviceAddress camera_data;
+        VkDeviceAddress particle_positions_data;
+        VkDeviceAddress particle_textures_data;
+        VkDeviceAddress live_particles;
+    };
+
    public:
     ParticleRenderer(Device& device, const EngineData& engine_data);
 
-    void render(const FrameData& frame_data, const RenderWorld& world);
+    void render(FrameGraph& frame_graph, const RenderWorld& world);
+
+    void setCameraData(VkDeviceAddress camera_data);
 
    private:
-    static Mesh createQuadMesh(Device& device, StagingBuffer& staging_buffer);
+    static Mesh createQuadMesh(const EngineData& engine_data);
+    static Buffer createParticlePositionsBuffer(Device& device);
+    static Buffer createParticleMaterialsBuffer(Device& device);
+    static Buffer createLiveParticlesBuffer(Device& device);
 
     EngineData engine_data;
 
-    GraphicsPipeline pipeline;
-    Mesh quad;
+    Buffer particle_positions_buffer;
+    Buffer particle_materials_buffer;
+    Buffer live_particles_buffer;
 
-    PostProcessingData data;
+    GraphicsPipeline pipeline;
+    VkDeviceAddress camera_data;
+    Mesh quad;
 };
 
 }  // namespace Graphics

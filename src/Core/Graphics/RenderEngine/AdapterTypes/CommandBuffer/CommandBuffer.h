@@ -17,7 +17,7 @@ struct CommandBuffer {
     void begin() const;
     void end() const;
 
-    void draw(uint32_t meshlet_count) const;
+    void draw(uint32_t meshlet_count, uint32_t instance_count) const;
 
     void copy(const TextureState& src, TextureState& dst) const;
     void blit(const TextureState& src, TextureState& dst) const;

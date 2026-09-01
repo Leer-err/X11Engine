@@ -196,7 +196,9 @@ void GraphicsPassExecution::appendData(const uint8_t* data, size_t data_size) {
     current_push_constant_offset += data_size;
 }
 
-void GraphicsPassExecution::draw(const Mesh& mesh) {
+void GraphicsPassExecution::draw(const Mesh& mesh) { draw(mesh, 1); }
+
+void GraphicsPassExecution::draw(const Mesh& mesh, size_t count) {
     MeshBuffers push_data = {};
 
     push_data.vertices = mesh.vertex_buffer.getDeviceAddress();
@@ -208,7 +210,7 @@ void GraphicsPassExecution::draw(const Mesh& mesh) {
 
     command_buffer.pushConstants(pipeline, &push_data, 0);
 
-    command_buffer.draw(mesh.meshlet_count);
+    command_buffer.draw(mesh.meshlet_count, count);
 
     current_push_constant_offset = sizeof(MeshBuffers);
 }

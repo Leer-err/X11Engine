@@ -6,6 +6,7 @@
 #include <tracy/Tracy.hpp>
 
 #include "Camera.h"
+#include "EffectDescription.h"
 #include "Entity.h"
 #include "GameInputContext.h"
 #include "Graphics.h"
@@ -21,7 +22,7 @@
 Scene::Scene() {
     setupSystems();
 
-    camera = Camera::create(60, 16.f / 9, 1, 1000);
+    camera = Camera::create(60, 16.f / 9, 0.1, 1000);
 
     auto renderer = Graphics::getRenderEngine();
 
@@ -58,6 +59,13 @@ Scene::Scene() {
     terrain_data.albedo = renderer->addTexture(data, width, height);
     renderer->getRenderWorld().addOpaqueObject(terrain_data);
 
+    auto effect = Graphics::EffectDescription{};
+    data = stbi_load("./Assets/star_06.png", &width, &height, &channels, 0);
+    auto magic_particle = renderer->addTexture(data, width, height);
+    effect.emitters.push_back(Graphics::EmitterDescription{
+        {{-26, 20, -8}, {1.5, 2, 1.5}}, 1, 6.8, magic_particle});
+    renderer->getRenderWorld().addEffect(effect);
+
     auto input = std::make_shared<Input::GameInputContext>();
     input->addBinding(Input::GameAxes::LookYaw, Input::Axis::MOUSE_X);
     input->addBinding(Input::GameAxes::LookPitch, Input::Axis::MOUSE_Y);
@@ -88,6 +96,9 @@ void Scene::update(float deltaTime) {
 
     sky.draw();
     world.update(deltaTime);
+
+    auto renderer = Graphics::getRenderEngine();
+    renderer->getRenderWorld().update(deltaTime);
 }
 
 void Scene::setupSystems() {

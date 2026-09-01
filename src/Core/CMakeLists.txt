@@ -22,6 +22,7 @@ target_link_libraries(Core PUBLIC
 	Script
 	# Physics
 	Engine
+	EssentialsLoader
 )
 
 add_subdirectory(Logger)
@@ -37,3 +38,4 @@ add_subdirectory(Event)
 # add_subdirectory(Physics)
 add_subdirectory(Script)
 add_subdirectory(Engine)
+add_subdirectory(EssentialsLoader)

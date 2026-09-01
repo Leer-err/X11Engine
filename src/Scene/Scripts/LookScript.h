@@ -6,7 +6,7 @@
 #include "Entity.h"
 #include "GameInputContext.h"
 #include "IScript.h"
-#include "RenderWorld/RenderWorld.h"
+#include "RenderWorld.h"
 
 class LookScript final : public IScript {
    public:

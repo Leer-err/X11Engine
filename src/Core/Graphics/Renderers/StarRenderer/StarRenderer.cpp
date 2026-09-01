@@ -21,7 +21,7 @@ namespace Graphics {
 
 StarRenderer::StarRenderer(Device& device, const EngineData& engine_data)
     : engine_data(engine_data),
-      quad(createScreenQuad(device, engine_data)),
+      quad(createSkyMesh(engine_data)),
       stars_data_buffer(createStarsBuffer(device)) {
     pipeline = GraphicsPipelineBuilder(
                    "./Assets/Shaders/Stars/Stars.spv", "mesh_main",
@@ -66,20 +66,8 @@ Buffer StarRenderer::createStarsBuffer(Device& device) {
         .getResult();
 }
 
-Mesh StarRenderer::createScreenQuad(Device& device,
-                                    const EngineData& engine_data) {
-    constexpr std::array<Vertex, 4> screen_quad_vertices = {
-        Vertex{Vector3(-1, -1, 1), Vector2{0, 0}},
-        Vertex{Vector3(-1, 1, 1), Vector2{0, 0}},
-        Vertex{Vector3(1, -1, 1), Vector2{0, 0}},
-        Vertex{Vector3(1, 1, 1), Vector2{0, 0}}};
-
-    constexpr std::array<uint32_t, 6> screen_quad_indices = {0, 1, 2, 1, 3, 2};
-
-    return MeshBuilder(screen_quad_vertices.data(),
-                       sizeof(screen_quad_vertices), screen_quad_indices.data(),
-                       sizeof(screen_quad_indices))
-        .create(device, engine_data.staging_buffer);
+Mesh StarRenderer::createSkyMesh(const EngineData& engine_data) {
+    return engine_data.mesh_registry.getMesh("SkySphere").value();
 }
 
 }  // namespace Graphics

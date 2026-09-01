@@ -1,21 +1,18 @@
 #pragma once
 
-#include <vector>
-
-#include "ParticleHandle.h"
-#include "ParticlePool.h"
+#include "EffectDescription.h"
+#include "TextureHandle.h"
 
 namespace Graphics {
 
-class Emitter {
-   public:
-    Emitter(ParticlePool& pool, size_t particle_count);
+struct Emitter {
+    explicit Emitter(const EmitterDescription& description);
 
-    void update(float delta_time);
-
-   private:
-    ParticlePool& pool;
-    std::vector<ParticleHandle> particles;
+    BoxSpawner spawner;
+    float should_spawn = 0;
+    float spawn_rate;
+    float particle_lifetime;
+    TextureHandle texture;
 };
 
 }  // namespace Graphics

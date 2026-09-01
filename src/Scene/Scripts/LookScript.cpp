@@ -1,5 +1,7 @@
 #include "LookScript.h"
 
+#include <numbers>
+
 #include "CameraData.h"
 #include "GameInputContext.h"
 #include "Graphics.h"
@@ -9,12 +11,12 @@
 LookScript::LookScript(const Entity& head_entity, const Entity& player_entity,
                        const Camera& camera,
                        const std::shared_ptr<Input::GameInputContext>& input)
-    : player_entity(player_entity),
-      head_entity(head_entity),
-      camera(camera),
-      input(input),
-      current_pitch(0),
+    : current_pitch(0),
       current_yaw(0),
+      camera(camera),
+      head_entity(head_entity),
+      player_entity(player_entity),
+      input(input),
       render_world(Graphics::getRenderEngine()->getRenderWorld()) {}
 
 void LookScript::update(float delta_time) {
@@ -25,15 +27,18 @@ void LookScript::update(float delta_time) {
     current_pitch += pitch;
     current_yaw += yaw;
 
-    if (current_pitch > 1.57f)
-        current_pitch = 1.57f;
-    else if (current_pitch < -1.57f)
-        current_pitch = -1.57f;
+    constexpr auto PI = std::numbers::pi_v<float>;
+    constexpr auto HALF_PI = PI / 2;
+    constexpr auto TWO_PI = PI * 2;
+    if (current_pitch > HALF_PI)
+        current_pitch = HALF_PI;
+    else if (current_pitch < -HALF_PI)
+        current_pitch = -HALF_PI;
 
-    if (current_yaw > 3.14f)
-        current_yaw -= 6.28f;
-    else if (current_yaw < -3.14f)
-        current_yaw += 6.28f;
+    if (current_yaw > PI)
+        current_yaw -= TWO_PI;
+    else if (current_yaw < -PI)
+        current_yaw += TWO_PI;
 
     auto head_transform = head_entity.get<Transform>();
     head_transform->setOrientation(Quaternion(current_pitch, 0, 0));
@@ -54,12 +59,16 @@ void LookScript::preRender() {
 
     auto up = Vector3(0, 1, 0).rotate(orientation);
     auto forward = Vector3(0, 0, 1).rotate(orientation);
+    auto right = Vector3(-1, 0, 0).rotate(orientation);
 
     Matrix view = Matrix::view(position, forward, up);
+    Matrix view_camera_centered = Matrix::view(Vector3(), forward, up);
 
     CameraData data;
     data.view_projection = projection * view;
-    data.inverse_view_projection = data.view_projection.inverse();
+    data.view_projection_camera_centered = projection * view_camera_centered;
+    data.right = right;
+    data.up = up;
 
     render_world.setCameraData(data);
 }

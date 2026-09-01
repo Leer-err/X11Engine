@@ -90,8 +90,9 @@ void CommandBuffer::setPipeline(const GraphicsPipeline& pipeline) const {
                       pipeline.pipeline);
 }
 
-void CommandBuffer::draw(uint32_t meshlet_count) const {
-    vkCmdDrawMeshTasksEXT(buffer, meshlet_count, 1, 1);
+void CommandBuffer::draw(uint32_t meshlet_count,
+                         uint32_t instance_count) const {
+    vkCmdDrawMeshTasksEXT(buffer, meshlet_count, instance_count, 1);
 }
 
 void CommandBuffer::bindDescriptorSet(const GraphicsPipeline& pipeline,

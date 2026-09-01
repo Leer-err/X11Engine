@@ -2,13 +2,26 @@
 
 #include <cstddef>
 #include <deque>
+#include <optional>
 #include <vector>
 
 #include "ParticleHandle.h"
+#include "ParticleState.h"
 #include "TextureHandle.h"
 #include "Vector3.h"
 
 namespace Graphics {
+
+class ParticleHandleAllocator {
+   public:
+    explicit ParticleHandleAllocator(size_t size);
+
+    std::optional<ParticleHandle> allocate();
+    void free(ParticleHandle index);
+
+   private:
+    std::deque<size_t> free_list;
+};
 
 struct ParticleBatchState {
     std::vector<Vector3> positions;
@@ -20,16 +33,17 @@ struct ParticleBatchState {
 
 class ParticlePool {
    public:
-    explicit ParticlePool(size_t size);
+    explicit ParticlePool(size_t max_particle_count);
 
-    ParticleHandle allocate();
-    void free(ParticleHandle index);
+    void addParticle(const ParticleState& state);
 
-    const ParticleBatchState& getBatch() const;
+    void update(float delta_time);
+
+    const ParticleBatchState& getParticleBatch() const;
 
    private:
     ParticleBatchState batch;
-    std::deque<size_t> free_list;
+    ParticleHandleAllocator allocator;
 };
 
 }  // namespace Graphics

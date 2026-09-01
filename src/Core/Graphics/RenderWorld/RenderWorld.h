@@ -5,6 +5,7 @@
 
 #include "CameraData.h"
 #include "CloudsData.h"
+#include "EffectDescription.h"
 #include "OpaqueRenderObjectData.h"
 #include "ParticlePool.h"
 #include "PostProcessingData.h"
@@ -32,14 +33,17 @@ class RenderWorld {
     OpaqueRenderObjectData& getOpaqueObject(const OpaqueObjectHandle& handle);
     std::span<const OpaqueRenderObjectData> getOpaqueObjects() const;
 
+    void addEffect(const EffectDescription& description);
+
+    void update(float delta_time);
+
     const ParticleBatchState& getParticles() const;
 
    private:
     std::vector<OpaqueRenderObjectData> opaque_objects;
     OpaqueObjectHandle next_handle;
 
-    ParticlePool particle_pool;
-    std::vector<Effect> effects;
+    VFXWorld vfx_world;
 
     StarsData stars_data;
     CloudsData clouds_data;

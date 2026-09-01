@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 
 #include <cstdint>
+#include <string>
 
 #include "BufferRegistry.h"
 #include "CommandBuffer.h"
@@ -37,7 +38,10 @@ class RenderEngine final : public IRenderEngine {
 
     TextureHandle addTexture(void* data, uint32_t width,
                              uint32_t height) override;
+    TextureHandle addTexture(std::string_view name, void* data, uint32_t width,
+                             uint32_t height) override;
     MeshHandle addMesh(const ::Mesh& mesh) override;
+    MeshHandle addMesh(std::string_view name, const ::Mesh& mesh) override;
 
     EngineData getEngineData();
 

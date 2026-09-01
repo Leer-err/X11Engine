@@ -25,6 +25,9 @@ class GraphicsPipelineBuilder {
 
     GraphicsPipelineBuilder& setRenderTargetFormat(VkFormat format);
 
+    GraphicsPipelineBuilder& writesDepth();
+    GraphicsPipelineBuilder& disableDepthTest();
+
     Result<GraphicsPipeline, Error> create(Device& device,
                                            ShaderRegistry& shader_registry);
 
@@ -38,6 +41,9 @@ class GraphicsPipelineBuilder {
     const std::string& mesh_shader_entrypoint;
     const std::string& pixel_shader_filename;
     const std::string& pixel_shader_entrypoint;
+
+    bool depth_write = false;
+    bool depth_enabled = true;
 
     VkFormat render_target_format;
     VkPipelineRasterizationStateCreateInfo rasterization_state;

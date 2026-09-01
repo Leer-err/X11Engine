@@ -113,7 +113,7 @@ void mesh_main(
         uint meshlet_vertex_index = meshlet.vertex_offset + i;
         uint vertex_index = constants.mesh.meshlet_vertices[meshlet_vertex_index];
         VertexInput vertex = constants.mesh.vertices[vertex_index];
-        float4 vertex_position = float4(vertex.position, 1);
+        float4 vertex_position = float4(vertex.position.xy, 1, 1);
 
         vertices[i].viewport_position = vertex_position;
         vertices[i].uv = vertex.uv;

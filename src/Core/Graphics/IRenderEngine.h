@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstddef>
+#include <string>
+#include <string_view>
 
 #include "Mesh.h"
 #include "MeshHandle.h"
@@ -17,7 +19,10 @@ class IRenderEngine {
 
     virtual TextureHandle addTexture(void* data, uint32_t width,
                                      uint32_t height) = 0;
+    virtual TextureHandle addTexture(std::string_view name, void* data,
+                                     uint32_t width, uint32_t height) = 0;
     virtual MeshHandle addMesh(const ::Mesh& mesh) = 0;
+    virtual MeshHandle addMesh(std::string_view name, const ::Mesh& mesh) = 0;
 };
 
 }  // namespace Graphics

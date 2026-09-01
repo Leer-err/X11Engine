@@ -1,13 +1,13 @@
 #include "Camera.h"
 
-#include "Matrix.h"
+#include <numbers>
 
-constexpr float PI = 3.14156535;
+#include "Matrix.h"
 
 Camera Camera::create(float fov, float aspect_ratio, float near_clip,
                       float far_clip) {
     Camera camera = {};
-    camera.fov = fov / 180 * PI;
+    camera.fov = fov / 180 * std::numbers::pi;
     camera.aspect_ratio = aspect_ratio;
     camera.near_clip = near_clip;
     camera.far_clip = far_clip;
