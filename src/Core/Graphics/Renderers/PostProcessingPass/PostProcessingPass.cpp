@@ -62,8 +62,8 @@ void PostProcessingPass::render(const Texture& input_image,
     data.render_target_index = *render_target_opt;
     dithering_data_buffer.update(data);
 
-    auto pass =
-        GraphicsPass(pipeline, [this](GraphicsPassExecution& execution) {
+    auto pass = GraphicsPass(
+        "Post processing", pipeline, [this](GraphicsPassExecution& execution) {
             auto data_address = dithering_data_buffer.getDeviceAddress();
             execution.appendData(data_address);
             execution.draw(quad);

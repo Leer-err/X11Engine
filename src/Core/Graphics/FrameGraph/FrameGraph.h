@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <functional>
 #include <optional>
+#include <string_view>
 #include <vector>
 
 #include "CommandBuffer.h"
@@ -48,10 +49,14 @@ class Pass {
         Texture texture;
     };
 
+    explicit Pass(std::string_view name);
+
     void reads(const Texture& texture, VkImageLayout layout);
     void writes(const Texture& texture, VkImageLayout layout);
 
     void prepareTextures(const CommandBuffer& command_buffer);
+
+    std::string_view getName() const;
 
    private:
     static VkImageMemoryBarrier2 barrierFromLayout(PassTexture& texture);
@@ -64,6 +69,7 @@ class Pass {
     static VkImageMemoryBarrier2 copyDestinatonBarrier(Texture& texture);
 
     std::vector<PassTexture> pass_textures;
+    std::string name;
 };
 
 class GraphicsPass : public Pass {
@@ -74,7 +80,7 @@ class GraphicsPass : public Pass {
     };
 
    public:
-    GraphicsPass(const GraphicsPipeline& pipeline,
+    GraphicsPass(std::string_view name, const GraphicsPipeline& pipeline,
                  const std::function<void(GraphicsPassExecution&)>& executor);
 
     void addColorAttachment(const Texture& texture);
@@ -97,7 +103,8 @@ class GraphicsPass : public Pass {
 
 class GeneralPass : public Pass {
    public:
-    GeneralPass(std::function<void(const CommandBuffer&)> executor);
+    GeneralPass(std::string_view name,
+                std::function<void(const CommandBuffer&)> executor);
 
     void execute(const CommandBuffer& command_buffer);
 

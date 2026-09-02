@@ -39,7 +39,7 @@ class ParticleRenderer {
     Buffer live_particles_buffer;
 
     GraphicsPipeline pipeline;
-    VkDeviceAddress camera_data;
+    PushConstants push_constants;
     Mesh quad;
 };
 

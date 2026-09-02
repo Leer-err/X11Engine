@@ -32,7 +32,7 @@ StarRenderer::StarRenderer(Device& device, const EngineData& engine_data)
 
 void StarRenderer::render(FrameGraph& frame_graph, const RenderWorld& world) {
     auto pass = GraphicsPass(
-        pipeline, [this, &world](GraphicsPassExecution& execution) {
+        "Stars", pipeline, [this, &world](GraphicsPassExecution& execution) {
             auto stars_data = world.getStarsData();
             stars_data_buffer.update(stars_data);
             push_constants.stars_data = stars_data_buffer.getDeviceAddress();

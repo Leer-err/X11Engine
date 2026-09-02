@@ -30,6 +30,12 @@ ParticleRenderer::ParticleRenderer(Device& device,
                    "./Assets/Shaders/Particles/Particles.spv", "pixel_main")
                    .create(device, engine_data.shader_registry)
                    .getResult();
+
+    push_constants.particle_positions_data =
+        particle_positions_buffer.getDeviceAddress();
+    push_constants.particle_textures_data =
+        particle_materials_buffer.getDeviceAddress();
+    push_constants.live_particles = live_particles_buffer.getDeviceAddress();
 }
 
 void ParticleRenderer::render(FrameGraph& frame_graph,
@@ -63,20 +69,12 @@ void ParticleRenderer::render(FrameGraph& frame_graph,
 
     auto particle_count = alive_particles.size();
 
-    auto pass = GraphicsPass(
-        pipeline, [this, particle_count](GraphicsPassExecution& execution) {
-            PushConstants push_constants;
-            push_constants.camera_data = camera_data;
-            push_constants.particle_positions_data =
-                particle_positions_buffer.getDeviceAddress();
-            push_constants.particle_textures_data =
-                particle_materials_buffer.getDeviceAddress();
-            push_constants.live_particles =
-                live_particles_buffer.getDeviceAddress();
-
-            execution.appendData(push_constants);
-            execution.draw(quad, particle_count);
-        });
+    auto pass =
+        GraphicsPass("Particles", pipeline,
+                     [this, particle_count](GraphicsPassExecution& execution) {
+                         execution.appendData(push_constants);
+                         execution.draw(quad, particle_count);
+                     });
 
     auto render_target = engine_data.texture_registry.getTexture("Color");
     pass.addColorAttachment(*render_target);
@@ -91,7 +89,7 @@ void ParticleRenderer::render(FrameGraph& frame_graph,
 }
 
 void ParticleRenderer::setCameraData(VkDeviceAddress data) {
-    camera_data = data;
+    push_constants.camera_data = data;
 }
 
 Mesh ParticleRenderer::createQuadMesh(const EngineData& engine_data) {

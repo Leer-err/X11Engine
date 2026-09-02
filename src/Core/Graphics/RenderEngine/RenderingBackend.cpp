@@ -50,6 +50,7 @@ FrameData RenderingBackend::beginFrame() {
     command_buffer.begin();
 
     return FrameData{.frame_in_flight_index = frame_in_flight_index,
+                     .trace_ctx = trace_ctx,
                      .cmd = command_buffer};
 }
 

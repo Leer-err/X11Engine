@@ -3,15 +3,19 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
+#include <tracy/Tracy.hpp>
 #include <vector>
 
 #include "CommandBuffer.h"
 #include "DescriptorSet.h"
+#include "Device.h"
 #include "EngineData.h"
 #include "GraphicsPipeline.h"
 #include "RenderEnviroment.h"
 
 namespace Graphics {
+
+Pass::Pass(std::string_view pass_name) : name(pass_name) {}
 
 VkImageMemoryBarrier2 Pass::fullBarrier(Texture& texture,
                                         VkImageLayout layout) {
@@ -109,10 +113,12 @@ void Pass::writes(const Texture& texture, VkImageLayout layout) {
     pass_textures.emplace_back(layout, texture);
 }
 
+std::string_view Pass::getName() const { return name; }
+
 GraphicsPass::GraphicsPass(
-    const GraphicsPipeline& pipeline,
+    std::string_view name, const GraphicsPipeline& pipeline,
     const std::function<void(GraphicsPassExecution&)>& executor)
-    : pipeline(pipeline), executor(executor) {}
+    : Pass(name), pipeline(pipeline), executor(executor) {}
 
 void GraphicsPass::addColorAttachment(const Texture& texture) {
     color_attachments.emplace_back(texture, VkClearValue{}, false);
@@ -223,7 +229,14 @@ void FrameGraph::addGraphicsPass(const GraphicsPass& pass) {
 }
 
 void FrameGraph::execute(const FrameData& frame_data) {
+    ZoneScoped;
+
     for (auto& pass : passes) {
+        auto pass_name = pass.getName().data();
+
+        TracyVkZoneTransient(frame_data.trace_ctx, __tracy_gpu_zone,
+                             frame_data.cmd.buffer, pass_name, true);
+        ZoneTransientN(__tracy_cpu_zone, pass_name, true);
         pass.execute(engine_data.descriptor_set, frame_data.cmd);
     }
 }

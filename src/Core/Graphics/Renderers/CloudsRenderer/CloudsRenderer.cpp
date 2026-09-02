@@ -60,8 +60,8 @@ void CloudsRenderer::render(FrameGraph& frame_graph, const RenderWorld& world) {
 
     clouds_data_buffer.update(world.getCloudsData());
 
-    auto cloud_prepass =
-        GraphicsPass(cloud_pipeline, [this](GraphicsPassExecution& execution) {
+    auto cloud_prepass = GraphicsPass(
+        "Cloud bake", cloud_pipeline, [this](GraphicsPassExecution& execution) {
             auto clouds_address = clouds_data_buffer.getDeviceAddress();
 
             execution.appendData(clouds_address);
@@ -70,14 +70,14 @@ void CloudsRenderer::render(FrameGraph& frame_graph, const RenderWorld& world) {
     cloud_prepass.addColorAttachment(clouds_texture);
     frame_graph.addGraphicsPass(cloud_prepass);
 
-    auto pass =
-        GraphicsPass(cloud_pipeline, [this](GraphicsPassExecution& execution) {
-            push_constants.clouds_address =
-                clouds_data_buffer.getDeviceAddress();
+    auto pass = GraphicsPass("Clouds", cloud_pipeline,
+                             [this](GraphicsPassExecution& execution) {
+                                 push_constants.clouds_address =
+                                     clouds_data_buffer.getDeviceAddress();
 
-            execution.appendData(push_constants);
-            execution.draw(cloud_plane);
-        });
+                                 execution.appendData(push_constants);
+                                 execution.draw(cloud_plane);
+                             });
     pass.reads(clouds_texture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     auto color_texture = *engine_data.texture_registry.getTexture("Color");
     pass.addColorAttachment(color_texture);

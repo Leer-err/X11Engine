@@ -32,14 +32,13 @@ StaticMeshRenderer::StaticMeshRenderer(Device& device,
 
 void StaticMeshRenderer::render(FrameGraph& frame_graph,
                                 const RenderWorld& world) {
-    // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Static mesh");
-
     auto buffer_ptr =
         std::bit_cast<ModelBuffer*>(model_data_buffer.getHostAddress());
     auto objects = world.getOpaqueObjects();
 
     auto pass = GraphicsPass(
-        pipeline, [this, objects](GraphicsPassExecution& execution) {
+        "Static mesh", pipeline,
+        [this, objects](GraphicsPassExecution& execution) {
             auto buffer_address = model_data_buffer.getDeviceAddress();
 
             for (int i = 0; i < objects.size(); i++) {
