@@ -256,3 +256,7 @@ target_sources(meshoptimizer
 		${CMAKE_CURRENT_SOURCE_DIR}/meshoptimizer/src/meshletutils.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/meshoptimizer/src/clusterizer.cpp
 )
+
+# json
+
+add_subdirectory(json)

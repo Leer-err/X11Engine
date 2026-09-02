@@ -6,11 +6,12 @@
 #include "CameraData.h"
 #include "CloudsData.h"
 #include "EffectDescription.h"
-#include "OpaqueRenderObjectData.h"
 #include "ParticlePool.h"
 #include "PostProcessingData.h"
+#include "RenderObjectData.h"
 #include "StarsData.h"
 #include "VFXWorld.h"
+
 
 namespace Graphics {
 
@@ -29,9 +30,9 @@ class RenderWorld {
     void setCloudsData(const CloudsData& data);
     CloudsData getCloudsData() const;
 
-    OpaqueObjectHandle addOpaqueObject(const OpaqueRenderObjectData& data);
-    OpaqueRenderObjectData& getOpaqueObject(const OpaqueObjectHandle& handle);
-    std::span<const OpaqueRenderObjectData> getOpaqueObjects() const;
+    OpaqueObjectHandle addOpaqueObject(const RenderObjectData& data);
+    RenderObjectData& getOpaqueObject(const OpaqueObjectHandle& handle);
+    std::span<const RenderObjectData> getOpaqueObjects() const;
 
     void addEffect(const EffectDescription& description);
 
@@ -40,7 +41,7 @@ class RenderWorld {
     const ParticleBatchState& getParticles() const;
 
    private:
-    std::vector<OpaqueRenderObjectData> opaque_objects;
+    std::vector<RenderObjectData> opaque_objects;
     OpaqueObjectHandle next_handle;
 
     VFXWorld vfx_world;

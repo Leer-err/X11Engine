@@ -34,19 +34,18 @@ void RenderWorld::setCloudsData(const CloudsData& data) { clouds_data = data; }
 
 CloudsData RenderWorld::getCloudsData() const { return clouds_data; }
 
-OpaqueObjectHandle RenderWorld::addOpaqueObject(
-    const OpaqueRenderObjectData& data) {
+OpaqueObjectHandle RenderWorld::addOpaqueObject(const RenderObjectData& data) {
     opaque_objects.emplace_back(data);
 
     return next_handle++;
 }
 
-OpaqueRenderObjectData& RenderWorld::getOpaqueObject(
+RenderObjectData& RenderWorld::getOpaqueObject(
     const OpaqueObjectHandle& handle) {
     return opaque_objects.at(handle);
 }
 
-std::span<const OpaqueRenderObjectData> RenderWorld::getOpaqueObjects() const {
+std::span<const RenderObjectData> RenderWorld::getOpaqueObjects() const {
     return opaque_objects;
 }
 

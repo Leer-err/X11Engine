@@ -2,7 +2,9 @@
 
 #include <stb_image.h>
 
+#include <fstream>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <tracy/Tracy.hpp>
 
 #include "Camera.h"
@@ -13,11 +15,12 @@
 #include "LookScript.h"
 #include "ModelReader.h"
 #include "MoveScript.h"
-#include "OpaqueRenderObjectData.h"
 #include "PhysicalInput.h"
+#include "RenderObjectData.h"
 #include "ScriptSystem.h"
 #include "Transform.h"
 #include "TransformSystem.h"
+#include "Vector3.h"
 
 Scene::Scene() {
     setupSystems();
@@ -31,33 +34,17 @@ Scene::Scene() {
     int channels;
     unsigned char* data;
 
-    OpaqueRenderObjectData tower_data = {};
-    auto tower_reader = File::ModelReader("./Assets/Tower.fbx");
-    auto tower_mesh = tower_reader.readMesh();
-    tower_data.position = {-26, 9, -8};
-    data = stbi_load("./Assets/tower.png", &width, &height, &channels, 0);
-    tower_data.albedo = renderer->addTexture(data, width, height);
-    tower_data.mesh = renderer->addMesh(tower_mesh);
+    RenderObjectData tower_data =
+        *readRenderObjectFile("./Assets/Scene/Tower.json");
     renderer->getRenderWorld().addOpaqueObject(tower_data);
 
-    OpaqueRenderObjectData gem_data = {};
-    auto gem_reader = File::ModelReader("./Assets/Gem2.fbx");
-    auto gem_mesh = gem_reader.readMesh();
-    gem_data.position = {-26, 20, -8};
-    gem_data.mesh = renderer->addMesh(gem_mesh);
-    data = stbi_load("./Assets/gem2.png", &width, &height, &channels, 0);
-    gem_data.albedo = renderer->addTexture(data, width, height);
+    RenderObjectData gem_data =
+        *readRenderObjectFile("./Assets/Scene/Gem.json");
     renderer->getRenderWorld().addOpaqueObject(gem_data);
 
-    OpaqueRenderObjectData terrain_data = {};
-    auto terrain_reader = File::ModelReader("./Assets/Island.fbx");
-    auto terrain_mesh = terrain_reader.readMesh();
-    terrain_data.position = {0, -50, 0};
-    terrain_data.mesh = renderer->addMesh(terrain_mesh);
-    data =
-        stbi_load("./Assets/island_albedo.png", &width, &height, &channels, 0);
-    terrain_data.albedo = renderer->addTexture(data, width, height);
-    renderer->getRenderWorld().addOpaqueObject(terrain_data);
+    RenderObjectData island_data =
+        *readRenderObjectFile("./Assets/Scene/Island.json");
+    renderer->getRenderWorld().addOpaqueObject(island_data);
 
     auto effect = Graphics::EffectDescription{};
     data = stbi_load("./Assets/star_06.png", &width, &height, &channels, 0);
@@ -104,4 +91,33 @@ void Scene::update(float deltaTime) {
 void Scene::setupSystems() {
     world.addSystem<TransformSystem>();
     world.addSystem<ScriptSystem>();
+}
+
+std::optional<RenderObjectData> Scene::readRenderObjectFile(
+    const std::filesystem::path& path) {
+    auto file = std::ifstream(path);
+
+    auto data = nlohmann::json();
+    file >> data;
+
+    auto mesh_path = data["mesh"].get<std::string>();
+    auto albedo_path = data["albedo"].get<std::string>();
+    auto position_data = data["position"].get<nlohmann::json>();
+    auto position_x = position_data["x"].get<float>();
+    auto position_y = position_data["y"].get<float>();
+    auto position_z = position_data["z"].get<float>();
+
+    auto mesh_data = File::ModelReader(mesh_path).readMesh();
+    auto position = Vector3(position_x, position_y, position_z);
+    int width;
+    int height;
+    int channels;
+    unsigned char* texture_data;
+
+    auto renderer = Graphics::getRenderEngine();
+    texture_data = stbi_load(albedo_path.data(), &width, &height, &channels, 0);
+    auto albedo = renderer->addTexture(texture_data, width, height);
+    auto mesh = renderer->addMesh(mesh_data);
+
+    return RenderObjectData{position, albedo, mesh};
 }
