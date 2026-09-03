@@ -1,10 +1,10 @@
 #pragma once
 
-#include <variant>
 #include <vector>
 
 #include "TextureHandle.h"
 #include "Vector3.h"
+#include "Vector4.h"
 
 namespace Graphics {
 
@@ -16,6 +16,8 @@ struct BoxSpawner {
 struct EmitterDescription {
     BoxSpawner spawner;
     float spawn_rate;
+    Vector4 color;
+    float size;
     float particle_lifetime;
     TextureHandle texture;
 };

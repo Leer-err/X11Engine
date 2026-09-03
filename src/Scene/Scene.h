@@ -7,6 +7,7 @@
 #include "IScene.h"
 #include "RenderObjectData.h"
 #include "Sky.h"
+#include "TextureHandle.h"
 #include "World.h"
 
 class Scene : public IScene {
@@ -16,7 +17,11 @@ class Scene : public IScene {
     void update(float deltaTime) override;
 
    private:
-    static std::optional<RenderObjectData> readRenderObjectFile(
+    static std::optional<RenderObjectData> readRenderObject(
+        const std::filesystem::path& path);
+    static std::optional<Graphics::EffectDescription> readEffect(
+        const std::filesystem::path& path);
+    static std::optional<TextureHandle> readTexture(
         const std::filesystem::path& path);
 
     void setupSystems();

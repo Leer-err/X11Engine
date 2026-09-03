@@ -5,10 +5,12 @@
 #include <fstream>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <string>
 #include <tracy/Tracy.hpp>
 
 #include "Camera.h"
 #include "EffectDescription.h"
+#include "Emitter.h"
 #include "Entity.h"
 #include "GameInputContext.h"
 #include "Graphics.h"
@@ -21,6 +23,26 @@
 #include "Transform.h"
 #include "TransformSystem.h"
 #include "Vector3.h"
+
+void from_json(const nlohmann::json& j, Vector3& vec) {
+    j.at("x").get_to(vec.x);
+    j.at("y").get_to(vec.y);
+    j.at("z").get_to(vec.z);
+}
+
+void from_json(const nlohmann::json& j, Vector4& vec) {
+    j.at("x").get_to(vec.x);
+    j.at("y").get_to(vec.y);
+    j.at("z").get_to(vec.z);
+    j.at("w").get_to(vec.w);
+}
+
+namespace Graphics {
+void from_json(const nlohmann::json& j, BoxSpawner& spawner) {
+    j.at("center").get_to(spawner.center);
+    j.at("extents").get_to(spawner.extents);
+}
+}  // namespace Graphics
 
 Scene::Scene() {
     setupSystems();
@@ -35,23 +57,20 @@ Scene::Scene() {
     unsigned char* data;
 
     RenderObjectData tower_data =
-        *readRenderObjectFile("./Assets/Scene/Tower.json");
+        *readRenderObject("./Assets/Scene/Tower.json");
     renderer->getRenderWorld().addOpaqueObject(tower_data);
 
-    RenderObjectData gem_data =
-        *readRenderObjectFile("./Assets/Scene/Gem.json");
+    RenderObjectData gem_data = *readRenderObject("./Assets/Scene/Gem.json");
     renderer->getRenderWorld().addOpaqueObject(gem_data);
 
     RenderObjectData island_data =
-        *readRenderObjectFile("./Assets/Scene/Island.json");
+        *readRenderObject("./Assets/Scene/Island.json");
     renderer->getRenderWorld().addOpaqueObject(island_data);
 
-    auto effect = Graphics::EffectDescription{};
-    data = stbi_load("./Assets/star_06.png", &width, &height, &channels, 0);
-    auto magic_particle = renderer->addTexture(data, width, height);
-    effect.emitters.push_back(Graphics::EmitterDescription{
-        {{-26, 20, -8}, {1.5, 2, 1.5}}, 1, 6.8, magic_particle});
-    renderer->getRenderWorld().addEffect(effect);
+    auto sparkles = *readEffect("./Assets/Scene/Effects/Sparkles.json");
+    renderer->getRenderWorld().addEffect(sparkles);
+    auto orb = *readEffect("./Assets/Scene/Effects/Orb.json");
+    renderer->getRenderWorld().addEffect(orb);
 
     auto input = std::make_shared<Input::GameInputContext>();
     input->addBinding(Input::GameAxes::LookYaw, Input::Axis::MOUSE_X);
@@ -93,7 +112,20 @@ void Scene::setupSystems() {
     world.addSystem<ScriptSystem>();
 }
 
-std::optional<RenderObjectData> Scene::readRenderObjectFile(
+std::optional<TextureHandle> Scene::readTexture(
+    const std::filesystem::path& path) {
+    int width;
+    int height;
+    int channels;
+    unsigned char* texture_data;
+
+    auto renderer = Graphics::getRenderEngine();
+    texture_data =
+        stbi_load(path.string().c_str(), &width, &height, &channels, 0);
+    return renderer->addTexture(texture_data, width, height);
+}
+
+std::optional<RenderObjectData> Scene::readRenderObject(
     const std::filesystem::path& path) {
     auto file = std::ifstream(path);
 
@@ -102,22 +134,36 @@ std::optional<RenderObjectData> Scene::readRenderObjectFile(
 
     auto mesh_path = data["mesh"].get<std::string>();
     auto albedo_path = data["albedo"].get<std::string>();
-    auto position_data = data["position"].get<nlohmann::json>();
-    auto position_x = position_data["x"].get<float>();
-    auto position_y = position_data["y"].get<float>();
-    auto position_z = position_data["z"].get<float>();
+    auto position = data["position"].get<Vector3>();
 
     auto mesh_data = File::ModelReader(mesh_path).readMesh();
-    auto position = Vector3(position_x, position_y, position_z);
-    int width;
-    int height;
-    int channels;
-    unsigned char* texture_data;
-
     auto renderer = Graphics::getRenderEngine();
-    texture_data = stbi_load(albedo_path.data(), &width, &height, &channels, 0);
-    auto albedo = renderer->addTexture(texture_data, width, height);
+    auto albedo = *readTexture(albedo_path);
     auto mesh = renderer->addMesh(mesh_data);
 
     return RenderObjectData{position, albedo, mesh};
+}
+
+std::optional<Graphics::EffectDescription> Scene::readEffect(
+    const std::filesystem::path& path) {
+    auto file = std::ifstream(path);
+
+    auto data = nlohmann::json();
+    file >> data;
+
+    auto effect = Graphics::EffectDescription{};
+    for (const auto emitter_data : data["emitters"]) {
+        auto spawner = emitter_data["spawner"].get<Graphics::BoxSpawner>();
+        auto spawn_rate = emitter_data["spawn_rate"].get<float>();
+        auto color = emitter_data["color"].get<Vector4>();
+        auto size = emitter_data["size"].get<float>();
+        auto particle_lifetime = emitter_data["particle_lifetime"].get<float>();
+        auto texture_path = emitter_data["texture"].get<std::string>();
+        auto texture = *readTexture(texture_path);
+
+        effect.emitters.emplace_back(spawner, spawn_rate, color, size,
+                                     particle_lifetime, texture);
+    }
+
+    return effect;
 }
