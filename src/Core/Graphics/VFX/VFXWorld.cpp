@@ -41,7 +41,9 @@ void VFXWorld::emitParticles(Emitter& emitter, float delta_time) {
 
         ParticleState state = {};
         state.texture = emitter.texture;
+        state.size = emitter.size;
         state.position = Vector3(x, y, z);
+        state.color = emitter.color;
         state.lifetime = emitter.particle_lifetime;
         // state.velocity = Vector3(vel_dist(gen), 1, vel_dist(gen));
 

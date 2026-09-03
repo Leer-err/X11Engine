@@ -9,6 +9,7 @@
 #include "ParticleState.h"
 #include "TextureHandle.h"
 #include "Vector3.h"
+#include "Vector4.h"
 
 namespace Graphics {
 
@@ -25,6 +26,8 @@ class ParticleHandleAllocator {
 
 struct ParticleBatchState {
     std::vector<Vector3> positions;
+    std::vector<Vector4> colors;
+    std::vector<float> sizes;
     std::vector<Vector3> velocities;
     std::vector<TextureHandle> textures;
     std::vector<float> lifetimes;

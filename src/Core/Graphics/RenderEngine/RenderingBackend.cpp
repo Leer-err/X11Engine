@@ -59,7 +59,7 @@ void RenderingBackend::endFrame(Texture& rendered_image) {
     auto command_buffer = frame_in_flight.pool.getCommandBuffer();
 
     // Collect trace info
-    if (trace_dump_counter++ % 10 == 0) {
+    if (trace_dump_counter++ % 10 == 9) {
         TracyVkCollect(trace_ctx, command_buffer.buffer);
     }
 

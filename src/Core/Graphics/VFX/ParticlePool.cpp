@@ -25,6 +25,8 @@ void ParticleHandleAllocator::free(ParticleHandle index) {
 
 ParticlePool::ParticlePool(size_t size) : allocator(size) {
     batch.positions.resize(size);
+    batch.colors.resize(size);
+    batch.sizes.resize(size);
     batch.velocities.resize(size);
     batch.alive_flags.resize(size);
     batch.lifetimes.resize(size);
@@ -38,6 +40,8 @@ void ParticlePool::addParticle(const ParticleState& state) {
     auto particle = *particle_opt;
 
     batch.positions[particle] = state.position;
+    batch.colors[particle] = state.color;
+    batch.sizes[particle] = state.size;
     batch.velocities[particle] = state.velocity;
     batch.textures[particle] = state.texture;
     batch.lifetimes[particle] = state.lifetime;

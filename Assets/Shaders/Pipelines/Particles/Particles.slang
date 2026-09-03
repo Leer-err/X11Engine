@@ -19,6 +19,7 @@ struct Meshlet{
 struct VertexOutput{
     float4 viewport_position : SV_POSITION;
     float2 uv : TEXCOORD;
+    float4 color : COLOR0;
     uint32_t texture_index : MATERIAL;
 };
 
@@ -39,6 +40,8 @@ struct PushConstants{
 
     CameraData* camera_data;
     float3* positions_data;
+    float4* colors_data;
+    float* size_data;
     uint32_t* materials_data;
     uint64_t* live_particles;
 };
@@ -67,11 +70,14 @@ void mesh_main(
         VertexInput vertex = constants.mesh.vertices[vertex_index];
 
         uint64_t particle = constants.live_particles[group_index.y];
-        float3 world_positon = constants.positions_data[particle] + (vertex.position.y * constants.camera_data.up + vertex.position.x * constants.camera_data.right) * 0.5;
+        float size = constants.size_data[particle];
+        float3 world_positon = constants.positions_data[particle] + (vertex.position.y * constants.camera_data.up + vertex.position.x * constants.camera_data.right) * size;
         float4 vertex_position = float4(world_positon, 1);
 
         vertices[i].viewport_position = mul(constants.camera_data.view_projection, vertex_position);
         vertices[i].uv = vertex.uv;
+        vertices[i].color = constants.colors_data[particle];
+        vertices[i].texture_index = constants.materials_data[particle];
     }
 
     for(int i = local_index; i < meshlet.triangle_count; i += GROUP_SIZE){
@@ -91,12 +97,9 @@ Texture2D textures[];
 [[vk::binding(1, 0)]]
 SamplerState samplers[];
 
-static float4 particle_color = float4(0.475, 0.173, 0.635, 1);
-
 [shader("pixel")]
-float4 pixel_main(in float2 uv : TEXCOORD, in uint32_t texture_index : MATERIAL) : SV_Target
+float4 pixel_main(in float2 uv : TEXCOORD, in float4 color : COLOR0, in uint32_t texture_index : MATERIAL) : SV_Target
 {
-    uint32_t texture_index = constants.materials_data[texture_index];
     uint32_t sampler_index = 0;
-    return textures[texture_index].Sample(samplers[sampler_index], uv) * particle_color;
+    return textures[texture_index].Sample(samplers[sampler_index], uv) * color;
 }

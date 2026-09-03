@@ -11,7 +11,7 @@ typedef PxVec3T<float> PxVec3;
 struct Quaternion;
 
 struct Vector3 {
-    constexpr Vector3() : Vector3(0, 0, 0) {}
+    constexpr Vector3() = default;
     constexpr Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
     Vector3(const physx::PxVec3& vector);
 
@@ -25,7 +25,9 @@ struct Vector3 {
 
     float length() const;
 
-    float x, y, z;
+    float x = 0;
+    float y = 0;
+    float z = 0;
 };
 
 Vector3 operator+(const Vector3& a, const Vector3& b);

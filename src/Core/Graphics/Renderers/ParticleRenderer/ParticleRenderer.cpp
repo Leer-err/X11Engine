@@ -22,6 +22,8 @@ ParticleRenderer::ParticleRenderer(Device& device,
                                    const EngineData& engine_data)
     : engine_data(engine_data),
       particle_positions_buffer(createParticlePositionsBuffer(device)),
+      particle_colors_buffer(createParticleColorsBuffer(device)),
+      particle_sizes_buffer(createParticleSizesBuffer(device)),
       particle_materials_buffer(createParticleMaterialsBuffer(device)),
       live_particles_buffer(createLiveParticlesBuffer(device)),
       quad(createQuadMesh(engine_data)) {
@@ -33,6 +35,10 @@ ParticleRenderer::ParticleRenderer(Device& device,
 
     push_constants.particle_positions_data =
         particle_positions_buffer.getDeviceAddress();
+    push_constants.particle_colors_data =
+        particle_colors_buffer.getDeviceAddress();
+    push_constants.particle_sizes_data =
+        particle_sizes_buffer.getDeviceAddress();
     push_constants.particle_textures_data =
         particle_materials_buffer.getDeviceAddress();
     push_constants.live_particles = live_particles_buffer.getDeviceAddress();
@@ -44,9 +50,16 @@ void ParticleRenderer::render(FrameGraph& frame_graph,
 
     auto& particles = world.getParticles();
     auto& particle_positions = particles.positions;
+    auto& particle_colors = particles.colors;
+    auto& particle_sizes = particles.sizes;
     particle_positions_buffer.update(
         std::bit_cast<uint8_t*>(particle_positions.data()),
         particle_positions.size() * sizeof(Vector3), 0);
+    particle_sizes_buffer.update(std::bit_cast<uint8_t*>(particle_sizes.data()),
+                                 particle_sizes.size() * sizeof(Vector3), 0);
+    particle_colors_buffer.update(
+        std::bit_cast<uint8_t*>(particle_colors.data()),
+        particle_colors.size() * sizeof(Vector4), 0);
 
     auto& particle_materials = particles.textures;
     std::vector<uint32_t> particle_texture_descriptors;
@@ -97,6 +110,26 @@ Mesh ParticleRenderer::createQuadMesh(const EngineData& engine_data) {
 }
 
 Buffer ParticleRenderer::createParticlePositionsBuffer(Device& device) {
+    return BufferBuilder(sizeof(Vector3) * MAX_PARTICLE_COUNT)
+        .isConstantBuffer()
+        .isDeviceAddressable()
+        .isChained()
+        .isCPUWritable(true)
+        .create(device)
+        .getResult();
+}
+
+Buffer ParticleRenderer::createParticleColorsBuffer(Device& device) {
+    return BufferBuilder(sizeof(Vector4) * MAX_PARTICLE_COUNT)
+        .isConstantBuffer()
+        .isDeviceAddressable()
+        .isChained()
+        .isCPUWritable(true)
+        .create(device)
+        .getResult();
+}
+
+Buffer ParticleRenderer::createParticleSizesBuffer(Device& device) {
     return BufferBuilder(sizeof(Vector3) * MAX_PARTICLE_COUNT)
         .isConstantBuffer()
         .isDeviceAddressable()
