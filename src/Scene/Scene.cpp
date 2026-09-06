@@ -7,10 +7,10 @@
 #include <nlohmann/json.hpp>
 #include <string>
 #include <tracy/Tracy.hpp>
+#include <vector>
 
 #include "Camera.h"
 #include "EffectDescription.h"
-#include "Emitter.h"
 #include "Entity.h"
 #include "GameInputContext.h"
 #include "Graphics.h"
@@ -18,6 +18,7 @@
 #include "ModelReader.h"
 #include "MoveScript.h"
 #include "PhysicalInput.h"
+#include "Property.h"
 #include "RenderObjectData.h"
 #include "ScriptSystem.h"
 #include "Transform.h"
@@ -37,10 +38,45 @@ void from_json(const nlohmann::json& j, Vector4& vec) {
     j.at("w").get_to(vec.w);
 }
 
+template <typename T>
+void from_json(const nlohmann::json& j, typename Property<T>::State& state) {
+    j.at("ratio").get_to(state.ratio);
+    j.at("value").get_to(state.value);
+}
+
+template <typename T>
+void from_json(const nlohmann::json& j, Property<T>& desc) {
+    auto type = j.at("type").get<std::string>();
+
+    if (type == "constant") {
+        auto value = j.at("value").get<T>();
+
+        desc = Property<T>::constant(value);
+    } else if (type == "random") {
+        auto min = j.at("min").get<T>();
+        auto max = j.at("max").get<T>();
+
+        desc = Property<T>::random(min, max);
+    } else if (type == "over_lifetime") {
+        auto states = std::vector<typename Property<T>::State>();
+        for (const auto& state_data : j.at("states")) {
+            auto time = state_data.at("time").get<float>();
+            auto value = state_data.at("value").get<T>();
+
+            states.emplace_back(time, value);
+        }
+
+        desc = Property<T>::overLifetime(states);
+    }
+}
+
 namespace Graphics {
-void from_json(const nlohmann::json& j, BoxSpawner& spawner) {
-    j.at("center").get_to(spawner.center);
-    j.at("extents").get_to(spawner.extents);
+void from_json(const nlohmann::json& j, EffectDescription& desc) {
+    j.at("center").get_to(desc.center);
+    j.at("extents").get_to(desc.extents);
+    j.at("spawn_rate").get_to(desc.spawn_rate);
+    j.at("color").get_to(desc.color);
+    j.at("size").get_to(desc.size);
 }
 }  // namespace Graphics
 
@@ -67,10 +103,14 @@ Scene::Scene() {
         *readRenderObject("./Assets/Scene/Island.json");
     renderer->getRenderWorld().addOpaqueObject(island_data);
 
-    auto sparkles = *readEffect("./Assets/Scene/Effects/Sparkles.json");
-    renderer->getRenderWorld().addEffect(sparkles);
     auto orb = *readEffect("./Assets/Scene/Effects/Orb.json");
     renderer->getRenderWorld().addEffect(orb);
+    auto lightning1 = *readEffect("./Assets/Scene/Effects/Lightning1.json");
+    renderer->getRenderWorld().addEffect(lightning1);
+    auto lightning3 = *readEffect("./Assets/Scene/Effects/Lightning3.json");
+    renderer->getRenderWorld().addEffect(lightning3);
+    auto lightning4 = *readEffect("./Assets/Scene/Effects/Lightning4.json");
+    renderer->getRenderWorld().addEffect(lightning4);
 
     auto input = std::make_shared<Input::GameInputContext>();
     input->addBinding(Input::GameAxes::LookYaw, Input::Axis::MOUSE_X);
@@ -152,18 +192,16 @@ std::optional<Graphics::EffectDescription> Scene::readEffect(
     file >> data;
 
     auto effect = Graphics::EffectDescription{};
-    for (const auto emitter_data : data["emitters"]) {
-        auto spawner = emitter_data["spawner"].get<Graphics::BoxSpawner>();
-        auto spawn_rate = emitter_data["spawn_rate"].get<float>();
-        auto color = emitter_data["color"].get<Vector4>();
-        auto size = emitter_data["size"].get<float>();
-        auto particle_lifetime = emitter_data["particle_lifetime"].get<float>();
-        auto texture_path = emitter_data["texture"].get<std::string>();
-        auto texture = *readTexture(texture_path);
+    data.at("center").get_to(effect.center);
+    data.at("extents").get_to(effect.extents);
+    data.at("spawn_rate").get_to(effect.spawn_rate);
+    data.at("color").get_to(effect.color);
+    data.at("size").get_to(effect.size);
+    data.at("rotation").get_to(effect.rotation);
+    data.at("lifetime").get_to(effect.particle_lifetime);
 
-        effect.emitters.emplace_back(spawner, spawn_rate, color, size,
-                                     particle_lifetime, texture);
-    }
+    auto texture_path = data["texture"].get<std::string>();
+    effect.texture = *readTexture(texture_path);
 
     return effect;
 }

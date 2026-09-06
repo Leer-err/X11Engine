@@ -2,92 +2,63 @@
 
 #include <vulkan/vulkan.h>
 
-#include <array>
-#include <bit>
-#include <cstdint>
+#include <set>
 #include <tracy/Tracy.hpp>
-#include <vector>
 
 #include "BufferBuilder.h"
 #include "EngineData.h"
 #include "GraphicsPipelineBuilder.h"
-#include "MeshBuilder.h"
 #include "ParticleHandle.h"
 #include "TextureHandle.h"
-#include "Vector3.h"
 
 namespace Graphics {
 
 ParticleRenderer::ParticleRenderer(Device& device,
                                    const EngineData& engine_data)
     : engine_data(engine_data),
-      particle_positions_buffer(createParticlePositionsBuffer(device)),
-      particle_colors_buffer(createParticleColorsBuffer(device)),
-      particle_sizes_buffer(createParticleSizesBuffer(device)),
-      particle_materials_buffer(createParticleMaterialsBuffer(device)),
-      live_particles_buffer(createLiveParticlesBuffer(device)),
+      particle_buffer(createParticleBuffer(device)),
+      live_particles_buffer(createLiveParticleBuffer(device)),
       quad(createQuadMesh(engine_data)) {
     pipeline = GraphicsPipelineBuilder(
                    "./Assets/Shaders/Particles/Particles.spv", "mesh_main",
                    "./Assets/Shaders/Particles/Particles.spv", "pixel_main")
                    .create(device, engine_data.shader_registry)
                    .getResult();
-
-    push_constants.particle_positions_data =
-        particle_positions_buffer.getDeviceAddress();
-    push_constants.particle_colors_data =
-        particle_colors_buffer.getDeviceAddress();
-    push_constants.particle_sizes_data =
-        particle_sizes_buffer.getDeviceAddress();
-    push_constants.particle_textures_data =
-        particle_materials_buffer.getDeviceAddress();
-    push_constants.live_particles = live_particles_buffer.getDeviceAddress();
 }
 
 void ParticleRenderer::render(FrameGraph& frame_graph,
                               const RenderWorld& world) {
     ZoneScoped;
 
-    auto& particles = world.getParticles();
-    auto& particle_positions = particles.positions;
-    auto& particle_colors = particles.colors;
-    auto& particle_sizes = particles.sizes;
-    particle_positions_buffer.update(
-        std::bit_cast<uint8_t*>(particle_positions.data()),
-        particle_positions.size() * sizeof(Vector3), 0);
-    particle_sizes_buffer.update(std::bit_cast<uint8_t*>(particle_sizes.data()),
-                                 particle_sizes.size() * sizeof(Vector3), 0);
-    particle_colors_buffer.update(
-        std::bit_cast<uint8_t*>(particle_colors.data()),
-        particle_colors.size() * sizeof(Vector4), 0);
+    auto particles = world.getParticles();
+    if (particles.alive.empty()) return;
 
-    auto& particle_materials = particles.textures;
-    std::vector<uint32_t> particle_texture_descriptors;
-    particle_texture_descriptors.reserve(particle_materials.size());
-    for (auto& texture : particle_materials) {
-        particle_texture_descriptors.push_back(
-            *engine_data.descriptor_set.getIndex(texture));
-    }
-    particle_materials_buffer.update(
-        std::bit_cast<uint8_t*>(particle_texture_descriptors.data()),
-        particle_texture_descriptors.size() * sizeof(uint32_t), 0);
+    std::vector<ParticleHandle> alive_particles(particles.alive.begin(),
+                                                particles.alive.end());
 
-    auto alive_particles = std::vector<ParticleHandle>();
-    for (int i = 0; i < MAX_PARTICLE_COUNT; i++) {
-        if (particles.alive_flags[i]) alive_particles.push_back(i);
-    }
+    particle_buffer.update(std::bit_cast<uint8_t*>(particles.particles.data()),
+                           sizeof(Particle) * particles.particles.size(), 0);
     live_particles_buffer.update(
         std::bit_cast<uint8_t*>(alive_particles.data()),
-        alive_particles.size() * sizeof(ParticleHandle), 0);
+        sizeof(ParticleHandle) * alive_particles.size(), 0);
 
-    auto particle_count = alive_particles.size();
+    auto particle_count = particles.alive.size();
 
-    auto pass =
-        GraphicsPass("Particles", pipeline,
-                     [this, particle_count](GraphicsPassExecution& execution) {
-                         execution.appendData(push_constants);
-                         execution.draw(quad, particle_count);
-                     });
+    std::set<TextureHandle> particle_texture_descriptors;
+    for (const auto& particle : particles.particles) {
+        particle_texture_descriptors.insert(particle.texture);
+    }
+
+    auto pass = GraphicsPass(
+        "Particles", pipeline,
+        [this, particle_count](GraphicsPassExecution& execution) {
+            push_constants.particles_data = particle_buffer.getDeviceAddress();
+            push_constants.live_particles_data =
+                live_particles_buffer.getDeviceAddress();
+
+            execution.appendData(push_constants);
+            execution.draw(quad, particle_count);
+        });
 
     auto render_target = engine_data.texture_registry.getTexture("Color");
     pass.addColorAttachment(*render_target);
@@ -109,8 +80,8 @@ Mesh ParticleRenderer::createQuadMesh(const EngineData& engine_data) {
     return *engine_data.mesh_registry.getMesh("Quad");
 }
 
-Buffer ParticleRenderer::createParticlePositionsBuffer(Device& device) {
-    return BufferBuilder(sizeof(Vector3) * MAX_PARTICLE_COUNT)
+Buffer ParticleRenderer::createParticleBuffer(Device& device) {
+    return BufferBuilder(sizeof(Particle) * MAX_PARTICLE_COUNT)
         .isConstantBuffer()
         .isDeviceAddressable()
         .isChained()
@@ -119,37 +90,7 @@ Buffer ParticleRenderer::createParticlePositionsBuffer(Device& device) {
         .getResult();
 }
 
-Buffer ParticleRenderer::createParticleColorsBuffer(Device& device) {
-    return BufferBuilder(sizeof(Vector4) * MAX_PARTICLE_COUNT)
-        .isConstantBuffer()
-        .isDeviceAddressable()
-        .isChained()
-        .isCPUWritable(true)
-        .create(device)
-        .getResult();
-}
-
-Buffer ParticleRenderer::createParticleSizesBuffer(Device& device) {
-    return BufferBuilder(sizeof(Vector3) * MAX_PARTICLE_COUNT)
-        .isConstantBuffer()
-        .isDeviceAddressable()
-        .isChained()
-        .isCPUWritable(true)
-        .create(device)
-        .getResult();
-}
-
-Buffer ParticleRenderer::createParticleMaterialsBuffer(Device& device) {
-    return BufferBuilder(sizeof(uint32_t) * MAX_PARTICLE_COUNT)
-        .isConstantBuffer()
-        .isDeviceAddressable()
-        .isChained()
-        .isCPUWritable(true)
-        .create(device)
-        .getResult();
-}
-
-Buffer ParticleRenderer::createLiveParticlesBuffer(Device& device) {
+Buffer ParticleRenderer::createLiveParticleBuffer(Device& device) {
     return BufferBuilder(sizeof(ParticleHandle) * MAX_PARTICLE_COUNT)
         .isConstantBuffer()
         .isDeviceAddressable()

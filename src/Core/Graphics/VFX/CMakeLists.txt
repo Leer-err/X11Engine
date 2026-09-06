@@ -1,7 +1,7 @@
 target_sources(Graphics PRIVATE
     ParticlePool.cpp
     VFXWorld.cpp
-    Emitter.cpp
+    Effect.cpp
 )
 
 target_include_directories(Graphics PUBLIC

@@ -1,26 +1,34 @@
 #include "ParticlePool.h"
 
+#include <algorithm>
 #include <optional>
 
 namespace Graphics {
 
 ParticleHandleAllocator::ParticleHandleAllocator(size_t size) {
     for (size_t i = 0; i < size; i++) {
-        free_list.push_back(i);
+        free_list.emplace(i);
     }
 }
 
 std::optional<ParticleHandle> ParticleHandleAllocator::allocate() {
     if (free_list.empty()) return std::nullopt;
 
-    auto index = free_list.front();
-    free_list.pop_front();
+    auto it = free_list.begin();
+    auto handle = *it;
+    free_list.erase(it);
+    allocated_list.emplace(handle);
 
-    return index;
+    return handle;
 }
 
 void ParticleHandleAllocator::free(ParticleHandle index) {
-    free_list.push_back(index);
+    allocated_list.erase(index);
+    free_list.emplace(index);
+}
+
+std::set<size_t> ParticleHandleAllocator::getAllocated() const {
+    return allocated_list;
 }
 
 ParticlePool::ParticlePool(size_t size) : allocator(size) {

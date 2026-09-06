@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cstddef>
+#include <cstdint>
 
 namespace Graphics {
 
-using ParticleHandle = size_t;
+using ParticleHandle = uint64_t;
 
 }

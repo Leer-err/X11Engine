@@ -5,6 +5,7 @@
 #include <bit>
 #include <cstddef>
 #include <cstdint>
+#include <span>
 
 #include "BufferState.h"
 
@@ -20,6 +21,10 @@ class Buffer {
     Buffer(BufferRegistry* registry, BufferAllocator* allocator,
            BufferHandle handle);
 
+    template <typename T>
+    void update(const std::span<T> data, size_t offset = 0) {
+        update(std::bit_cast<uint8_t*>(data.data()), sizeof(T), offset);
+    }
     template <typename T>
     void update(const T& data, size_t offset = 0) {
         update(std::bit_cast<uint8_t*>(&data), sizeof(T), offset);

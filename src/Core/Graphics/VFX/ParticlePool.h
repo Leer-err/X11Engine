@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <deque>
 #include <optional>
+#include <set>
 #include <vector>
 
 #include "ParticleHandle.h"
@@ -20,8 +21,11 @@ class ParticleHandleAllocator {
     std::optional<ParticleHandle> allocate();
     void free(ParticleHandle index);
 
+    std::set<size_t> getAllocated() const;
+
    private:
-    std::deque<size_t> free_list;
+    std::set<size_t> free_list;
+    std::set<size_t> allocated_list;
 };
 
 struct ParticleBatchState {

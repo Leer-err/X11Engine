@@ -1,29 +1,21 @@
 #pragma once
 
-#include <vector>
-
+#include "Property.h"
 #include "TextureHandle.h"
 #include "Vector3.h"
 #include "Vector4.h"
 
 namespace Graphics {
 
-struct BoxSpawner {
+struct EffectDescription {
     Vector3 center;
     Vector3 extents;
-};
-
-struct EmitterDescription {
-    BoxSpawner spawner;
     float spawn_rate;
-    Vector4 color;
-    float size;
+    Property<Vector4> color;
+    Property<float> size;
+    Property<float> rotation;
     float particle_lifetime;
     TextureHandle texture;
-};
-
-struct EffectDescription {
-    std::vector<EmitterDescription> emitters;
 };
 
 }  // namespace Graphics

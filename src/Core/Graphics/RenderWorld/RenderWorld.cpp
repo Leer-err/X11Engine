@@ -1,14 +1,12 @@
 #include "RenderWorld.h"
 
-#include "Graphics.h"
-#include "ParticlePool.h"
+#include <span>
+
 #include "VFXWorld.h"
 
 namespace Graphics {
 
-RenderWorld::RenderWorld() : next_handle(0), vfx_world(10000) {
-    // vfx_world.addEffect(Effect{{Emitter{110, 8, 1}}});
-}
+RenderWorld::RenderWorld() : next_handle(0), vfx_world(10000) {}
 
 void RenderWorld::setCameraData(const CameraData& data) {
     this->camera_data = data;
@@ -53,7 +51,7 @@ void RenderWorld::addEffect(const EffectDescription& description) {
     vfx_world.addEffect(description);
 }
 
-const ParticleBatchState& RenderWorld::getParticles() const {
+VFXWorld::ParticleBatch RenderWorld::getParticles() const {
     return vfx_world.getParticles();
 }
 

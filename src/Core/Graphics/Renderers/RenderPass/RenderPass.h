@@ -40,7 +40,7 @@ class RenderPass {
 
     StarRenderer star_renderer;
     StaticMeshRenderer static_mesh_renderer;
-    CloudsRenderer clouds_renderer;
+    // CloudsRenderer clouds_renderer;
     ParticleRenderer particle_renderer;
     OverlayRenderer overlay_renderer;
 

@@ -5,7 +5,6 @@
 #include "EngineData.h"
 #include "FrameGraph.h"
 #include "RenderWorld.h"
-#include "StagingBuffer.h"
 
 namespace Graphics {
 
@@ -14,11 +13,8 @@ class ParticleRenderer {
 
     struct PushConstants {
         VkDeviceAddress camera_data;
-        VkDeviceAddress particle_positions_data;
-        VkDeviceAddress particle_colors_data;
-        VkDeviceAddress particle_sizes_data;
-        VkDeviceAddress particle_textures_data;
-        VkDeviceAddress live_particles;
+        VkDeviceAddress particles_data;
+        VkDeviceAddress live_particles_data;
     };
 
    public:
@@ -30,18 +26,12 @@ class ParticleRenderer {
 
    private:
     static Mesh createQuadMesh(const EngineData& engine_data);
-    static Buffer createParticlePositionsBuffer(Device& device);
-    static Buffer createParticleColorsBuffer(Device& device);
-    static Buffer createParticleSizesBuffer(Device& device);
-    static Buffer createParticleMaterialsBuffer(Device& device);
-    static Buffer createLiveParticlesBuffer(Device& device);
+    static Buffer createParticleBuffer(Device& device);
+    static Buffer createLiveParticleBuffer(Device& device);
 
     EngineData engine_data;
 
-    Buffer particle_positions_buffer;
-    Buffer particle_colors_buffer;
-    Buffer particle_sizes_buffer;
-    Buffer particle_materials_buffer;
+    Buffer particle_buffer;
     Buffer live_particles_buffer;
 
     GraphicsPipeline pipeline;

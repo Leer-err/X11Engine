@@ -25,7 +25,7 @@ RenderPass::RenderPass(Device& device, const EngineData& engine_data)
       camera_data_buffer(createCameraBuffer(device)),
       star_renderer(device, engine_data),
       static_mesh_renderer(device, engine_data),
-      clouds_renderer(device, engine_data),
+      //   clouds_renderer(device, engine_data),
       particle_renderer(device, engine_data),
       overlay_renderer(),
       post_processing_pass(device, engine_data) {

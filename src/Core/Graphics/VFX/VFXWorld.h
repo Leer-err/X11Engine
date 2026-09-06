@@ -1,28 +1,35 @@
 #pragma once
 
+#include <span>
 #include <vector>
 
 #include "Effect.h"
 #include "EffectDescription.h"
+#include "ParticleHandle.h"
 #include "ParticlePool.h"
 
 namespace Graphics {
 
 class VFXWorld {
    public:
+    struct ParticleBatch {
+        std::span<const Particle> particles;
+        std::set<ParticleHandle> alive;
+        size_t last_live_particle;
+    };
+
     explicit VFXWorld(size_t max_particle_count);
 
     void addEffect(const EffectDescription& description);
 
     void update(float delta_time);
 
-    const ParticleBatchState& getParticles() const;
+    ParticleBatch getParticles() const;
 
    private:
-    void emitParticles(Emitter& emitter, float delta_time);
-
     std::vector<Effect> effects;
-    ParticlePool pool;
+    std::vector<Particle> particles;
+    ParticleHandleAllocator allocator;
 };
 
 }  // namespace Graphics

@@ -12,7 +12,6 @@
 #include "StarsData.h"
 #include "VFXWorld.h"
 
-
 namespace Graphics {
 
 using OpaqueObjectHandle = uint32_t;
@@ -38,7 +37,7 @@ class RenderWorld {
 
     void update(float delta_time);
 
-    const ParticleBatchState& getParticles() const;
+    VFXWorld::ParticleBatch getParticles() const;
 
    private:
     std::vector<RenderObjectData> opaque_objects;
