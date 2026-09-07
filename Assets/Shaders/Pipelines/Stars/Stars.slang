@@ -1,4 +1,5 @@
 import camera;
+import mesh;
 
 struct VertexOutput{
     float4 viewport_position : SV_POSITION;
@@ -18,23 +19,8 @@ struct StarsData
     float blink_strength;
 };
 
-struct Meshlet{
-    uint32_t vertex_offset; 
-    uint32_t triangle_offset;
-
-    uint8_t vertex_count;
-    uint8_t triangle_count;
-};
-
-struct MeshData{
-    VertexInput* vertices;
-    uint8_t* meshlet_triangles;
-    uint32_t* meshlet_vertices;
-    Meshlet* meshlets;
-};
-
 struct PushConstants{
-    MeshData mesh;
+    Mesh<VertexInput> mesh;
 
     CameraData* camera_data;
     StarsData* stars_data;
@@ -54,30 +40,23 @@ void mesh_main(
     out vertices VertexOutput vertices[64],
     out indices uint3 triangles[96])
 {
-    Meshlet meshlet = constants.mesh.meshlets[group_index.x];
+    let meshlet_index = group_index.x;
+    Meshlet meshlet = constants.mesh.meshlets[meshlet_index];
     SetMeshOutputCounts(meshlet.vertex_count, meshlet.triangle_count);
 
-    uint local_index = group_tid.x;
-    for(int i = local_index; i < meshlet.vertex_count; i += GROUP_SIZE){
-        uint meshlet_vertex_index = meshlet.vertex_offset + i;
-        uint vertex_index = constants.mesh.meshlet_vertices[meshlet_vertex_index];
-        VertexInput vertex = constants.mesh.vertices[vertex_index];
-        float4 vertex_position = float4(vertex.position, 1);
-        float4 world_position = mul(constants.camera_data.view_projection_no_camera_position, vertex_position);
+    float4x4 vp = constants.camera_data->view_projection_no_camera_position;
 
-        vertices[i].viewport_position = world_position;
+    for(int i = group_tid.x; i < meshlet.vertex_count; i += GROUP_SIZE){
+        VertexInput vertex = constants.mesh.getVertex(meshlet_index, i);
+
+        float4 vertex_position = float4(vertex.position, 1);
+
+        vertices[i].viewport_position = mul(vp, vertex_position);
         vertices[i].position = vertex_position.xyz;
     }
 
-    for(int i = local_index; i < meshlet.triangle_count; i += GROUP_SIZE){
-        uint meshlet_triangle_index = meshlet.triangle_offset + i * 3;
-
-        uint3 triangle;
-        triangle.x = constants.mesh.meshlet_triangles[meshlet_triangle_index];
-        triangle.y = constants.mesh.meshlet_triangles[meshlet_triangle_index + 1];
-        triangle.z = constants.mesh.meshlet_triangles[meshlet_triangle_index + 2];
-
-        triangles[i] = triangle;
+    for(int i = group_tid.x; i < meshlet.triangle_count; i += GROUP_SIZE){
+        triangles[i] = constants.mesh.getTriangle(meshlet_index, i);
     }
 }
 

@@ -20,8 +20,10 @@ StaticMeshRenderer::StaticMeshRenderer(Device& device,
                                        const EngineData& engine_data)
     : engine_data(engine_data), model_data_buffer(createModelBuffer(device)) {
     pipeline = GraphicsPipelineBuilder(
-                   "./Assets/Shaders/StaticModel/StaticModel.spv", "mesh_main",
-                   "./Assets/Shaders/StaticModel/StaticModel.spv", "pixel_main")
+                   "./Assets/Shaders/Pipelines/StaticModel/StaticModel.spv",
+                   "mesh_main",
+                   "./Assets/Shaders/Pipelines/StaticModel/StaticModel.spv",
+                   "pixel_main")
                    .writesDepth()
                    .create(device, engine_data.shader_registry)
                    .getResult();

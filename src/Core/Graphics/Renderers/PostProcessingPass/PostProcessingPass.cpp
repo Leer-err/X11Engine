@@ -24,13 +24,14 @@ PostProcessingPass::PostProcessingPass(Device& device,
     : engine_data(engine_data),
       quad(createSqreenQuad(device, engine_data)),
       dithering_data_buffer(createDataBuffer(device)) {
-    pipeline =
-        GraphicsPipelineBuilder(
-            "./Assets/Shaders/PostProcess/PostProcessing.spv", "mesh_main",
-            "./Assets/Shaders/PostProcess/PostProcessing.spv", "pixel_main")
-            .disableDepthTest()
-            .create(device, engine_data.shader_registry)
-            .getResult();
+    pipeline = GraphicsPipelineBuilder(
+                   "./Assets/Shaders/Pipelines/PostProcess/PostProcessing.spv",
+                   "mesh_main",
+                   "./Assets/Shaders/Pipelines/PostProcess/PostProcessing.spv",
+                   "pixel_main")
+                   .disableDepthTest()
+                   .create(device, engine_data.shader_registry)
+                   .getResult();
 
     auto config = Config::App::get().getGraphicsConfig();
 

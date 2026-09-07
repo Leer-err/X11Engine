@@ -42,17 +42,19 @@ CloudsRenderer::CloudsRenderer(Device& device, const EngineData& engine_data)
 
     cloud_texture_pipeline =
         GraphicsPipelineBuilder(
-            "./Assets/Shaders/Clouds/CloudsTexture.spv", "vertex_main",
-            "./Assets/Shaders/Clouds/CloudsTexture.spv", "pixel_main")
+            "./Assets/Shaders/Pipelines/Clouds/CloudsTexture.spv",
+            "vertex_main",
+            "./Assets/Shaders/Pipelines/Clouds/CloudsTexture.spv", "pixel_main")
             .setRenderTargetFormat(VK_FORMAT_R8G8B8A8_UNORM)
             .create(device, engine_data.shader_registry)
             .getResult();
-    cloud_pipeline = GraphicsPipelineBuilder(
-                         "./Assets/Shaders/Clouds/Clouds.spv", "vertex_main",
-                         "./Assets/Shaders/Clouds/Clouds.spv", "pixel_main")
-                         .writesDepth()
-                         .create(device, engine_data.shader_registry)
-                         .getResult();
+    cloud_pipeline =
+        GraphicsPipelineBuilder(
+            "./Assets/Shaders/Pipelines/Clouds/Clouds.spv", "vertex_main",
+            "./Assets/Shaders/Pipelines/Clouds/Clouds.spv", "pixel_main")
+            .writesDepth()
+            .create(device, engine_data.shader_registry)
+            .getResult();
 }
 
 void CloudsRenderer::render(FrameGraph& frame_graph, const RenderWorld& world) {

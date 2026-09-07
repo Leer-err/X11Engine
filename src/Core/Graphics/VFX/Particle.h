@@ -1,5 +1,7 @@
 #pragma once
 
+#include "MeshHandle.h"
+#include "Quaternion.h"
 #include "TextureHandle.h"
 #include "Vector3.h"
 #include "Vector4.h"
@@ -15,6 +17,15 @@ struct Particle {
     float lifetime;
     float age;
     TextureHandle texture;
+};
+
+struct MeshParticle {
+    Vector3 position;
+    Quaternion orientation;
+    float lifetime;
+    float age;
+    TextureHandle texture;
+    MeshHandle mesh;
 };
 
 }  // namespace Graphics

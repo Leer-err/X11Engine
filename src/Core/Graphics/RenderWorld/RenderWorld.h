@@ -6,7 +6,6 @@
 #include "CameraData.h"
 #include "CloudsData.h"
 #include "EffectDescription.h"
-#include "ParticlePool.h"
 #include "PostProcessingData.h"
 #include "RenderObjectData.h"
 #include "StarsData.h"
@@ -34,10 +33,12 @@ class RenderWorld {
     std::span<const RenderObjectData> getOpaqueObjects() const;
 
     void addEffect(const EffectDescription& description);
+    void addMeshEffect(const MeshEffectDescription& description);
 
     void update(float delta_time);
 
     VFXWorld::ParticleBatch getParticles() const;
+    VFXWorld::MeshParticleBatch getMeshParticles() const;
 
    private:
     std::vector<RenderObjectData> opaque_objects;

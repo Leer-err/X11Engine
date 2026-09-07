@@ -4,6 +4,6 @@
 
 namespace Graphics {
 
-using ParticleHandle = uint64_t;
+using ParticleHandle = uint32_t;
 
 }

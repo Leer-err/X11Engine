@@ -123,12 +123,12 @@ void Window::init() {
     SDL_WindowFlags flags = SDL_WINDOW_VULKAN;
 
     switch (config.state) {
-        case Config::Window::State::Windowed:
+        case Config::WindowState::Windowed:
             break;
-        case Config::Window::State::Fullscreen:
+        case Config::WindowState::Fullscreen:
             flags |= SDL_WINDOW_FULLSCREEN;
             break;
-        case Config::Window::State::Borderless:
+        case Config::WindowState::Borderless:
             flags |= SDL_WINDOW_BORDERLESS;
             break;
     }

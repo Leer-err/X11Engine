@@ -112,6 +112,17 @@ Scene::Scene() {
     auto lightning4 = *readEffect("./Assets/Scene/Effects/Lightning4.json");
     renderer->getRenderWorld().addEffect(lightning4);
 
+    auto mesh_effect = Graphics::MeshEffectDescription{};
+    mesh_effect.center = {0, 0, 0};
+    mesh_effect.extents = {0, 0, 0};
+    mesh_effect.spawn_rate = 1;
+    mesh_effect.particle_lifetime = 1;
+    mesh_effect.mesh = 0;
+    // renderer->addMesh
+    // (File::ModelReader("./Assets/Sphere.fbx").readMesh());
+    mesh_effect.texture = *readTexture("./Assets/Tower.png");
+    renderer->getRenderWorld().addMeshEffect(mesh_effect);
+
     auto input = std::make_shared<Input::GameInputContext>();
     input->addBinding(Input::GameAxes::LookYaw, Input::Axis::MOUSE_X);
     input->addBinding(Input::GameAxes::LookPitch, Input::Axis::MOUSE_Y);

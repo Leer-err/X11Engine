@@ -1,13 +1,11 @@
 #pragma once
 
 #include "Buffer.h"
-#include "CameraData.h"
-#include "CloudsRenderer.h"
 #include "Device.h"
 #include "FrameData.h"
 #include "FrameGraph.h"
+#include "MeshParticleRenderer.h"
 #include "OverlayRenderer.h"
-#include "ParticlePool.h"
 #include "ParticleRenderer.h"
 #include "PostProcessingPass.h"
 #include "RenderEnviroment.h"
@@ -42,6 +40,7 @@ class RenderPass {
     StaticMeshRenderer static_mesh_renderer;
     // CloudsRenderer clouds_renderer;
     ParticleRenderer particle_renderer;
+    MeshParticleRenderer mesh_particle_renderer;
     OverlayRenderer overlay_renderer;
 
     PostProcessingPass post_processing_pass;

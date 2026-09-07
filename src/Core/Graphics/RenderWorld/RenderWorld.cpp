@@ -51,8 +51,16 @@ void RenderWorld::addEffect(const EffectDescription& description) {
     vfx_world.addEffect(description);
 }
 
+void RenderWorld::addMeshEffect(const MeshEffectDescription& description) {
+    vfx_world.addMeshEffect(description);
+}
+
 VFXWorld::ParticleBatch RenderWorld::getParticles() const {
     return vfx_world.getParticles();
+}
+
+VFXWorld::MeshParticleBatch RenderWorld::getMeshParticles() const {
+    return vfx_world.getMeshParticles();
 }
 
 void RenderWorld::update(float delta_time) { vfx_world.update(delta_time); }

@@ -17,7 +17,7 @@ foreach(src_file ${PIPELINES})
     get_filename_component(filename ${src_file} NAME_WE)
     get_filename_component(parent_folder ${src_file} DIRECTORY)
     get_filename_component(parent_folder ${parent_folder} NAME)
-    set(out_file "${CMAKE_BINARY_DIR}/bin/Assets/Shaders/${parent_folder}/${filename}.spv")
+    set(out_file "${CMAKE_BINARY_DIR}/bin/Assets/Shaders/Pipelines/${parent_folder}/${filename}.spv")
 
     add_custom_command(
         OUTPUT ${out_file}

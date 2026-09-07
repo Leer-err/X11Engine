@@ -3,9 +3,10 @@
 #include <vector>
 
 #include "EffectDescription.h"
+#include "MeshHandle.h"
 #include "Particle.h"
 #include "ParticleHandle.h"
-#include "ParticlePool.h"
+#include "ParticleHandleAllocator.h"
 #include "Property.h"
 #include "TextureHandle.h"
 
@@ -41,6 +42,30 @@ class Effect {
     Property<float> rotation;
     float lifetime;
     TextureHandle texture;
+};
+
+class MeshEffect {
+   public:
+    MeshEffect(const MeshEffectDescription& description,
+               ParticleHandleAllocator& allocator,
+               std::vector<MeshParticle>& particles);
+
+    void update(float delta_time);
+
+    void emit(float delta_time);
+
+   private:
+    ParticleHandleAllocator& allocator;
+    std::vector<MeshParticle>& particles;
+
+    std::vector<ParticleHandle> owned_particles;
+
+    float spawn_error = 0;
+
+    BoxEmitter emitter;
+    float lifetime;
+    TextureHandle texture;
+    MeshHandle mesh;
 };
 
 }  // namespace Graphics

@@ -20,8 +20,10 @@ ParticleRenderer::ParticleRenderer(Device& device,
       live_particles_buffer(createLiveParticleBuffer(device)),
       quad(createQuadMesh(engine_data)) {
     pipeline = GraphicsPipelineBuilder(
-                   "./Assets/Shaders/Particles/Particles.spv", "mesh_main",
-                   "./Assets/Shaders/Particles/Particles.spv", "pixel_main")
+                   "./Assets/Shaders/Pipelines/Particles/SpriteParticles.spv",
+                   "mesh_main",
+                   "./Assets/Shaders/Pipelines/Particles/SpriteParticles.spv",
+                   "pixel_main")
                    .create(device, engine_data.shader_registry)
                    .getResult();
 }

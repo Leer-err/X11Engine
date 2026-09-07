@@ -1,5 +1,6 @@
 #pragma once
 
+#include "MeshHandle.h"
 #include "Property.h"
 #include "TextureHandle.h"
 #include "Vector3.h"
@@ -15,6 +16,15 @@ struct EffectDescription {
     Property<float> size;
     Property<float> rotation;
     float particle_lifetime;
+    TextureHandle texture;
+};
+
+struct MeshEffectDescription {
+    Vector3 center;
+    Vector3 extents;
+    float spawn_rate;
+    float particle_lifetime;
+    MeshHandle mesh;
     TextureHandle texture;
 };
 
