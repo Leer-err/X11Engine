@@ -5,13 +5,13 @@
 
 namespace Config {
 
-struct Window {
-    enum class State { Windowed, Borderless, Fullscreen };
+enum class WindowState { Windowed, Borderless, Fullscreen };
 
+struct Window {
     uint32_t width;
     uint32_t height;
 
-    State state;
+    WindowState state;
 };
 
 };  // namespace Config

@@ -9,9 +9,12 @@ target_include_directories(File PUBLIC
 
 target_link_libraries(File
     PUBLIC
-        Assimp
+        Config
         Types
+        Assimp
+        nlohmann_json::nlohmann_json
         meshoptimizer
 )
 
 add_subdirectory(ModelReader)
+add_subdirectory(ConfigSerializer)

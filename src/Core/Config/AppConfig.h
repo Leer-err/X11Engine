@@ -7,6 +7,12 @@
 
 namespace Config {
 
+struct AppConfig {
+    std::string name;
+    Graphics graphics;
+    Window window;
+};
+
 class App {
    public:
     static App& get() {
