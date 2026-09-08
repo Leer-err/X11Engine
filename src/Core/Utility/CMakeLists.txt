@@ -2,6 +2,7 @@ add_library(Utility STATIC)
 
 target_sources(Utility PRIVATE
     TypeIdHelper.cpp
+    PoolAllocator.cpp
 )
 
 target_include_directories(Utility PUBLIC
