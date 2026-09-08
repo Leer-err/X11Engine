@@ -7,7 +7,7 @@
 
 namespace Graphics {
 
-enum class TextureError {};
+enum class TextureError { OutOfDescriptors };
 
 struct TextureState {
     VkImage texture;

@@ -2,6 +2,7 @@
 
 #include <span>
 
+#include "Texture.h"
 #include "VFXWorld.h"
 
 namespace Graphics {

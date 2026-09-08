@@ -12,22 +12,23 @@
 #include "EngineData.h"
 #include "GraphicsPipeline.h"
 #include "RenderEnviroment.h"
+#include "Texture.h"
 
 namespace Graphics {
 
 Pass::Pass(std::string_view pass_name) : name(pass_name) {}
 
-VkImageMemoryBarrier2 Pass::fullBarrier(Texture& texture,
+VkImageMemoryBarrier2 Pass::fullBarrier(TextureHandle texture,
                                         VkImageLayout layout) {
-    return texture.createBarrier(
+    return texture->createBarrier(
         layout, VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
         VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
         VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
         VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT);
 }
 
-VkImageMemoryBarrier2 Pass::depthStencilBarrier(Texture& texture) {
-    return texture.createBarrier(
+VkImageMemoryBarrier2 Pass::depthStencilBarrier(TextureHandle texture) {
+    return texture->createBarrier(
         VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
         VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
         VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
@@ -36,8 +37,8 @@ VkImageMemoryBarrier2 Pass::depthStencilBarrier(Texture& texture) {
             VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
 }
 
-VkImageMemoryBarrier2 Pass::colorAttachmentBarrier(Texture& texture) {
-    return texture.createBarrier(
+VkImageMemoryBarrier2 Pass::colorAttachmentBarrier(TextureHandle texture) {
+    return texture->createBarrier(
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
         VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
@@ -46,8 +47,8 @@ VkImageMemoryBarrier2 Pass::colorAttachmentBarrier(Texture& texture) {
             VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
 }
 
-VkImageMemoryBarrier2 Pass::shaderResourceBarrier(Texture& texture) {
-    return texture.createBarrier(
+VkImageMemoryBarrier2 Pass::shaderResourceBarrier(TextureHandle texture) {
+    return texture->createBarrier(
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
         VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
@@ -58,16 +59,16 @@ VkImageMemoryBarrier2 Pass::shaderResourceBarrier(Texture& texture) {
         VK_ACCESS_2_SHADER_READ_BIT);
 }
 
-VkImageMemoryBarrier2 Pass::copySourceBarrier(Texture& texture) {
-    return texture.createBarrier(
+VkImageMemoryBarrier2 Pass::copySourceBarrier(TextureHandle texture) {
+    return texture->createBarrier(
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
         VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
         VK_PIPELINE_STAGE_2_COPY_BIT, VK_ACCESS_2_TRANSFER_READ_BIT);
 }
 
-VkImageMemoryBarrier2 Pass::copyDestinatonBarrier(Texture& texture) {
-    return texture.createBarrier(
+VkImageMemoryBarrier2 Pass::copyDestinatonBarrier(TextureHandle texture) {
+    return texture->createBarrier(
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
         VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
@@ -105,11 +106,11 @@ void Pass::prepareTextures(const CommandBuffer& command_buffer) {
     command_buffer.barrier(barriers);
 }
 
-void Pass::reads(const Texture& texture, VkImageLayout layout) {
+void Pass::reads(TextureHandle texture, VkImageLayout layout) {
     pass_textures.emplace_back(layout, texture);
 }
 
-void Pass::writes(const Texture& texture, VkImageLayout layout) {
+void Pass::writes(TextureHandle texture, VkImageLayout layout) {
     pass_textures.emplace_back(layout, texture);
 }
 
@@ -120,23 +121,23 @@ GraphicsPass::GraphicsPass(
     const std::function<void(GraphicsPassExecution&)>& executor)
     : Pass(name), pipeline(pipeline), executor(executor) {}
 
-void GraphicsPass::addColorAttachment(const Texture& texture) {
+void GraphicsPass::addColorAttachment(TextureHandle texture) {
     color_attachments.emplace_back(texture, VkClearValue{}, false);
     writes(texture, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
 
-void GraphicsPass::addColorAttachment(const Texture& texture,
+void GraphicsPass::addColorAttachment(TextureHandle texture,
                                       VkClearValue clear_color) {
     color_attachments.emplace_back(texture, clear_color, true);
     writes(texture, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 }
 
-void GraphicsPass::setDepthAttachment(const Texture& texture) {
+void GraphicsPass::setDepthAttachment(TextureHandle texture) {
     depth_attachment = Attachment{texture, VkClearValue{}, false};
     writes(texture, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
-void GraphicsPass::setDepthAttachment(const Texture& texture,
+void GraphicsPass::setDepthAttachment(TextureHandle texture,
                                       VkClearValue clear_value) {
     depth_attachment = Attachment{texture, clear_value, true};
     writes(texture, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
@@ -149,23 +150,21 @@ void GraphicsPass::execute(const DescriptorSet& descriptor_set,
     RenderEnviroment env = {};
     if (!color_attachments.empty()) {
         const auto& attachment = color_attachments[0];
-        const auto& texture_state = attachment.texture.getState();
 
-        env.render_target = texture_state.view;
+        env.render_target = attachment.texture->getView();
         env.clear_render_target = attachment.clear;
         env.render_target_clear_value = attachment.clear_value;
-        env.width = texture_state.width;
-        env.height = texture_state.height;
+        env.width = attachment.texture->getWidth();
+        env.height = attachment.texture->getHeight();
     }
     if (depth_attachment) {
         const auto& attachment = *depth_attachment;
-        const auto& texture_state = attachment.texture.getState();
 
-        env.depth_stencil = texture_state.view;
+        env.depth_stencil = attachment.texture->getView();
         env.clear_depth_stencil = attachment.clear;
         env.depth_stencil_clear_value = attachment.clear_value;
-        env.width = texture_state.width;
-        env.height = texture_state.height;
+        env.width = attachment.texture->getWidth();
+        env.height = attachment.texture->getHeight();
     }
 
     command_buffer.bindRenderEnviroment(env);

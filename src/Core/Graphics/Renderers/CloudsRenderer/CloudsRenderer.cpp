@@ -15,10 +15,12 @@
 #include "MeshBuilder.h"
 #include "RenderWorld.h"
 #include "Sampler.h"
+#include "Texture.h"
 #include "TextureBuilder.h"
 #include "Vector2.h"
 #include "Vector3.h"
 #include "VertexFormats.h"
+
 
 namespace Graphics {
 
@@ -35,9 +37,10 @@ CloudsRenderer::CloudsRenderer(Device& device, const EngineData& engine_data)
     clouds_texture = TextureBuilder(VK_FORMAT_R8G8B8A8_UNORM, 512, 512)
                          .isRenderTarget()
                          .isShaderResource()
-                         .create(device, engine_data.texture_registry)
+                         .create(device, engine_data.texture_registry,
+                                 engine_data.descriptor_set)
                          .getResult();
-    engine_data.descriptor_set.addTexture(clouds_texture);
+    // engine_data.descriptor_set.addTexture(clouds_texture);
     engine_data.descriptor_set.addSampler(Sampler::linear(device));
 
     cloud_texture_pipeline =
@@ -69,7 +72,7 @@ void CloudsRenderer::render(FrameGraph& frame_graph, const RenderWorld& world) {
             execution.appendData(clouds_address);
             execution.draw(quad);
         });
-    cloud_prepass.addColorAttachment(clouds_texture);
+    // cloud_prepass.addColorAttachment(clouds_texture);
     frame_graph.addGraphicsPass(cloud_prepass);
 
     auto pass = GraphicsPass("Clouds", cloud_pipeline,
@@ -80,11 +83,11 @@ void CloudsRenderer::render(FrameGraph& frame_graph, const RenderWorld& world) {
                                  execution.appendData(push_constants);
                                  execution.draw(cloud_plane);
                              });
-    pass.reads(clouds_texture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    auto color_texture = *engine_data.texture_registry.getTexture("Color");
-    pass.addColorAttachment(color_texture);
-    auto depth_texture = *engine_data.texture_registry.getTexture("Depth");
-    pass.setDepthAttachment(depth_texture);
+    // pass.reads(clouds_texture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    // auto color_texture = *engine_data.texture_registry.getTexture("Color");
+    // pass.addColorAttachment(color_texture);
+    // auto depth_texture = *engine_data.texture_registry.getTexture("Depth");
+    // pass.setDepthAttachment(depth_texture);
     frame_graph.addGraphicsPass(pass);
 }
 

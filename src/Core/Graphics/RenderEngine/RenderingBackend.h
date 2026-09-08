@@ -4,6 +4,7 @@
 #include "Device.h"
 #include "EngineConstants.h"
 #include "FrameData.h"
+#include "Handles.h"
 #include "SwapChain.h"
 
 namespace Graphics {
@@ -29,17 +30,17 @@ class RenderingBackend {
     ~RenderingBackend();
 
     FrameData beginFrame();
-    void endFrame(Texture& rendered_image);
+    void endFrame(TextureHandle rendered_image);
 
     Device& getDevice();
 
     void setCurrentFrameIndex(uint32_t index);
 
    private:
-    void copyToBackbuffer(const CommandBuffer& cmd, Texture& render_target,
-                          TextureState& backbuffer);
+    void copyToBackbuffer(const CommandBuffer& cmd, TextureHandle render_target,
+                          SwapChain::BackBuffer backbuffer);
     void prepareBackbufferForPresentation(const CommandBuffer& cmd,
-                                          const TextureState& backbuffer);
+                                          SwapChain::BackBuffer backbuffer);
 
     void createSwapChain();
 

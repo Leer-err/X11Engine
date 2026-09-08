@@ -1,5 +1,6 @@
 target_sources(Graphics PRIVATE
     Texture.cpp
+    TextureBuilder.cpp
 )
 
 target_include_directories(Graphics PRIVATE

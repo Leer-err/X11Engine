@@ -1,8 +1,8 @@
 #pragma once
 
+#include "Handles.h"
 #include "MeshHandle.h"
 #include "Property.h"
-#include "TextureHandle.h"
 #include "Vector3.h"
 #include "Vector4.h"
 

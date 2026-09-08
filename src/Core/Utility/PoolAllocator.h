@@ -17,8 +17,9 @@ class PoolAllocator {
     };
 
    public:
-    PoolAllocator(uint8_t* ptr, size_t pool_size, size_t object_size,
+    PoolAllocator(size_t max_object_count, size_t object_size,
                   size_t alignment);
+    ~PoolAllocator();
 
     uint8_t* allocate();
     void free(const uint8_t* data);

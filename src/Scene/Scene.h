@@ -4,10 +4,10 @@
 #include <optional>
 
 #include "Camera.h"
+#include "Handles.h"
 #include "IScene.h"
 #include "RenderObjectData.h"
 #include "Sky.h"
-#include "TextureHandle.h"
 #include "World.h"
 
 class Scene : public IScene {
@@ -21,7 +21,7 @@ class Scene : public IScene {
         const std::filesystem::path& path);
     static std::optional<Graphics::EffectDescription> readEffect(
         const std::filesystem::path& path);
-    static std::optional<TextureHandle> readTexture(
+    static std::optional<Graphics::TextureHandle> readTexture(
         const std::filesystem::path& path);
 
     void setupSystems();

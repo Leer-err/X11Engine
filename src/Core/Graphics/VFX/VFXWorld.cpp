@@ -6,6 +6,7 @@
 
 #include "Effect.h"
 #include "EffectDescription.h"
+#include "Texture.h"
 
 namespace Graphics {
 

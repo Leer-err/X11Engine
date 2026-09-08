@@ -3,6 +3,8 @@
 #include <VkBootstrap.h>
 #include <vulkan/vulkan.h>
 
+#include <array>
+
 #include "Device.h"
 #include "GraphicsConfig.h"
 #include "Queue.h"
@@ -14,7 +16,11 @@ namespace Graphics {
 class SwapChain {
    public:
     struct BackBuffer {
-        TextureState backbuffer;
+        VkImage image;
+        VkFormat format;
+        uint32_t width;
+        uint32_t height;
+
         Semaphore ready_for_present;
     };
 
@@ -35,8 +41,7 @@ class SwapChain {
 
     vkb::Swapchain swap_chain;
 
-    TextureState images[SWAP_CHAIN_MAX_SIZE];
-    Semaphore semaphores[SWAP_CHAIN_MAX_SIZE];
+    std::array<BackBuffer, SWAP_CHAIN_MAX_SIZE> backbuffers;
     uint32_t image_index;
     int swap_chain_size;
 };

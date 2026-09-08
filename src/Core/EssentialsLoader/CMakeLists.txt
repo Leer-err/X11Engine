@@ -5,6 +5,7 @@ target_link_libraries(EssentialsLoader
         File
         Logger
         Graphics
+        Utility
 )
 
 target_sources(EssentialsLoader PRIVATE

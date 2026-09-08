@@ -1,13 +1,11 @@
 #pragma once
 
-#include <cstddef>
-#include <string>
 #include <string_view>
 
+#include "Handles.h"
 #include "Mesh.h"
 #include "MeshHandle.h"
 #include "RenderWorld.h"
-#include "TextureHandle.h"
 
 namespace Graphics {
 

@@ -14,6 +14,7 @@
 #include "MeshBuilder.h"
 #include "MeshRegistry.h"
 #include "StagingBuffer.h"
+#include "Texture.h"
 #include "TextureBuilder.h"
 
 namespace Graphics {
@@ -29,7 +30,8 @@ RenderEngine::RenderEngine(const vkb::Instance& instance,
                      this->backend.getDevice().getDeviceProperties()),
       shader_registry(this->backend.getDevice()),
       mesh_registry(),
-      texture_registry(this->backend.getDevice()),
+      texture_allocator(1024, sizeof(Texture), alignof(Texture)),
+      texture_registry(texture_allocator),
       staging_buffer(this->backend.getDevice()) {}
 
 void RenderEngine::render() {
@@ -67,12 +69,12 @@ TextureHandle RenderEngine::addTexture(std::string_view name, void* data,
     if (name != "") builder.setName(name);
 
     auto image =
-        builder.create(backend.getDevice(), texture_registry).getResult();
+        builder.create(backend.getDevice(), texture_registry, descriptor_set)
+            .getResult();
 
-    descriptor_set.addTexture(image);
     staging_buffer.stageTexture(image, data, width * height * 4);
 
-    return image.getHandle();
+    return image;
 }
 
 MeshHandle RenderEngine::addMesh(const ::Mesh& mesh) {

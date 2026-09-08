@@ -3,14 +3,12 @@
 #include <vulkan/vulkan.h>
 
 #include <cstdint>
-#include <string>
 
-#include "BufferRegistry.h"
 #include "CommandBuffer.h"
 #include "DescriptorSet.h"
 #include "Device.h"
 #include "EngineData.h"
-#include "FrameGraph.h"
+#include "Handles.h"
 #include "IRenderEngine.h"
 #include "MeshRegistry.h"
 #include "Queue.h"
@@ -19,8 +17,6 @@
 #include "RenderingBackend.h"
 #include "ShaderRegistry.h"
 #include "StagingBuffer.h"
-#include "TextureHandle.h"
-#include "TextureRegistry.h"
 #include "VkBootstrap.h"
 
 namespace Graphics {
@@ -56,6 +52,7 @@ class RenderEngine final : public IRenderEngine {
     DescriptorSet descriptor_set;
     ShaderRegistry shader_registry;
     MeshRegistry mesh_registry;
+    PoolAllocator texture_allocator;
     TextureRegistry texture_registry;
 
     StagingBuffer staging_buffer;

@@ -120,7 +120,7 @@ Scene::Scene() {
     mesh_effect.mesh = 0;
     // renderer->addMesh
     // (File::ModelReader("./Assets/Sphere.fbx").readMesh());
-    mesh_effect.texture = *readTexture("./Assets/Tower.png");
+    // mesh_effect.texture = *readTexture("./Assets/Tower.png");
     renderer->getRenderWorld().addMeshEffect(mesh_effect);
 
     auto input = std::make_shared<Input::GameInputContext>();
@@ -163,7 +163,7 @@ void Scene::setupSystems() {
     world.addSystem<ScriptSystem>();
 }
 
-std::optional<TextureHandle> Scene::readTexture(
+std::optional<Graphics::TextureHandle> Scene::readTexture(
     const std::filesystem::path& path) {
     int width;
     int height;

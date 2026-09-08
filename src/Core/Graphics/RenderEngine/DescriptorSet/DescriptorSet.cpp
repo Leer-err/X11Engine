@@ -5,6 +5,7 @@
 #include <bit>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 
 #include "Buffer.h"
 #include "BufferBuilder.h"
@@ -17,7 +18,10 @@ DescriptorSet::DescriptorSet(Device& device,
     : device(device),
       descriptors(createDescriptorBuffer(
           device, device.getDescriptorLayout().layout_size,
-          device_properties.descriptor_buffer_properties.alignment)) {
+          device_properties.descriptor_buffer_properties.alignment)),
+      texture_allocator(device.getDescriptorLayout().texture_descriptors_count),
+      sampler_allocator(
+          device.getDescriptorLayout().sampler_descriptors_count) {
     auto& descriptor_properties =
         device_properties.descriptor_buffer_properties;
 
@@ -27,23 +31,19 @@ DescriptorSet::DescriptorSet(Device& device,
     sampler_descriptor_size = descriptor_properties.sampler_size;
     texture_descriptors_offset = descriptor_layout.texture_descriptors_offset;
     sampler_descriptors_offset = descriptor_layout.sampler_descriptors_offset;
-
-    current_sampler_index = 0;
-    current_texture_index = 0;
 }
 
-uint32_t DescriptorSet::addTexture(const Texture& texture) {
-    auto descriptors_ptr = descriptors.getHostAddress();
+std::optional<TextureDescriptor> DescriptorSet::addTexture(
+    VkImageView texture) {
+    auto index = texture_allocator.allocate();
+    if (index.has_value() == false) return std::nullopt;
 
-    char* binding_ptr =
-        std::bit_cast<char*>(descriptors_ptr) + texture_descriptors_offset;
-    char* element_ptr =
-        binding_ptr + (current_texture_index * texture_descriptor_size);
-
-    auto view = texture.getState().view;
+    auto descriptors_ptr = getTextureDescriptorsData();
+    auto descriptor_ptr =
+        descriptors_ptr + texture_descriptor_size * index.value();
 
     VkDescriptorImageInfo image_descriptor_info = {};
-    image_descriptor_info.imageView = view;
+    image_descriptor_info.imageView = texture;
     image_descriptor_info.imageLayout =
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
@@ -51,44 +51,46 @@ uint32_t DescriptorSet::addTexture(const Texture& texture) {
     info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT;
     info.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
     info.data.pSampledImage = &image_descriptor_info;
-    device.writeDescriptor(info, texture_descriptor_size, element_ptr);
-
-    auto index = current_texture_index;
-    texture_index_map.emplace(texture.getHandle(), index);
-    current_texture_index++;
+    device.writeDescriptor(info, texture_descriptor_size, descriptor_ptr);
 
     return index;
 }
 
-uint32_t DescriptorSet::addSampler(const VkSampler& sampler) {
-    auto descriptors_ptr = descriptors.getHostAddress();
+std::optional<TextureDescriptor> DescriptorSet::addSampler(VkSampler sampler) {
+    auto index = sampler_allocator.allocate();
+    if (index.has_value() == false) return std::nullopt;
 
-    char* binding_ptr =
-        std::bit_cast<char*>(descriptors_ptr) + sampler_descriptors_offset;
-    char* element_ptr =
-        binding_ptr + (current_sampler_index * sampler_descriptor_size);
+    auto descriptors_ptr = getSamplerDescriptorsData();
+    auto descriptor_ptr =
+        descriptors_ptr + sampler_descriptor_size * index.value();
 
     VkDescriptorGetInfoEXT info{};
     info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT;
     info.type = VK_DESCRIPTOR_TYPE_SAMPLER;
     info.data.pSampler = &sampler;
-    device.writeDescriptor(info, sampler_descriptor_size, element_ptr);
-
-    auto index = current_sampler_index;
-    current_sampler_index++;
+    device.writeDescriptor(info, sampler_descriptor_size, descriptor_ptr);
 
     return index;
 }
 
-std::optional<uint32_t> DescriptorSet::getIndex(const Texture& texture) {
-    return getIndex(texture.getHandle());
+void DescriptorSet::removeTexture(TextureDescriptor texture) {
+    texture_allocator.free(texture);
 }
 
-std::optional<uint32_t> DescriptorSet::getIndex(TextureHandle texture) {
-    auto it = texture_index_map.find(texture);
-    if (it == texture_index_map.end()) return {};
+void DescriptorSet::removeSampler(SamplerDescriptor sampler) {
+    sampler_allocator.free(sampler);
+}
 
-    return it->second;
+uint8_t* DescriptorSet::getTextureDescriptorsData() const {
+    auto descriptors_ptr = descriptors.getHostAddress();
+
+    return descriptors_ptr + texture_descriptors_offset;
+}
+
+uint8_t* DescriptorSet::getSamplerDescriptorsData() const {
+    auto descriptors_ptr = descriptors.getHostAddress();
+
+    return descriptors_ptr + sampler_descriptors_offset;
 }
 
 VkDeviceAddress DescriptorSet::getDescriptors() const {

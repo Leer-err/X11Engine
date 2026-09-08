@@ -2,9 +2,9 @@
 
 #include "DescriptorSet.h"
 #include "MeshRegistry.h"
+#include "Registries.h"
 #include "ShaderRegistry.h"
 #include "StagingBuffer.h"
-#include "TextureRegistry.h"
 
 namespace Graphics {
 

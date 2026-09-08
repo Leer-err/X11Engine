@@ -3,13 +3,13 @@
 #include <sys/types.h>
 #include <vulkan/vulkan.h>
 
-#include <array>
 #include <cstddef>
 
 #include "DescriptorSet.h"
 #include "GraphicsPipeline.h"
+#include "Handles.h"
 #include "RenderEnviroment.h"
-#include "TextureState.h"
+#include "SwapChain.h"
 
 namespace Graphics {
 
@@ -19,8 +19,8 @@ struct CommandBuffer {
 
     void draw(uint32_t meshlet_count, uint32_t instance_count) const;
 
-    void copy(const TextureState& src, TextureState& dst) const;
-    void blit(const TextureState& src, TextureState& dst) const;
+    void copy(TextureHandle src, TextureHandle dst) const;
+    void blitToBackbuffer(TextureHandle src, SwapChain::BackBuffer& dst) const;
 
     template <typename T>
     void pushConstants(const GraphicsPipeline& pipeline, const T* constants,

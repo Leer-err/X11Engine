@@ -41,7 +41,7 @@ PostProcessingPass::PostProcessingPass(Device& device,
     data.sampler_index = 0;
 
     data.sampler_index =
-        engine_data.descriptor_set.addSampler(Sampler::point(device));
+        *engine_data.descriptor_set.addSampler(Sampler::point(device));
 
     Overlay::get().add<OverlayElements::SliderFloat>(
         "Graphics/Post processing", "Dithering spread",
@@ -55,26 +55,26 @@ PostProcessingPass::PostProcessingPass(Device& device,
 void PostProcessingPass::render(const Texture& input_image,
                                 FrameGraph& frame_graph,
                                 const RenderWorld& world) {
-    // TracyVkZone(frame_data.trace_ctx, frame_data.cmd.buffer, "Dithering");
+    // auto render_target_opt =
+    // engine_data.descriptor_set.getIndex(input_image); if
+    // (render_target_opt.has_value() == false) return;
 
-    auto render_target_opt = engine_data.descriptor_set.getIndex(input_image);
-    if (render_target_opt.has_value() == false) return;
+    // data.render_target_index = *render_target_opt;
+    // dithering_data_buffer.update(data);
 
-    data.render_target_index = *render_target_opt;
-    dithering_data_buffer.update(data);
+    // auto pass = GraphicsPass(
+    //     "Post processing", pipeline, [this](GraphicsPassExecution& execution)
+    //     {
+    //         auto data_address = dithering_data_buffer.getDeviceAddress();
+    //         execution.appendData(data_address);
+    //         execution.draw(quad);
+    //     });
+    // auto render_target =
+    //     engine_data.texture_registry.getTexture("RenderResult");
+    // pass.addColorAttachment(*render_target);
+    // pass.reads(input_image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-    auto pass = GraphicsPass(
-        "Post processing", pipeline, [this](GraphicsPassExecution& execution) {
-            auto data_address = dithering_data_buffer.getDeviceAddress();
-            execution.appendData(data_address);
-            execution.draw(quad);
-        });
-    auto render_target =
-        engine_data.texture_registry.getTexture("RenderResult");
-    pass.addColorAttachment(*render_target);
-    pass.reads(input_image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-    frame_graph.addGraphicsPass(pass);
+    // frame_graph.addGraphicsPass(pass);
 }
 
 Mesh PostProcessingPass::createSqreenQuad(Device& device,

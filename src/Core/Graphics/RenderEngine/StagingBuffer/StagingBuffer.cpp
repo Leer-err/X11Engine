@@ -8,6 +8,7 @@
 #include "Buffer.h"
 #include "BufferBuilder.h"
 #include "Device.h"
+#include "Texture.h"
 
 namespace Graphics {
 
@@ -16,9 +17,9 @@ constexpr size_t BUFFER_SIZE = 128 * 1024 * 1024;
 StagingBuffer::StagingBuffer(Device& device)
     : device(device), host_data_used(0), buffer(createBuffer(device)) {}
 
-void StagingBuffer::stageTexture(const Texture& destination, const void* data,
+void StagingBuffer::stageTexture(TextureHandle destination, const void* data,
                                  size_t data_size) {
-    auto format = destination.getState().format;
+    auto format = destination->getFormat();
     size_t alignment = getTexelBlockSize(format);
     size_t aligned_host_offset =
         (host_data_used + alignment - 1) & ~(alignment - 1);
@@ -70,7 +71,7 @@ void StagingBuffer::flush(const CommandBuffer& cmd) {
     }
 
     for (auto& image_data : textures) {
-        image_barriers.push_back(image_data.texture.createBarrier(
+        image_barriers.push_back(image_data.texture->createBarrier(
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_2_NONE,
             VK_ACCESS_2_NONE, VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT,
             VK_ACCESS_2_TRANSFER_WRITE_BIT));
@@ -101,17 +102,16 @@ void StagingBuffer::flush(const CommandBuffer& cmd) {
     }
 
     for (auto& image_data : textures) {
-        auto state = image_data.texture.getState();
-
         VkBufferImageCopy copy = {};
         copy.bufferOffset = image_data.host_offset;
         copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         copy.imageSubresource.layerCount = 1;
-        copy.imageExtent.width = state.width;
-        copy.imageExtent.height = state.height;
+        copy.imageExtent.width = image_data.texture->getWidth();
+        copy.imageExtent.height = image_data.texture->getHeight();
         copy.imageExtent.depth = 1;
 
-        vkCmdCopyBufferToImage(cmd.buffer, buffer_handle, state.texture,
+        vkCmdCopyBufferToImage(cmd.buffer, buffer_handle,
+                               image_data.texture->getImage(),
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
     }
 

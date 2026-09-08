@@ -4,12 +4,13 @@
 
 #include <set>
 #include <tracy/Tracy.hpp>
+#include <unordered_set>
 
 #include "BufferBuilder.h"
 #include "EngineData.h"
 #include "GraphicsPipelineBuilder.h"
+#include "Handles.h"
 #include "ParticleHandle.h"
-#include "TextureHandle.h"
 
 namespace Graphics {
 
@@ -46,11 +47,6 @@ void ParticleRenderer::render(FrameGraph& frame_graph,
 
     auto particle_count = particles.alive.size();
 
-    std::set<TextureHandle> particle_texture_descriptors;
-    for (const auto& particle : particles.particles) {
-        particle_texture_descriptors.insert(particle.texture);
-    }
-
     auto pass = GraphicsPass(
         "Particles", pipeline,
         [this, particle_count](GraphicsPassExecution& execution) {
@@ -62,14 +58,15 @@ void ParticleRenderer::render(FrameGraph& frame_graph,
             execution.draw(quad, particle_count);
         });
 
-    auto render_target = engine_data.texture_registry.getTexture("Color");
-    pass.addColorAttachment(*render_target);
-    auto depth = engine_data.texture_registry.getTexture("Depth");
-    pass.setDepthAttachment(*depth);
-    for (const auto texture_handle : particle_texture_descriptors) {
-        auto texture = *engine_data.texture_registry.getTexture(texture_handle);
-        pass.reads(texture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    }
+    // auto render_target = engine_data.texture_registry.getTexture("Color");
+    // pass.addColorAttachment(*render_target);
+    // auto depth = engine_data.texture_registry.getTexture("Depth");
+    // pass.setDepthAttachment(*depth);
+    // for (const auto texture_handle : particle_texture_descriptors) {
+    //     auto texture =
+    //     *engine_data.texture_registry.getTexture(texture_handle);
+    //     pass.reads(texture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    // }
 
     frame_graph.addGraphicsPass(pass);
 }

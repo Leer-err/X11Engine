@@ -1,14 +1,5 @@
 #include "TextureBuilder.h"
 
-#include <vk_mem_alloc.h>
-#include <vulkan/vulkan.h>
-
-#include <string_view>
-
-#include "Device.h"
-#include "Texture.h"
-#include "TextureRegistry.h"
-
 namespace Graphics {
 
 TextureBuilder::TextureBuilder(VkFormat format, uint32_t width, uint32_t height)
@@ -57,15 +48,18 @@ TextureBuilder& TextureBuilder::isCopyDestination() {
     return *this;
 }
 
-Result<Texture, TextureError> TextureBuilder::create(
-    Device& device, TextureRegistry& texture_registry) {
-    auto state = device.createTexture(image_info, alloc_info);
-    if (state.isError()) return state.getError();
+Result<TextureHandle, TextureError> TextureBuilder::create(
+    Device& device, TextureRegistry& texture_registry,
+    DescriptorSet& descriptor_set) {
+    auto texture_opt = device.createTexture(image_info, alloc_info);
+    if (texture_opt.isError()) return texture_opt.getError();
 
-    if (name.empty())
-        return texture_registry.addTexture(state.getResult());
-    else
-        return texture_registry.addTexture(name, state.getResult());
+    auto texture = texture_opt.getResult();
+
+    auto index = descriptor_set.addTexture(texture.view);
+    if (index.has_value() == false) return TextureError::OutOfDescriptors;
+
+    return texture_registry.create(device, texture, image_info, alloc_info);
 }
 
 }  // namespace Graphics

@@ -3,7 +3,7 @@
 #include <cstddef>
 
 #include "Buffer.h"
-#include "BufferRegistry/BufferRegistry.h"
+#include "BufferRegistry.h"
 #include "Device.h"
 #include "EngineData.h"
 #include "Result.h"

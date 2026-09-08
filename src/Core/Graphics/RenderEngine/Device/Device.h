@@ -2,6 +2,7 @@
 
 #include <VkBootstrap.h>
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -10,9 +11,11 @@
 #include "BufferRegistry.h"
 #include "BufferState.h"
 #include "DescriptorLayout.h"
+#include "Descriptors.h"
 #include "DeviceProperties.h"
 #include "GraphicsPipeline.h"
 #include "Logger.h"
+#include "MeshRegistry.h"
 #include "Queue.h"
 #include "Result.h"
 #include "Semaphore.h"
@@ -24,6 +27,12 @@ struct CommandBuffer;
 
 class Device {
    public:
+    struct AllocatedImage {
+        VkImage image;
+        VmaAllocation allocation;
+        VkImageView view;
+    };
+
     Device(const vkb::Instance& instance, const vkb::Device& device,
            VmaAllocator allocator);
     ~Device();
@@ -32,7 +41,7 @@ class Device {
                                    VkPresentModeKHR present_mode,
                                    size_t image_count, VkImageUsageFlags flags);
 
-    Result<TextureState, TextureError> createTexture(
+    Result<AllocatedImage, TextureError> createTexture(
         const VkImageCreateInfo& image_info,
         const VmaAllocationCreateInfo& alloc_info);
     void destroyTexture(const TextureState& state);

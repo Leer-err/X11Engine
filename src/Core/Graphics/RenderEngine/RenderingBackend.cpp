@@ -6,6 +6,9 @@
 
 #include "Device.h"
 #include "GraphicsConfig.h"
+#include "Handles.h"
+#include "SwapChain.h"
+#include "Texture.h"
 
 namespace Graphics {
 
@@ -54,7 +57,7 @@ FrameData RenderingBackend::beginFrame() {
                      .cmd = command_buffer};
 }
 
-void RenderingBackend::endFrame(Texture& rendered_image) {
+void RenderingBackend::endFrame(TextureHandle rendered_image) {
     auto frame_in_flight = frames_in_flight[frame_in_flight_index];
     auto command_buffer = frame_in_flight.pool.getCommandBuffer();
 
@@ -64,7 +67,7 @@ void RenderingBackend::endFrame(Texture& rendered_image) {
     }
 
     // Copy render result to swap chain
-    auto [backbuffer, ready_for_present] = swap_chain.getBackbuffer(
+    auto backbuffer = swap_chain.getBackbuffer(
         frame_in_flight.backbuffer_ready_for_rendering);
     copyToBackbuffer(command_buffer, rendered_image, backbuffer);
     prepareBackbufferForPresentation(command_buffer, backbuffer);
@@ -73,7 +76,7 @@ void RenderingBackend::endFrame(Texture& rendered_image) {
 
     // Submit command buffer
     auto command_buffer_info = command_buffer.submit();
-    auto signal = ready_for_present.submit();
+    auto signal = backbuffer.ready_for_present.submit();
     auto wait = frame_in_flight.backbuffer_ready_for_rendering.submit();
 
     VkSubmitInfo2 submit_info = {};
@@ -94,18 +97,18 @@ void RenderingBackend::endFrame(Texture& rendered_image) {
 }
 
 void RenderingBackend::copyToBackbuffer(const CommandBuffer& cmd,
-                                        Texture& render_target,
-                                        TextureState& backbuffer) {
+                                        TextureHandle render_target,
+                                        SwapChain::BackBuffer backbuffer) {
     ZoneScoped;
     std::array<VkImageMemoryBarrier2, 2> barriers = {};
     barriers[0] = VkImageMemoryBarrier2{};
     barriers[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
-    barriers[0].image = backbuffer.texture;
+    barriers[0].image = backbuffer.image;
     barriers[0].srcStageMask = VK_PIPELINE_STAGE_2_NONE;
     barriers[0].srcAccessMask = VK_ACCESS_2_NONE;
     barriers[0].dstStageMask = VK_PIPELINE_STAGE_2_BLIT_BIT;
     barriers[0].dstAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
-    barriers[0].oldLayout = backbuffer.layout;
+    barriers[0].oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     barriers[0].newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     barriers[0].subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     barriers[0].subresourceRange.baseMipLevel = 0;
@@ -113,30 +116,28 @@ void RenderingBackend::copyToBackbuffer(const CommandBuffer& cmd,
     barriers[0].subresourceRange.baseArrayLayer = 0;
     barriers[0].subresourceRange.layerCount = 1;
 
-    barriers[1] = render_target.createBarrier(
+    barriers[1] = render_target->createBarrier(
         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
         VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT, VK_PIPELINE_STAGE_2_BLIT_BIT,
         VK_ACCESS_2_TRANSFER_READ_BIT);
 
     cmd.barrier(barriers);
-
-    backbuffer.layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    cmd.blit(render_target.getState(), backbuffer);
+    cmd.blitToBackbuffer(render_target, backbuffer);
 }
 
 void RenderingBackend::prepareBackbufferForPresentation(
-    const CommandBuffer& cmd, const TextureState& backbuffer) {
+    const CommandBuffer& cmd, SwapChain::BackBuffer backbuffer) {
     ZoneScoped;
 
     auto render_finished = VkImageMemoryBarrier2{};
     render_finished.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
-    render_finished.image = backbuffer.texture;
+    render_finished.image = backbuffer.image;
     render_finished.srcStageMask = VK_PIPELINE_STAGE_2_BLIT_BIT;
     render_finished.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
     render_finished.dstStageMask = VK_PIPELINE_STAGE_2_NONE;
     render_finished.dstAccessMask = VK_ACCESS_2_NONE;
-    render_finished.oldLayout = backbuffer.layout;
+    render_finished.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     render_finished.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     render_finished.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     render_finished.subresourceRange.baseMipLevel = 0;

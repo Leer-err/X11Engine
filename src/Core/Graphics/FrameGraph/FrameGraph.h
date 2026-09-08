@@ -46,13 +46,13 @@ class Pass {
    public:
     struct PassTexture {
         VkImageLayout layout;
-        Texture texture;
+        TextureHandle texture;
     };
 
     explicit Pass(std::string_view name);
 
-    void reads(const Texture& texture, VkImageLayout layout);
-    void writes(const Texture& texture, VkImageLayout layout);
+    void reads(TextureHandle texture, VkImageLayout layout);
+    void writes(TextureHandle texture, VkImageLayout layout);
 
     void prepareTextures(const CommandBuffer& command_buffer);
 
@@ -60,13 +60,13 @@ class Pass {
 
    private:
     static VkImageMemoryBarrier2 barrierFromLayout(PassTexture& texture);
-    static VkImageMemoryBarrier2 fullBarrier(Texture& texture,
+    static VkImageMemoryBarrier2 fullBarrier(TextureHandle texture,
                                              VkImageLayout layout);
-    static VkImageMemoryBarrier2 depthStencilBarrier(Texture& texture);
-    static VkImageMemoryBarrier2 colorAttachmentBarrier(Texture& texture);
-    static VkImageMemoryBarrier2 shaderResourceBarrier(Texture& texture);
-    static VkImageMemoryBarrier2 copySourceBarrier(Texture& texture);
-    static VkImageMemoryBarrier2 copyDestinatonBarrier(Texture& texture);
+    static VkImageMemoryBarrier2 depthStencilBarrier(TextureHandle texture);
+    static VkImageMemoryBarrier2 colorAttachmentBarrier(TextureHandle texture);
+    static VkImageMemoryBarrier2 shaderResourceBarrier(TextureHandle texture);
+    static VkImageMemoryBarrier2 copySourceBarrier(TextureHandle texture);
+    static VkImageMemoryBarrier2 copyDestinatonBarrier(TextureHandle texture);
 
     std::vector<PassTexture> pass_textures;
     std::string name;
@@ -74,7 +74,7 @@ class Pass {
 
 class GraphicsPass : public Pass {
     struct Attachment {
-        Texture texture;
+        TextureHandle texture;
         VkClearValue clear_value;
         bool clear;
     };
@@ -83,11 +83,11 @@ class GraphicsPass : public Pass {
     GraphicsPass(std::string_view name, const GraphicsPipeline& pipeline,
                  const std::function<void(GraphicsPassExecution&)>& executor);
 
-    void addColorAttachment(const Texture& texture);
-    void addColorAttachment(const Texture& texture, VkClearValue clear_color);
+    void addColorAttachment(TextureHandle texture);
+    void addColorAttachment(TextureHandle texture, VkClearValue clear_color);
 
-    void setDepthAttachment(const Texture& texture);
-    void setDepthAttachment(const Texture& texture, VkClearValue clear_color);
+    void setDepthAttachment(TextureHandle texture);
+    void setDepthAttachment(TextureHandle texture, VkClearValue clear_color);
 
     void execute(const DescriptorSet& descriptor_set,
                  const CommandBuffer& command_buffer);

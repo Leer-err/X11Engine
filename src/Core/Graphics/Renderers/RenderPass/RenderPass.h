@@ -20,8 +20,8 @@ class RenderPass {
    public:
     RenderPass(Device& device, const EngineData& engine_data);
 
-    Texture render(const FrameData& frame_data, FrameGraph& frame_graph,
-                   const RenderWorld& world);
+    TextureHandle render(const FrameData& frame_data, FrameGraph& frame_graph,
+                         const RenderWorld& world);
 
    private:
     void postProcessing(FrameGraph& frame_graph, const RenderWorld& world);
@@ -46,11 +46,11 @@ class RenderPass {
     PostProcessingPass post_processing_pass;
 
     RenderEnviroment env;
-    Texture render_target_texture;
-    Texture depth_stencil_texture;
+    TextureHandle render_target_texture;
+    TextureHandle depth_stencil_texture;
 
     RenderEnviroment post_process_env;
-    Texture final_image;
+    TextureHandle final_image;
 };
 
 }  // namespace Graphics

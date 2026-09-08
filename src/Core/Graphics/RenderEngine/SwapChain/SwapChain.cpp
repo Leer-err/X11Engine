@@ -42,14 +42,13 @@ SwapChain::SwapChain(Device& device, Queue presentation_queue, uint32_t width,
     auto swap_cahin_images = swap_chain.get_images().value();
     swap_chain_size = swap_cahin_images.size();
     for (int i = 0; i < swap_chain_size; i++) {
-        TextureState image = {};
-        image.texture = swap_cahin_images[i];
-        image.width = width;
-        image.height = height;
-        image.format = format.format;
+        auto& backbuffer = backbuffers[i];
 
-        images[i] = image;
-        semaphores[i] = device.createSemaphore();
+        backbuffer.image = swap_cahin_images[i];
+        backbuffer.width = width;
+        backbuffer.height = height;
+        backbuffer.format = format.format;
+        backbuffer.ready_for_present = device.createSemaphore();
     }
 }
 
@@ -66,7 +65,8 @@ void SwapChain::present() {
     info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     info.pNext = nullptr;
     info.waitSemaphoreCount = 1;
-    info.pWaitSemaphores = &semaphores[image_index].semaphore;
+    info.pWaitSemaphores =
+        &backbuffers[image_index].ready_for_present.semaphore;
     info.swapchainCount = 1;
     info.pSwapchains = &swap_chain.swapchain;
     info.pImageIndices = &image_index;
@@ -81,11 +81,7 @@ SwapChain::BackBuffer SwapChain::getBackbuffer(
                           ready_for_render.semaphore, VK_NULL_HANDLE,
                           &image_index);
 
-    BackBuffer backbuffer = {};
-    backbuffer.backbuffer = images[image_index];
-    backbuffer.ready_for_present = semaphores[image_index];
-
-    return backbuffer;
+    return backbuffers[image_index];
 }
 
 }  // namespace Graphics

@@ -1,14 +1,7 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
-#include <cstdint>
-#include <string>
-#include <string_view>
-
-#include "Device.h"
-#include "Result.h"
-#include "Texture.h"
+#include "DescriptorSet.h"
+#include "Registries.h"
 
 namespace Graphics {
 
@@ -23,8 +16,9 @@ class TextureBuilder {
     TextureBuilder& isCopySource();
     TextureBuilder& isCopyDestination();
 
-    Result<Texture, TextureError> create(Device& device,
-                                         TextureRegistry& texture_registry);
+    Result<TextureHandle, TextureError> create(
+        Device& device, TextureRegistry& texture_registry,
+        DescriptorSet& descriptor_set);
 
    private:
     VkImageCreateInfo image_info;

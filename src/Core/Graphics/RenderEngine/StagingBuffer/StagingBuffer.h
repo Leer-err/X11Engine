@@ -8,6 +8,8 @@
 #include "Buffer.h"
 #include "CommandBuffer.h"
 #include "Device.h"
+#include "Handles.h"
+#include "ResourceRegistry.h"
 
 namespace Graphics {
 
@@ -20,7 +22,7 @@ class StagingBuffer {
     };
 
     struct TextureData {
-        Texture texture;
+        TextureHandle texture;
         size_t width;
         size_t height;
         size_t host_offset;
@@ -31,7 +33,7 @@ class StagingBuffer {
    public:
     StagingBuffer(Device& device);
 
-    void stageTexture(const Texture& destination, const void* data,
+    void stageTexture(TextureHandle destination, const void* data,
                       size_t data_size);
     void stageBuffer(const Buffer& destination, const void* data,
                      size_t data_size);

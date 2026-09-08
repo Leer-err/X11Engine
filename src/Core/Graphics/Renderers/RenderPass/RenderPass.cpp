@@ -15,6 +15,7 @@
 #include "PostProcessingPass.h"
 #include "RenderEnviroment.h"
 #include "RenderWorld.h"
+#include "Texture.h"
 #include "TextureBuilder.h"
 
 namespace Graphics {
@@ -32,8 +33,9 @@ RenderPass::RenderPass(Device& device, const EngineData& engine_data)
     createRenderEnviroment(device);
 }
 
-Texture RenderPass::render(const FrameData& frame_data, FrameGraph& frame_graph,
-                           const RenderWorld& world) {
+TextureHandle RenderPass::render(const FrameData& frame_data,
+                                 FrameGraph& frame_graph,
+                                 const RenderWorld& world) {
     ZoneScoped;
 
     auto camera_data_address = camera_data_buffer.getDeviceAddress();
@@ -79,16 +81,18 @@ void RenderPass::createRenderEnviroment(Device& device) {
             .isCopySource()
             .isRenderTarget()
             .isShaderResource()
-            .create(device, engine_data.texture_registry)
+            .create(device, engine_data.texture_registry,
+                    engine_data.descriptor_set)
             .getResult();
-    engine_data.descriptor_set.addTexture(render_target_texture);
+    // engine_data.descriptor_set.addTexture(render_target_texture);
 
     depth_stencil_texture =
         TextureBuilder(device_properties.depth_format, config.render_width,
                        config.render_height)
             .setName("Depth")
             .isDepthStencil()
-            .create(device, engine_data.texture_registry)
+            .create(device, engine_data.texture_registry,
+                    engine_data.descriptor_set)
             .getResult();
 
     final_image = TextureBuilder(VK_FORMAT_R8G8B8A8_SRGB, config.render_width,
@@ -97,13 +101,14 @@ void RenderPass::createRenderEnviroment(Device& device) {
                       .isCopySource()
                       .isRenderTarget()
                       .isShaderResource()
-                      .create(device, engine_data.texture_registry)
+                      .create(device, engine_data.texture_registry,
+                              engine_data.descriptor_set)
                       .getResult();
 }
 
 void RenderPass::postProcessing(FrameGraph& frame_graph,
                                 const RenderWorld& world) {
-    post_processing_pass.render(render_target_texture, frame_graph, world);
+    // post_processing_pass.render(render_target_texture, frame_graph, world);
 
     // frame_data.cmd.bindRenderEnviroment(post_process_env);
 

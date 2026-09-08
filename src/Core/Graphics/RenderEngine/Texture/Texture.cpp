@@ -1,42 +1,31 @@
 #include "Texture.h"
 
-#include <vulkan/vulkan_core.h>
-
-#include "TextureRegistry.h"
+#include <vulkan/vulkan.h>
 
 namespace Graphics {
 
-Texture::Texture() : handle(0), registry(nullptr) {}
-
-Texture::Texture(TextureHandle handle, TextureRegistry* registry)
-    : handle(handle), registry(registry) {}
-
-TextureHandle Texture::getHandle() const { return handle; }
-
-TextureState Texture::getState() const {
-    return *registry->getTextureState(handle);
-}
+Texture::Texture(Device& device, Device::AllocatedImage allocated_image,
+                 const VkImageCreateInfo& image_info,
+                 const VmaAllocationCreateInfo& alloc_info) {}
 
 VkImageMemoryBarrier2 Texture::createBarrier(VkImageLayout new_layout,
                                              VkPipelineStageFlags2 src_stages,
                                              VkAccessFlags2 src_access,
                                              VkPipelineStageFlags2 dst_stages,
                                              VkAccessFlags2 dst_access) {
-    auto state = registry->getTextureState(handle);
-
     VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT;
-    if (state->format == VK_FORMAT_D24_UNORM_S8_UINT ||
-        state->format == VK_FORMAT_D32_SFLOAT_S8_UINT)
+    if (format == VK_FORMAT_D24_UNORM_S8_UINT ||
+        format == VK_FORMAT_D32_SFLOAT_S8_UINT)
         aspect = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 
     auto barrier = VkImageMemoryBarrier2{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
-    barrier.image = state->texture;
+    barrier.image = texture;
     barrier.srcStageMask = src_stages;
     barrier.srcAccessMask = src_access;
     barrier.dstStageMask = dst_stages;
     barrier.dstAccessMask = dst_access;
-    barrier.oldLayout = state->layout;
+    barrier.oldLayout = layout;
     barrier.newLayout = new_layout;
     barrier.subresourceRange.aspectMask = aspect;
     barrier.subresourceRange.baseMipLevel = 0;
@@ -44,7 +33,7 @@ VkImageMemoryBarrier2 Texture::createBarrier(VkImageLayout new_layout,
     barrier.subresourceRange.baseArrayLayer = 0;
     barrier.subresourceRange.layerCount = 1;
 
-    state->layout = new_layout;
+    layout = new_layout;
 
     return barrier;
 }

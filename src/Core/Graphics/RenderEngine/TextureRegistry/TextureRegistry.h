@@ -6,10 +6,11 @@
 #include <unordered_map>
 
 #include "Device.h"
+#include "Handles.h"
 #include "Texture.h"
-#include "TextureHandle.h"
 #include "TextureState.h"
 #include "TransparentStringHash.h"
+
 
 namespace Graphics {
 

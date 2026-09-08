@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "ParticleHandle.h"
+#include "Texture.h"
 #include "Vector3.h"
 
 namespace Graphics {

@@ -1,24 +1,26 @@
 #include "PoolAllocator.h"
 
+#include <bit>
 #include <cassert>
+#include <new>
 
-PoolAllocator::PoolAllocator(uint8_t* ptr, size_t pool_size, size_t object_size,
-                             size_t alignment)
-    : ptr(ptr), pool_size(pool_size) {
+PoolAllocator::PoolAllocator(size_t max_object_count, size_t object_size,
+                             size_t alignment) {
     assert(object_size >= sizeof(uint8_t*));
-    assert(pool_size >= object_size);
+    assert(max_object_count > 0);
 
-    auto aligned_address = align(ptr, alignment);
-    auto aligned_pool_size = pool_size - (aligned_address - ptr);
+    pool_size = max_object_count * object_size;
+
+    ptr = std::bit_cast<uint8_t*>(
+        ::operator new(pool_size, std::align_val_t(alignment)));
     aligned_object_size = align(object_size, alignment);
 
-    auto capacity = aligned_pool_size / object_size;
-    auto node = std::bit_cast<Node*>(aligned_address);
+    auto capacity = pool_size / object_size;
+    auto node = std::bit_cast<Node*>(ptr);
     for (int i = 0; i < capacity; i++) {
         node->next = std::bit_cast<Node*>(std::bit_cast<uint8_t*>(node) +
                                           aligned_object_size);
-        if (std::bit_cast<uint8_t*>(node->next) >=
-            aligned_address + aligned_pool_size) {
+        if (std::bit_cast<uint8_t*>(node->next) >= ptr + pool_size) {
             node->next = nullptr;
             break;
         }
@@ -26,8 +28,10 @@ PoolAllocator::PoolAllocator(uint8_t* ptr, size_t pool_size, size_t object_size,
         node = node->next;
     }
 
-    free_list = std::bit_cast<Node*>(aligned_address);
+    free_list = std::bit_cast<Node*>(ptr);
 }
+
+PoolAllocator::~PoolAllocator() { delete[] ptr; }
 
 uint8_t* PoolAllocator::allocate() {
     auto data = std::bit_cast<uint8_t*>(free_list);

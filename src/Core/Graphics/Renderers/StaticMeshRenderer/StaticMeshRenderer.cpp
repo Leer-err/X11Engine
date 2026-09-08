@@ -29,7 +29,7 @@ StaticMeshRenderer::StaticMeshRenderer(Device& device,
                    .getResult();
 
     sampler_index =
-        engine_data.descriptor_set.addSampler(Sampler::linear(device));
+        *engine_data.descriptor_set.addSampler(Sampler::linear(device));
 }
 
 void StaticMeshRenderer::render(FrameGraph& frame_graph,
@@ -59,15 +59,15 @@ void StaticMeshRenderer::render(FrameGraph& frame_graph,
 
         auto& model_data = (*buffer_ptr)[i];
         model_data.model = Matrix::translation(model.position);
-        model_data.albedo_descriptor =
-            *engine_data.descriptor_set.getIndex(model.albedo);
+        // model_data.albedo_descriptor =
+        //     *engine_data.descriptor_set.getIndex(model.albedo);
         model_data.albedo_sampler = sampler_index;
 
-        pass.reads(*engine_data.texture_registry.getTexture(model.albedo),
-                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        // pass.reads(*engine_data.texture_registry.getTexture(model.albedo),
+        //            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
-    pass.addColorAttachment(*engine_data.texture_registry.getTexture("Color"));
-    pass.setDepthAttachment(*engine_data.texture_registry.getTexture("Depth"));
+    // pass.addColorAttachment(*engine_data.texture_registry.getTexture("Color"));
+    // pass.setDepthAttachment(*engine_data.texture_registry.getTexture("Depth"));
 
     frame_graph.addGraphicsPass(pass);
 }

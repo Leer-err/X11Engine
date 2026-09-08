@@ -8,6 +8,7 @@
 #include "FrameData.h"
 #include "FrameGraph.h"
 #include "GraphicsPipeline.h"
+#include "Handles.h"
 #include "RenderEnviroment.h"
 #include "RenderWorld.h"
 
@@ -39,7 +40,7 @@ class CloudsRenderer {
     GraphicsPipeline cloud_texture_pipeline;
     GraphicsPipeline cloud_pipeline;
 
-    Texture clouds_texture;
+    TextureHandle clouds_texture;
     Buffer clouds_data_buffer;
 
     PushConstants push_constants;

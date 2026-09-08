@@ -3,24 +3,49 @@
 #include <vulkan/vulkan.h>
 
 #include <cstddef>
-#include <map>
 #include <optional>
+#include <vector>
 
 #include "Buffer.h"
+#include "Descriptors.h"
 #include "Device.h"
-#include "Texture.h"
 
 namespace Graphics {
+
+template <typename T>
+class IndexAllocator {
+   public:
+    explicit IndexAllocator(T index_count) : count(index_count) {
+        free_indices.reserve(count);
+
+        for (auto i = count; i > 0; i--) free_indices.push_back(i);
+    }
+
+    std::optional<T> allocate() {
+        if (free_indices.empty()) return std::nullopt;
+
+        auto index = free_indices.back();
+        free_indices.pop_back();
+
+        return index;
+    }
+
+    void free(T index) { free_indices.push_back(index); }
+
+   private:
+    T count;
+    std::vector<T> free_indices;
+};
 
 class DescriptorSet {
    public:
     DescriptorSet(Device& device, const DeviceProperties& device_properties);
 
-    uint32_t addTexture(const Texture& texture);
-    uint32_t addSampler(const VkSampler& sampler);
+    std::optional<TextureDescriptor> addTexture(VkImageView texture_view);
+    std::optional<SamplerDescriptor> addSampler(VkSampler sampler);
 
-    std::optional<uint32_t> getIndex(const Texture& texture);
-    std::optional<uint32_t> getIndex(TextureHandle texture);
+    void removeTexture(TextureDescriptor texture);
+    void removeSampler(SamplerDescriptor sampler);
 
     VkDeviceAddress getDescriptors() const;
 
@@ -28,16 +53,18 @@ class DescriptorSet {
     static Buffer createDescriptorBuffer(Device& device, size_t set_size,
                                          size_t alignment);
 
+    uint8_t* getTextureDescriptorsData() const;
+    uint8_t* getSamplerDescriptorsData() const;
+
     Device& device;
 
-    std::map<TextureHandle, uint32_t> texture_index_map;
     Buffer descriptors;
-    TextureHandle current_texture_index;
-    size_t current_sampler_index;
+
+    IndexAllocator<TextureDescriptor> texture_allocator;
+    IndexAllocator<SamplerDescriptor> sampler_allocator;
 
     size_t texture_descriptor_size;
     size_t sampler_descriptor_size;
-
     size_t texture_descriptors_offset;
     size_t sampler_descriptors_offset;
 };

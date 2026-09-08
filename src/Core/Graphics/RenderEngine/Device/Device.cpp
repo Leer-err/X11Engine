@@ -64,7 +64,7 @@ vkb::Swapchain Device::createSwapChain(VkSurfaceFormatKHR format,
     return swap_ret.value();
 }
 
-Result<TextureState, TextureError> Device::createTexture(
+Result<Device::AllocatedImage, TextureError> Device::createTexture(
     const VkImageCreateInfo& image_info,
     const VmaAllocationCreateInfo& alloc_info) {
     VkImage image;
@@ -73,14 +73,6 @@ Result<TextureState, TextureError> Device::createTexture(
                                      &image, &allocation, nullptr);
     if (result != VK_SUCCESS)
         logger.error("Image creation failed with {}", string_VkResult(result));
-
-    auto image_result = TextureState{};
-    image_result.texture = image;
-    image_result.allocation = allocation;
-    image_result.layout = VK_IMAGE_LAYOUT_UNDEFINED;
-    image_result.format = image_info.format;
-    image_result.width = image_info.extent.width;
-    image_result.height = image_info.extent.height;
 
     VkImageViewCreateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -95,9 +87,9 @@ Result<TextureState, TextureError> Device::createTexture(
         info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
     VkImageView view;
-    vkCreateImageView(device, &info, nullptr, &image_result.view);
+    vkCreateImageView(device, &info, nullptr, &view);
 
-    return image_result;
+    return AllocatedImage{image, allocation, 0};
 }
 
 void Device::destroyTexture(const TextureState& state) {

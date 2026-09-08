@@ -3,12 +3,13 @@
 #include <vector>
 
 #include "EffectDescription.h"
+#include "Handles.h"
 #include "MeshHandle.h"
 #include "Particle.h"
 #include "ParticleHandle.h"
 #include "ParticleHandleAllocator.h"
 #include "Property.h"
-#include "TextureHandle.h"
+
 
 namespace Graphics {
 
